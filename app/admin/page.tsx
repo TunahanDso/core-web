@@ -1,3 +1,4 @@
+import { getAdminIdentity } from "@/lib/cms/auth";
 import { getCmsStats } from "@/lib/cms/db";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,10 @@ const modules = [
 ] as const;
 
 export default async function Admin() {
-  const stats = await getCmsStats();
+  const [stats, identity] = await Promise.all([
+    getCmsStats(),
+    getAdminIdentity(),
+  ]);
   const databaseOnline = stats.connection === "online";
 
   return (
@@ -65,6 +69,14 @@ export default async function Admin() {
           <b>MEDIA</b> {stats.mediaBinding ? "core-web-media · bound" : "not available"}
         </span>
         <span>
+          <b>ACCESS</b>{" "}
+          {identity.authenticated
+            ? `JWT VERIFIED${identity.email ? ` · ${identity.email}` : ""}`
+            : identity.configured
+              ? "JWT NOT VERIFIED"
+              : "RUNTIME CONFIG REQUIRED"}
+        </span>
+        <span>
           <b>MODE</b> READ ONLY
         </span>
       </div>
@@ -94,7 +106,11 @@ export default async function Admin() {
 
       <div className="terminal">
         <span>SECURITY BOUNDARY</span>
-        <b>Writes remain disabled until Cloudflare Access is configured</b>
+        <b>
+          {identity.authenticated
+            ? "Cloudflare Access identity verified · write layer can be enabled next"
+            : "Writes remain disabled until Access JWT verification is fully configured"}
+        </b>
         <small>PUBLIC CMS ≠ CORE OPS ≠ VEHICLE COMMAND AUTHORITY</small>
       </div>
 
