@@ -2921,3 +2921,11 @@ html,body{max-width:100%;overflow-x:clip}
     animation:none!important;
   }
 }
+
+
+/* V0.5.2 — final desktop nav breathing room */
+@media(min-width:1151px){
+  .publicHeader .publicNav{
+    padding-right:clamp(10px,1.2vw,22px);
+  }
+}
