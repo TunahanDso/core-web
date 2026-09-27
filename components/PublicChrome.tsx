@@ -8,6 +8,7 @@ const labels = {
     research: "Araştırma",
     competitions: "Yarışmalar",
     about: "Hakkımızda",
+    join: "Katıl",
     student: "ÖĞRENCİ MÜHENDİSLİK TAKIMI",
     slogan: "İnsan İçin Teknoloji.",
   },
@@ -17,6 +18,7 @@ const labels = {
     research: "Research",
     competitions: "Competitions",
     about: "About",
+    join: "Join",
     student: "STUDENT ENGINEERING TEAM",
     slogan: "Technology for People.",
   },
@@ -48,10 +50,24 @@ export default function PublicChrome({
           <a href={`/${locale}/research`}>{l.research}</a>
           <a href={`/${locale}/competitions`}>{l.competitions}</a>
           <a href={`/${locale}/about`}>{l.about}</a>
+          <a className="joinNav" href={`/${locale}/join`}>{l.join}</a>
           <LanguageSwitcher locale={locale} />
           <a className="adminLink" href="/admin">ADMIN</a>
         </nav>
       </header>
+
+      <div className="clubIdentityRail" aria-hidden="true">
+        <div>
+          <span>YILDIZ TECHNICAL UNIVERSITY</span>
+          <b>STUDENT ENGINEERING TEAM</b>
+          <span>{l.slogan}</span>
+          <b>LEARN · BUILD · TEST · SHARE</b>
+          <span>YILDIZ TECHNICAL UNIVERSITY</span>
+          <b>STUDENT ENGINEERING TEAM</b>
+          <span>{l.slogan}</span>
+          <b>LEARN · BUILD · TEST · SHARE</b>
+        </div>
+      </div>
 
       {children}
 
