@@ -1,3 +1,4 @@
+import { applyShowcaseSeedAction } from "@/app/admin/actions";
 import { getAdminIdentity } from "@/lib/cms/auth";
 import { getCmsStats } from "@/lib/cms/db";
 
@@ -14,12 +15,18 @@ const modules = [
   ["Settings", "Homepage, navigation, SEO and publication settings", "#", false],
 ] as const;
 
-export default async function Admin() {
-  const [stats, identity] = await Promise.all([
+export default async function Admin({
+  searchParams,
+}: {
+  searchParams?: Promise<{ seed?: string }>;
+}) {
+  const [stats, identity, query] = await Promise.all([
     getCmsStats(),
     getAdminIdentity(),
+    searchParams ?? Promise.resolve({}),
   ]);
   const databaseOnline = stats.connection === "online";
+  const writeEnabled = databaseOnline && identity.authenticated;
 
   return (
     <main className="admin">
@@ -33,41 +40,22 @@ export default async function Admin() {
 
       <h1>Site Administration</h1>
       <p>
-        Live control surface for the public YTÜ CORE website. The database is
-        now connected in read-only mode while authentication is being completed.
-        Vehicle command authority remains isolated from this CMS.
+        Live control surface for the public YTÜ CORE website. Cloudflare Access
+        identity verification is active and authenticated CMS mutations are now
+        available. Vehicle command authority remains isolated from this CMS.
       </p>
 
       <div className="adminStats">
-        <div>
-          <strong>{stats.contentCount}</strong>
-          <span>CONTENT ITEMS</span>
-        </div>
-        <div>
-          <strong>{stats.projectCount}</strong>
-          <span>PROJECTS</span>
-        </div>
-        <div>
-          <strong>{stats.competitionCount}</strong>
-          <span>COMPETITIONS</span>
-        </div>
-        <div>
-          <strong>{stats.mediaCount}</strong>
-          <span>MEDIA RECORDS</span>
-        </div>
-        <div>
-          <strong>{stats.auditCount}</strong>
-          <span>AUDIT EVENTS</span>
-        </div>
+        <div><strong>{stats.contentCount}</strong><span>CONTENT ITEMS</span></div>
+        <div><strong>{stats.projectCount}</strong><span>PROJECTS</span></div>
+        <div><strong>{stats.competitionCount}</strong><span>COMPETITIONS</span></div>
+        <div><strong>{stats.mediaCount}</strong><span>MEDIA RECORDS</span></div>
+        <div><strong>{stats.auditCount}</strong><span>AUDIT EVENTS</span></div>
       </div>
 
       <div className="bindingStrip">
-        <span>
-          <b>DB</b> {databaseOnline ? "core-web-cms · connected" : "not available"}
-        </span>
-        <span>
-          <b>MEDIA</b> {stats.mediaBinding ? "core-web-media · bound" : "not available"}
-        </span>
+        <span><b>DB</b> {databaseOnline ? "core-web-cms · connected" : "not available"}</span>
+        <span><b>MEDIA</b> {stats.mediaBinding ? "core-web-media · bound" : "not available"}</span>
         <span>
           <b>ACCESS</b>{" "}
           {identity.authenticated
@@ -76,16 +64,40 @@ export default async function Admin() {
               ? "JWT NOT VERIFIED"
               : "RUNTIME CONFIG REQUIRED"}
         </span>
-        <span>
-          <b>MODE</b> READ ONLY
-        </span>
+        <span><b>MODE</b> {writeEnabled ? "AUTHENTICATED WRITE" : "READ ONLY"}</span>
       </div>
+
+      {query.seed === "applied" ? (
+        <div className="cmsSuccess">
+          <b>Showcase seed applied.</b>
+          <span>D1 content has been synchronized and an audit event was recorded.</span>
+        </div>
+      ) : null}
 
       {stats.error ? (
         <div className="cmsWarning">
           <b>CMS connection notice</b>
           <span>{stats.error}</span>
         </div>
+      ) : null}
+
+      {writeEnabled && stats.contentCount === 0 ? (
+        <section className="cmsActionPanel">
+          <div>
+            <span>INITIALIZE CONTENT</span>
+            <h2>Load the CORE showcase into D1</h2>
+            <p>
+              Inserts the prepared 10 projects and 10 competition targets with
+              TR/EN localizations. The operation is idempotent and records the
+              authenticated Access identity in the audit log.
+            </p>
+          </div>
+          <form action={applyShowcaseSeedAction}>
+            <button className="adminPrimaryButton" type="submit">
+              LOAD SHOWCASE SEED →
+            </button>
+          </form>
+        </section>
       ) : null}
 
       <div className="adminGrid">
@@ -107,16 +119,14 @@ export default async function Admin() {
       <div className="terminal">
         <span>SECURITY BOUNDARY</span>
         <b>
-          {identity.authenticated
-            ? "Cloudflare Access identity verified · write layer can be enabled next"
-            : "Writes remain disabled until Access JWT verification is fully configured"}
+          {writeEnabled
+            ? "Cloudflare Access JWT verified · authenticated CMS writes enabled"
+            : "CMS mutations remain disabled without a verified Access identity"}
         </b>
         <small>PUBLIC CMS ≠ CORE OPS ≠ VEHICLE COMMAND AUTHORITY</small>
       </div>
 
-      <a className="adminBack" href="/">
-        ← Return to public site
-      </a>
+      <a className="adminBack" href="/">← Return to public site</a>
     </main>
   );
 }
