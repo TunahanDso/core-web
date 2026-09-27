@@ -10,21 +10,66 @@ export default function MotionRuntime() {
     ).matches;
 
     const header = document.querySelector<HTMLElement>(".siteHeader");
+    const scrollProgress =
+      document.querySelector<HTMLElement>("[data-scroll-progress]");
     const navLinks = Array.from(
       document.querySelectorAll<HTMLAnchorElement>("[data-nav]")
     );
     const progressBars = Array.from(
       document.querySelectorAll<HTMLElement>("[data-progress]")
     );
+    const tiltCards = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-tilt]")
+    );
 
     root.classList.add("motion-ready");
 
     const onScroll = () => {
       header?.classList.toggle("scrolled", window.scrollY > 24);
+
+      if (scrollProgress) {
+        const max = Math.max(
+          document.documentElement.scrollHeight - window.innerHeight,
+          1
+        );
+        scrollProgress.style.transform = `scaleX(${Math.min(
+          Math.max(window.scrollY / max, 0),
+          1
+        )})`;
+      }
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      root.style.setProperty("--mouse-x", `${event.clientX}px`);
+      root.style.setProperty("--mouse-y", `${event.clientY}px`);
     };
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+
+    const tiltCleanups = tiltCards.map((card) => {
+      const move = (event: PointerEvent) => {
+        if (reducedMotion) return;
+        const rect = card.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        card.style.setProperty("--tilt-x", `${((0.5 - y) * 4).toFixed(2)}deg`);
+        card.style.setProperty("--tilt-y", `${((x - 0.5) * 5).toFixed(2)}deg`);
+        card.style.setProperty("--spot-x", `${(x * 100).toFixed(1)}%`);
+        card.style.setProperty("--spot-y", `${(y * 100).toFixed(1)}%`);
+      };
+      const leave = () => {
+        card.style.setProperty("--tilt-x", "0deg");
+        card.style.setProperty("--tilt-y", "0deg");
+      };
+      card.addEventListener("pointermove", move);
+      card.addEventListener("pointerleave", leave);
+      return () => {
+        card.removeEventListener("pointermove", move);
+        card.removeEventListener("pointerleave", leave);
+      };
+    });
 
     if (reducedMotion) {
       document
@@ -72,7 +117,7 @@ export default function MotionRuntime() {
             revealObserver.unobserve(element);
           }
         },
-        { threshold: 0.16, rootMargin: "0px 0px -5% 0px" }
+        { threshold: 0.13, rootMargin: "0px 0px -4% 0px" }
       );
 
       document
@@ -109,6 +154,8 @@ export default function MotionRuntime() {
 
       return () => {
         window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("pointermove", onPointerMove);
+        tiltCleanups.forEach((cleanup) => cleanup());
         revealObserver.disconnect();
         sectionObserver.disconnect();
         root.classList.remove("motion-ready");
@@ -117,6 +164,8 @@ export default function MotionRuntime() {
 
     return () => {
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointermove", onPointerMove);
+      tiltCleanups.forEach((cleanup) => cleanup());
       root.classList.remove("motion-ready");
     };
   }, []);
