@@ -6,6 +6,11 @@ declare module "cloudflare:workers" {
     error?: string;
   }
 
+  export interface D1ExecResult {
+    count: number;
+    duration: number;
+  }
+
   export interface D1PreparedStatement {
     bind(...values: unknown[]): D1PreparedStatement;
     first<T = Record<string, unknown>>(columnName?: string): Promise<T | null>;
@@ -15,6 +20,10 @@ declare module "cloudflare:workers" {
 
   export interface D1Database {
     prepare(query: string): D1PreparedStatement;
+    batch<T = Record<string, unknown>>(
+      statements: D1PreparedStatement[]
+    ): Promise<D1Result<T>[]>;
+    exec(query: string): Promise<D1ExecResult>;
   }
 
   export interface R2Bucket {
