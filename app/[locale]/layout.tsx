@@ -2,14 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/lib/i18n";
 
-export function generateMetadata({
-  params,
-}: {
-  params: { locale: string };
-}): Metadata {
-  if (!isLocale(params.locale)) notFound();
+type LocaleLayoutProps = {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+};
 
-  const tr = params.locale === "tr";
+export async function generateMetadata({
+  params,
+}: Pick<LocaleLayoutProps, "params">): Promise<Metadata> {
+  const { locale } = await params;
+
+  if (!isLocale(locale)) notFound();
+
+  const tr = locale === "tr";
 
   return {
     title: tr ? "YTÜ CORE | Otonom Sistemler" : "YTÜ CORE | Autonomous Systems",
@@ -17,17 +22,15 @@ export function generateMetadata({
       ? "YTÜ CORE — otonom sistemler, mühendislik, araştırma ve saha operasyonları."
       : "YTÜ CORE — autonomous systems, engineering, research and field operations.",
     alternates: {
-      canonical: `/${params.locale}`,
+      canonical: `/${locale}`,
       languages: {
         "tr-TR": "/tr",
-        "en": "/en",
+        en: "/en",
       },
     },
   };
 }
 
-export default function LocaleLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function LocaleLayout({ children }: LocaleLayoutProps) {
   return children;
 }
