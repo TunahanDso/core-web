@@ -94,7 +94,7 @@ export default async function JoinPage({
   return (
     <PublicChrome locale={locale}>
       <PublicPageHero
-        code="05"
+        code="06"
         eyebrow={c.eyebrow}
         title={c.title}
         lead={c.lead}
