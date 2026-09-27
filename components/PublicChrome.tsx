@@ -37,7 +37,12 @@ export default function PublicChrome({
     <main className="publicPage">
       <header className="siteHeader publicHeader">
         <a className="brand coreBrand" href={`/${locale}`} aria-label="YTÜ CORE">
-          <span className="brandMark">C</span>
+          <span className="brandMark" aria-hidden="true">
+            <svg className="coreLogoSvg" viewBox="0 0 64 64" role="img">
+              <path d="M48 17H29c-9 0-15 6-15 15s6 15 15 15h19V37H30c-3 0-5-2-5-5s2-5 5-5h18V17Z" />
+              <rect x="47" y="17" width="4" height="30" />
+            </svg>
+          </span>
           <span className="brandWords">
             <b>YTÜ CORE</b>
             <small>{l.student}</small>
@@ -73,7 +78,12 @@ export default function PublicChrome({
 
       <footer className="publicFooter">
         <div className="footerBrand">
-          <span className="brandMark">C</span>
+          <span className="brandMark" aria-hidden="true">
+            <svg className="coreLogoSvg" viewBox="0 0 64 64" role="img">
+              <path d="M48 17H29c-9 0-15 6-15 15s6 15 15 15h19V37H30c-3 0-5-2-5-5s2-5 5-5h18V17Z" />
+              <rect x="47" y="17" width="4" height="30" />
+            </svg>
+          </span>
           <div>
             <b>YTÜ CORE</b>
             <small>{l.slogan}</small>

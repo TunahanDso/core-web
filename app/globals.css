@@ -2726,3 +2726,198 @@ footer{border-top:1px solid #13161b}
   .joinRouteGrid{grid-template-columns:1fr}
   .joinValueCards article{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   V0.5.1 — desktop header + responsive polish
+   Preserve the established mobile visual language.
+   ========================================================= */
+
+html,body{max-width:100%;overflow-x:clip}
+
+.publicHeader{
+  left:0;
+  right:0;
+  transform:none;
+  width:100vw;
+  max-width:none;
+  padding-left:clamp(20px,2.6vw,48px);
+  padding-right:clamp(20px,2.6vw,48px);
+}
+
+.publicHeader .coreBrand{
+  flex:0 0 auto;
+}
+
+.publicHeader .publicNav{
+  flex:1 1 auto;
+  min-width:0;
+  margin-left:auto;
+  justify-content:flex-end;
+  gap:clamp(14px,1.35vw,26px);
+}
+
+.coreLogoSvg{
+  width:25px;
+  height:25px;
+  display:block;
+}
+.coreLogoSvg path{fill:#07080a}
+.coreLogoSvg rect{fill:#f7f8fa}
+
+.clubIdentityRail{
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+}
+
+.studentHeroCopy,
+.workbenchVisual,
+.sectionHeading>*,
+.sharedBackbone>*,
+.projectPreviewGrid>*,
+.clubIdentityCards>*,
+.joinPreview>*,
+.nextPortal>*{
+  min-width:0;
+}
+
+@media(min-width:1151px){
+  .studentStamp{
+    min-width:278px;
+    grid-template-columns:auto 1fr;
+    padding:14px 16px 13px;
+    gap:0 10px;
+    margin-bottom:30px;
+    border-width:1px;
+    box-shadow:7px 7px 0 rgba(17,19,23,.085);
+  }
+  .studentStamp span,
+  .studentStamp b{
+    font-size:18px;
+  }
+  .studentStamp small{
+    margin-top:6px;
+    font-size:8px;
+  }
+  .studentStamp::after{
+    content:attr(data-university);
+    grid-column:1/-1;
+    margin-top:10px;
+    padding-top:9px;
+    border-top:1px solid rgba(17,19,23,.18);
+    color:#5e646b;
+    font:850 8px/1.2 ui-monospace,monospace;
+    letter-spacing:.13em;
+  }
+}
+
+@media(min-width:1601px){
+  .publicHeader{
+    padding-left:48px;
+    padding-right:48px;
+  }
+  .publicHeader .publicNav{
+    gap:28px;
+  }
+}
+
+@media(min-width:1151px) and (max-width:1390px){
+  .publicHeader{
+    gap:18px;
+    padding-left:24px;
+    padding-right:24px;
+  }
+  .publicHeader .publicNav{
+    gap:14px;
+    font-size:11px;
+    letter-spacing:.045em;
+  }
+  .publicHeader .joinNav,
+  .publicHeader .adminLink{
+    padding:8px 9px;
+  }
+  .publicHeader .lang{
+    padding-left:14px;
+  }
+  .brandWords>b{font-size:13px}
+  .brandWords>small{font-size:7px}
+  .studentHero{
+    grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);
+    gap:32px;
+  }
+  .studentHero h1{
+    font-size:clamp(68px,7.5vw,106px);
+  }
+  .workbenchVisual{min-height:540px}
+}
+
+@media(max-width:1150px){
+  .publicHeader{
+    width:100vw;
+    left:0;
+    right:0;
+    transform:none;
+    padding-left:24px;
+    padding-right:24px;
+  }
+  .publicHeader .publicNav{
+    flex:0 0 auto;
+    margin-left:0;
+    justify-content:flex-start;
+    max-width:100%;
+  }
+  .coreLogoSvg{
+    width:24px;
+    height:24px;
+  }
+}
+
+@media(max-width:850px){
+  .publicHeader{
+    padding-left:18px;
+    padding-right:18px;
+  }
+  .publicHeader .publicNav{
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .studentHero,
+  .innerHero,
+  .campusSection,
+  .projectPreviewSection,
+  .cultureSection,
+  .nextPortal,
+  .clubIdentitySection,
+  .joinPreview,
+  .publicSection,
+  .teamFlowSection,
+  .teamClubMap,
+  .joinRouteSection,
+  .joinPathSection,
+  .joinValuesSection,
+  .joinStatusSection{
+    padding-left:clamp(18px,5vw,34px);
+    padding-right:clamp(18px,5vw,34px);
+  }
+}
+
+@media(max-width:560px){
+  .publicHeader{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .coreLogoSvg{
+    width:22px;
+    height:22px;
+  }
+  .studentStamp::after{display:none}
+  .clubIdentityRail{
+    margin-left:calc(50% - 50vw);
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .clubIdentityRail>div{
+    animation:none!important;
+  }
+}
