@@ -23,7 +23,7 @@ export default async function Admin({
   const [stats, identity, query] = await Promise.all([
     getCmsStats(),
     getAdminIdentity(),
-    searchParams ?? Promise.resolve({}),
+    searchParams ?? Promise.resolve<{ seed?: string }>({}),
   ]);
   const databaseOnline = stats.connection === "online";
   const writeEnabled = databaseOnline && identity.authenticated;
