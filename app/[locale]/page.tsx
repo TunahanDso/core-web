@@ -131,7 +131,7 @@ export default async function Home({
       <section className="studentHero">
         <div className="heroBlueprint" aria-hidden="true" />
         <div className="studentHeroCopy" data-reveal>
-          <div className="studentStamp">
+          <div className="studentStamp" data-university={locale === "tr" ? "YILDIZ TEKNİK ÜNİVERSİTESİ" : "YILDIZ TECHNICAL UNIVERSITY"}>
             <span>YTÜ</span>
             <b>CORE</b>
             <small>{locale === "tr" ? "ÖĞRENCİ TAKIMI" : "STUDENT TEAM"}</small>
