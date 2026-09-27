@@ -45,6 +45,21 @@ const copy = {
     nextText:
       "Takımları, projeleri, araştırma yaklaşımını ve yarışma hedeflerini ayrı sayfalarda daha derin incele.",
     about: "Bizi tanı",
+    clubEyebrow: "KULÜP KİMLİĞİ",
+    clubTitle: "Derslikten atölyeye. Atölyeden sahaya.",
+    clubLead:
+      "CORE'un farkı yalnızca ne yaptığı değil, nasıl yaptığı. Öğrenci; küçük bir görevden başlayıp gerçek bir alt sistemin sorumluluğunu alır, başka disiplinlerle entegre eder ve bilgisini kendinden sonra gelene bırakır.",
+    clubCards: [
+      ["YILDIZ", "Aynı üniversitede buluşan disiplinler arası öğrenci topluluğu."],
+      ["07", "Araç ve saha takımı"],
+      ["03", "Ortak mühendislik servisi"],
+      ["01", "Paylaşılan teknik kültür"],
+    ],
+    joinEyebrow: "CORE'A KATIL",
+    joinTitle: "İzleyen değil, üreten tarafta ol.",
+    joinText:
+      "CORE'da başlangıç noktası kusursuz bir CV değil; merak, sorumluluk alma isteği ve öğrenmeye açıklık. Hangi alana dokunabileceğini ve takım içinde nasıl ilerlediğini gör.",
+    joinCta: "Katılım kültürünü keşfet",
   },
   en: {
     kicker: "YILDIZ TECHNICAL UNIVERSITY · STUDENT ENGINEERING TEAM",
@@ -83,6 +98,21 @@ const copy = {
     nextText:
       "Explore teams, projects, research culture and competition targets on dedicated pages.",
     about: "Meet the team",
+    clubEyebrow: "CLUB IDENTITY",
+    clubTitle: "From classroom to workshop. From workshop to field.",
+    clubLead:
+      "CORE is defined not only by what it builds, but by how it builds. A student can start with a small task, grow into ownership of a real subsystem, integrate across disciplines and leave knowledge for the next member.",
+    clubCards: [
+      ["YILDIZ", "An interdisciplinary student community inside one university."],
+      ["07", "Vehicle and field teams"],
+      ["03", "Shared engineering services"],
+      ["01", "Shared technical culture"],
+    ],
+    joinEyebrow: "JOIN CORE",
+    joinTitle: "Move from watching to building.",
+    joinText:
+      "The starting point at CORE is not a perfect CV. It is curiosity, ownership and willingness to learn. See where you can contribute and how students grow inside the team.",
+    joinCta: "Explore the student path",
   },
 } as const;
 
@@ -184,6 +214,33 @@ export default async function Home({
         <a href={`/${locale}/about`}>{c.about} →</a>
       </section>
 
+      <section className="clubIdentitySection">
+        <div className="clubIdentityCopy" data-reveal>
+          <p className="eyebrow">{c.clubEyebrow}</p>
+          <h2>{c.clubTitle}</h2>
+          <p>{c.clubLead}</p>
+        </div>
+
+        <div className="clubIdentitySeal" data-reveal aria-hidden="true">
+          <div className="clubSealRing">
+            <span>YTÜ</span>
+            <b>CORE</b>
+            <small>STUDENT-RUN</small>
+          </div>
+          <i>İnsan İçin Teknoloji.</i>
+        </div>
+
+        <div className="clubIdentityCards">
+          {c.clubCards.map(([value, text], index) => (
+            <article data-reveal data-tilt key={value + index}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{value}</strong>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="campusSection">
         <div className="sectionHeading" data-reveal>
           <div>
@@ -271,6 +328,29 @@ export default async function Home({
         </div>
       </section>
 
+      <section className="joinPreview">
+        <div className="joinPreviewTape" aria-hidden="true">STUDENT TEAM / OPEN LAB CULTURE</div>
+        <div data-reveal>
+          <p className="eyebrow">{c.joinEyebrow}</p>
+          <h2>{c.joinTitle}</h2>
+          <p>{c.joinText}</p>
+          <a className="primaryButton" href={`/${locale}/join`}>
+            {c.joinCta} →
+          </a>
+        </div>
+        <div className="joinPreviewDiagram" data-reveal aria-hidden="true">
+          <span>MERAK</span>
+          <i>→</i>
+          <span>GÖREV</span>
+          <i>→</i>
+          <span>ENTEGRASYON</span>
+          <i>→</i>
+          <span>SAHA</span>
+          <i>→</i>
+          <span>TEKNİK HAFIZA</span>
+        </div>
+      </section>
+
       <section className="nextPortal">
         <div data-reveal>
           <span>02 / EXPLORE</span>
@@ -296,6 +376,11 @@ export default async function Home({
           <a href={`/${locale}/competitions`}>
             <span>04</span>
             <b>{locale === "tr" ? "Yarışmalar" : "Competitions"}</b>
+            <i>↗</i>
+          </a>
+          <a href={`/${locale}/join`}>
+            <span>05</span>
+            <b>{locale === "tr" ? "Katıl" : "Join"}</b>
             <i>↗</i>
           </a>
         </div>

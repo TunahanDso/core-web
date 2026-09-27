@@ -7,6 +7,7 @@ export type Domain = {
   name: string;
   description: Localized;
   focus: Localized;
+  capabilities: Localized[];
 };
 
 export type ServiceUnit = {
@@ -119,6 +120,11 @@ export const domains: Domain[] = [
       en: "Autonomous surface vehicles, mission execution and maritime field systems.",
     },
     focus: { tr: "USV · Navigation · Mission", en: "USV · Navigation · Mission" },
+    capabilities: [
+      { tr: "Gövde & Tahrik", en: "Hull & Propulsion" },
+      { tr: "Navigasyon & Görev", en: "Navigation & Mission" },
+      { tr: "Telemetri & Saha", en: "Telemetry & Field" },
+    ],
   },
   {
     code: "S",
@@ -128,6 +134,11 @@ export const domains: Domain[] = [
       en: "AUV/ROV platforms, underwater perception, localization and manipulation.",
     },
     focus: { tr: "AUV · ROV · Perception", en: "AUV · ROV · Perception" },
+    capabilities: [
+      { tr: "Sızdırmazlık & Mekanik", en: "Sealing & Mechanics" },
+      { tr: "Algı & Lokalizasyon", en: "Perception & Localization" },
+      { tr: "İtici Kontrolü", en: "Thruster Control" },
+    ],
   },
   {
     code: "L",
@@ -137,6 +148,11 @@ export const domains: Domain[] = [
       en: "UGVs, rovers, autonomous navigation and rough-terrain missions.",
     },
     focus: { tr: "UGV · Rover · Autonomy", en: "UGV · Rover · Autonomy" },
+    capabilities: [
+      { tr: "Şasi & Hareket", en: "Chassis & Mobility" },
+      { tr: "Arazi Algısı", en: "Terrain Perception" },
+      { tr: "Otonom Görev", en: "Autonomous Mission" },
+    ],
   },
   {
     code: "A",
@@ -146,6 +162,11 @@ export const domains: Domain[] = [
       en: "UAVs, VTOL, mission computers and autonomous aerial operations.",
     },
     focus: { tr: "UAV · VTOL · Mission", en: "UAV · VTOL · Mission" },
+    capabilities: [
+      { tr: "Uçuş Dinamiği", en: "Flight Dynamics" },
+      { tr: "Aviyonik", en: "Avionics" },
+      { tr: "Güdüm & Görev", en: "Guidance & Mission" },
+    ],
   },
   {
     code: "I",
@@ -155,6 +176,11 @@ export const domains: Domain[] = [
       en: "AMRs, heavy machinery, agriculture, mining and factory autonomy.",
     },
     focus: { tr: "AMR · Factory · Field", en: "AMR · Factory · Field" },
+    capabilities: [
+      { tr: "AMR & Lokalizasyon", en: "AMR & Localization" },
+      { tr: "Güvenli Kontrol", en: "Safe Control" },
+      { tr: "Fabrika Entegrasyonu", en: "Factory Integration" },
+    ],
   },
   {
     code: "SP",
@@ -164,6 +190,11 @@ export const domains: Domain[] = [
       en: "CubeSats, payloads, ground segment and space systems engineering.",
     },
     focus: { tr: "CubeSat · Payload · GS", en: "CubeSat · Payload · GS" },
+    capabilities: [
+      { tr: "Faydalı Yük", en: "Payload" },
+      { tr: "Haberleşme", en: "Communications" },
+      { tr: "Yer İstasyonu", en: "Ground Station" },
+    ],
   },
   {
     code: "R",
@@ -173,6 +204,11 @@ export const domains: Domain[] = [
       en: "High-altitude systems, avionics, propulsion, simulation and flight systems.",
     },
     focus: { tr: "Flight · Avionics · Propulsion", en: "Flight · Avionics · Propulsion" },
+    capabilities: [
+      { tr: "Uçuş Modelleme", en: "Flight Modeling" },
+      { tr: "Aviyonik & Telemetri", en: "Avionics & Telemetry" },
+      { tr: "İtki & Kurtarma", en: "Propulsion & Recovery" },
+    ],
   },
 ];
 
