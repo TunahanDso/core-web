@@ -962,3 +962,200 @@ footer{border-top:1px solid #13161b}
   .siteHeader.scrolled{min-height:62px}
   .hero{padding-top:128px}
 }
+
+
+/* =========================================================
+   CORE CMS live-read dashboard
+   ========================================================= */
+
+.adminTopline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:22px;
+}
+.cmsHealth{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  font:850 10px/1 ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.cmsHealth i{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#6f7782;
+}
+.cmsHealth.online{
+  color:var(--white);
+  border-color:rgba(255,101,0,.38);
+}
+.cmsHealth.online i{
+  background:var(--orange);
+  box-shadow:0 0 14px rgba(255,101,0,.8);
+}
+.cmsHealth.offline{
+  color:#a7afb9;
+}
+.adminStats{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+  margin:46px 0 12px;
+}
+.adminStats>div{
+  min-height:130px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:20px;
+  border:1px solid var(--line);
+  background:#090b0f;
+}
+.adminStats strong{
+  color:var(--orange);
+  font-size:40px;
+  letter-spacing:-.055em;
+}
+.adminStats span{
+  color:#737c87;
+  font:800 9px/1.2 ui-monospace,monospace;
+  letter-spacing:.09em;
+}
+.bindingStrip{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 28px;
+  margin-bottom:38px;
+  padding:14px 18px;
+  border:1px solid #1f252d;
+  background:#050608;
+  color:#747d88;
+  font:750 10px/1.5 ui-monospace,monospace;
+}
+.bindingStrip b{color:var(--orange)}
+.cmsWarning{
+  display:grid;
+  gap:8px;
+  padding:18px;
+  margin:0 0 28px;
+  border:1px solid #5a2d15;
+  background:rgba(255,101,0,.06);
+}
+.cmsWarning b{color:var(--orange)}
+.cmsWarning span{color:#aeb5be;font-size:13px}
+.adminCard{
+  display:block;
+  color:var(--white);
+  transition:transform .2s ease,border-color .2s ease,background .2s ease;
+}
+.adminCard.enabled:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,101,0,.5);
+  background:linear-gradient(160deg,rgba(255,101,0,.07),var(--panel));
+}
+.adminCard.disabled{
+  opacity:.56;
+  cursor:default;
+}
+.adminBack,.adminBreadcrumb{
+  display:inline-block;
+  color:var(--orange);
+}
+.adminBreadcrumb{
+  margin-bottom:12px;
+  font:850 10px/1 ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.emptyState{
+  margin:42px 0 26px;
+  padding:42px;
+  border:1px dashed #343a44;
+  background:linear-gradient(155deg,rgba(255,101,0,.045),transparent 55%);
+}
+.emptyState>span{
+  color:var(--orange);
+  font:850 9px/1 ui-monospace,monospace;
+  letter-spacing:.12em;
+}
+.emptyState h2{
+  margin:18px 0 10px;
+  font-size:30px;
+}
+.emptyState p{
+  max-width:700px;
+  margin:0;
+  color:var(--muted);
+  line-height:1.65;
+}
+.adminProjectList{
+  display:grid;
+  gap:10px;
+  margin:42px 0 26px;
+}
+.adminProjectRow{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) 130px minmax(0,.9fr);
+  gap:28px;
+  align-items:center;
+  min-height:145px;
+  padding:24px;
+  border:1px solid var(--line);
+  background:var(--panel);
+}
+.adminProjectIdentity>span{
+  color:var(--orange);
+  font:850 9px/1 ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.adminProjectIdentity h2{
+  margin:10px 0 4px;
+  font-size:24px;
+}
+.adminProjectIdentity small{
+  color:#626b76;
+  font-family:ui-monospace,monospace;
+}
+.adminProjectProgress{
+  display:grid;
+  text-align:right;
+  gap:6px;
+}
+.adminProjectProgress strong{
+  color:var(--orange);
+  font-size:32px;
+}
+.adminProjectProgress span,
+.adminProjectMeta span{
+  color:#747d88;
+  font:750 9px/1.3 ui-monospace,monospace;
+  letter-spacing:.07em;
+}
+.adminProjectMeta{
+  display:grid;
+  gap:10px;
+  justify-items:end;
+  text-align:right;
+}
+
+@media(max-width:900px){
+  .adminStats{grid-template-columns:repeat(2,1fr)}
+  .adminProjectRow{grid-template-columns:1fr 100px}
+  .adminProjectMeta{
+    grid-column:1/-1;
+    justify-items:start;
+    text-align:left;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+}
+@media(max-width:560px){
+  .adminTopline{align-items:flex-start;flex-direction:column}
+  .adminStats{grid-template-columns:1fr 1fr}
+  .adminProjectRow{grid-template-columns:1fr}
+  .adminProjectProgress{text-align:left}
+  .adminProjectMeta{grid-template-columns:1fr}
+}

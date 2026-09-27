@@ -11,3 +11,7 @@ out
 .wrangler
 .dev.vars*
 !.dev.vars.example
+
+# vinext / Vite output
+/dist/
+/.vinext/
