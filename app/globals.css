@@ -1159,3 +1159,110 @@ footer{border-top:1px solid #13161b}
   .adminProjectProgress{text-align:left}
   .adminProjectMeta{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE CMS authenticated write layer
+   ========================================================= */
+
+.cmsSuccess{
+  display:grid;
+  gap:7px;
+  margin:0 0 26px;
+  padding:18px;
+  border:1px solid rgba(255,101,0,.42);
+  background:rgba(255,101,0,.08);
+}
+.cmsSuccess b{color:var(--orange)}
+.cmsSuccess span{color:#c2c8cf;font-size:13px}
+
+.cmsActionPanel{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:34px;
+  align-items:center;
+  margin:0 0 34px;
+  padding:28px;
+  border:1px solid rgba(255,101,0,.34);
+  background:linear-gradient(145deg,rgba(255,101,0,.075),rgba(8,10,14,.92));
+}
+.cmsActionPanel>div>span{
+  color:var(--orange);
+  font:850 9px/1 ui-monospace,monospace;
+  letter-spacing:.12em;
+}
+.cmsActionPanel h2{margin:10px 0 8px;font-size:25px}
+.cmsActionPanel p{margin:0;max-width:760px;color:var(--muted);line-height:1.6}
+
+.adminPrimaryButton,
+.adminSecondaryButton{
+  appearance:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:0 18px;
+  border:1px solid var(--orange);
+  font:850 10px/1 ui-monospace,monospace;
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.adminPrimaryButton{background:var(--orange);color:#0b0b0c}
+.adminSecondaryButton{background:transparent;color:var(--orange)}
+
+.adminEditLink{
+  color:var(--orange);
+  font:850 10px/1 ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+
+.adminEditor{
+  margin:38px 0 28px;
+  padding:28px;
+  border:1px solid var(--line);
+  background:var(--panel);
+}
+.editorGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+}
+.editorGrid label{
+  display:grid;
+  gap:9px;
+}
+.editorGrid label>span{
+  color:#8e97a2;
+  font:800 9px/1 ui-monospace,monospace;
+  letter-spacing:.09em;
+}
+.editorGrid input,
+.editorGrid textarea,
+.editorGrid select{
+  width:100%;
+  border:1px solid #2c333d;
+  background:#07090c;
+  color:var(--white);
+  padding:13px 14px;
+  font:500 14px/1.45 inherit;
+  outline:none;
+}
+.editorGrid textarea{resize:vertical;min-height:105px}
+.editorGrid input:focus,
+.editorGrid textarea:focus,
+.editorGrid select:focus{border-color:rgba(255,101,0,.72)}
+.editorWide{grid-column:1/-1}
+.editorActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+  margin-top:24px;
+}
+
+@media(max-width:760px){
+  .cmsActionPanel{grid-template-columns:1fr}
+  .editorGrid{grid-template-columns:1fr}
+  .editorWide{grid-column:auto}
+  .editorActions{justify-content:stretch}
+  .editorActions>*{flex:1}
+}
