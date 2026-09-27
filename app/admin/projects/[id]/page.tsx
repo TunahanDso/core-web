@@ -13,7 +13,7 @@ export default async function AdminProjectEditPage({
 }) {
   const [{ id }, query] = await Promise.all([
     params,
-    searchParams ?? Promise.resolve({}),
+    searchParams ?? Promise.resolve<{ saved?: string }>({}),
   ]);
   const project = await getProject(decodeURIComponent(id));
   if (!project) notFound();
