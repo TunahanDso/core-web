@@ -31,6 +31,7 @@ export type CmsProject = {
   domain: string | null;
   progress: number | null;
   owner: string | null;
+  integrations: string[];
   titleTr: string;
   titleEn: string;
   summaryTr: string;
@@ -38,9 +39,64 @@ export type CmsProject = {
   updatedAt: string;
 };
 
+export type ProjectUpdateInput = {
+  id: string;
+  status: "draft" | "published" | "archived";
+  domain: string | null;
+  progress: number;
+  owner: string | null;
+  integrations: string[];
+  titleTr: string;
+  titleEn: string;
+  summaryTr: string;
+  summaryEn: string;
+};
+
 function database(): D1Database | null {
   return env.DB ?? null;
 }
+
+function mapProject(row: CmsProjectRow): CmsProject {
+  let metadata: Record<string, unknown> = {};
+  try {
+    metadata = JSON.parse(row.metadata_json || "{}") as Record<string, unknown>;
+  } catch {
+    metadata = {};
+  }
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    status: row.status,
+    domain: row.domain,
+    progress: typeof metadata.progress === "number" ? metadata.progress : null,
+    owner: typeof metadata.owner === "string" ? metadata.owner : null,
+    integrations: Array.isArray(metadata.integrations)
+      ? metadata.integrations.filter((item): item is string => typeof item === "string")
+      : [],
+    titleTr: row.title_tr ?? "",
+    titleEn: row.title_en ?? "",
+    summaryTr: row.summary_tr ?? "",
+    summaryEn: row.summary_en ?? "",
+    updatedAt: row.updated_at,
+  };
+}
+
+const projectSelect = `
+  SELECT
+    c.id,
+    c.slug,
+    c.status,
+    c.domain,
+    c.metadata_json,
+    c.updated_at,
+    MAX(CASE WHEN l.locale = 'tr' THEN l.title END) AS title_tr,
+    MAX(CASE WHEN l.locale = 'en' THEN l.title END) AS title_en,
+    MAX(CASE WHEN l.locale = 'tr' THEN l.summary END) AS summary_tr,
+    MAX(CASE WHEN l.locale = 'en' THEN l.summary END) AS summary_en
+  FROM content_items c
+  LEFT JOIN content_localizations l ON l.content_id = c.id
+`;
 
 export function hasMediaBinding() {
   return Boolean(env.MEDIA);
@@ -109,46 +165,122 @@ export async function listProjects(): Promise<CmsProject[]> {
 
   const response = await db
     .prepare(`
-      SELECT
-        c.id,
-        c.slug,
-        c.status,
-        c.domain,
-        c.metadata_json,
-        c.updated_at,
-        MAX(CASE WHEN l.locale = 'tr' THEN l.title END) AS title_tr,
-        MAX(CASE WHEN l.locale = 'en' THEN l.title END) AS title_en,
-        MAX(CASE WHEN l.locale = 'tr' THEN l.summary END) AS summary_tr,
-        MAX(CASE WHEN l.locale = 'en' THEN l.summary END) AS summary_en
-      FROM content_items c
-      LEFT JOIN content_localizations l ON l.content_id = c.id
+      ${projectSelect}
       WHERE c.type = 'project'
       GROUP BY c.id
       ORDER BY c.sort_order ASC, c.updated_at DESC
     `)
     .all<CmsProjectRow>();
 
-  return (response.results ?? []).map((row) => {
-    let metadata: Record<string, unknown> = {};
-    try {
-      metadata = JSON.parse(row.metadata_json || "{}") as Record<string, unknown>;
-    } catch {
-      metadata = {};
-    }
+  return (response.results ?? []).map(mapProject);
+}
 
-    return {
-      id: row.id,
-      slug: row.slug,
-      status: row.status,
-      domain: row.domain,
-      progress:
-        typeof metadata.progress === "number" ? metadata.progress : null,
-      owner: typeof metadata.owner === "string" ? metadata.owner : null,
-      titleTr: row.title_tr ?? "",
-      titleEn: row.title_en ?? "",
-      summaryTr: row.summary_tr ?? "",
-      summaryEn: row.summary_en ?? "",
-      updatedAt: row.updated_at,
-    };
-  });
+export async function getProject(id: string): Promise<CmsProject | null> {
+  const db = database();
+  if (!db) return null;
+
+  const row = await db
+    .prepare(`
+      ${projectSelect}
+      WHERE c.type = 'project' AND c.id = ?
+      GROUP BY c.id
+      LIMIT 1
+    `)
+    .bind(id)
+    .first<CmsProjectRow>();
+
+  return row ? mapProject(row) : null;
+}
+
+export async function updateProject(input: ProjectUpdateInput, actor: string) {
+  const db = database();
+  if (!db) throw new Error("DB binding is not available.");
+
+  const existing = await db
+    .prepare("SELECT metadata_json FROM content_items WHERE id = ? AND type = 'project' LIMIT 1")
+    .bind(input.id)
+    .first<{ metadata_json: string }>();
+
+  if (!existing) throw new Error("Project not found.");
+
+  let metadata: Record<string, unknown> = {};
+  try {
+    metadata = JSON.parse(existing.metadata_json || "{}") as Record<string, unknown>;
+  } catch {
+    metadata = {};
+  }
+
+  metadata.progress = input.progress;
+  metadata.owner = input.owner;
+  metadata.integrations = input.integrations;
+
+  const details = {
+    status: input.status,
+    domain: input.domain,
+    progress: input.progress,
+    owner: input.owner,
+    integrations: input.integrations,
+  };
+
+  return db.batch([
+    db
+      .prepare(`
+        UPDATE content_items
+        SET
+          status = ?,
+          domain = ?,
+          metadata_json = ?,
+          updated_at = CURRENT_TIMESTAMP,
+          published_at = CASE
+            WHEN ? = 'published' THEN COALESCE(published_at, CURRENT_TIMESTAMP)
+            ELSE published_at
+          END
+        WHERE id = ? AND type = 'project'
+      `)
+      .bind(
+        input.status,
+        input.domain,
+        JSON.stringify(metadata),
+        input.status,
+        input.id
+      ),
+    db
+      .prepare(`
+        INSERT INTO content_localizations
+          (content_id, locale, title, summary, body, seo_title, seo_description, publication_status)
+        VALUES (?, 'tr', ?, ?, '', '', '', ?)
+        ON CONFLICT(content_id, locale) DO UPDATE SET
+          title = excluded.title,
+          summary = excluded.summary,
+          publication_status = excluded.publication_status
+      `)
+      .bind(
+        input.id,
+        input.titleTr,
+        input.summaryTr,
+        input.status === "published" ? "published" : "draft"
+      ),
+    db
+      .prepare(`
+        INSERT INTO content_localizations
+          (content_id, locale, title, summary, body, seo_title, seo_description, publication_status)
+        VALUES (?, 'en', ?, ?, '', '', '', ?)
+        ON CONFLICT(content_id, locale) DO UPDATE SET
+          title = excluded.title,
+          summary = excluded.summary,
+          publication_status = excluded.publication_status
+      `)
+      .bind(
+        input.id,
+        input.titleEn,
+        input.summaryEn,
+        input.status === "published" ? "published" : "draft"
+      ),
+    db
+      .prepare(`
+        INSERT INTO audit_log (actor, action, entity_type, entity_id, details_json)
+        VALUES (?, 'project.update', 'project', ?, ?)
+      `)
+      .bind(actor, input.id, JSON.stringify(details)),
+  ]);
 }
