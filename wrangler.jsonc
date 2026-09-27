@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "core-web",
+  "main": "vinext/server/app-router-entry",
+  "compatibility_date": "2026-09-27",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "core-web-cms",
+      "database_id": "7c3b6174-8deb-4934-ae53-1f3da5d944a3"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "core-web-media"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "unsafe": {
+    "bindings": [
+      {
+        "name": "WORKER_SELF_REFERENCE",
+        "type": "service",
+        "service": "core-web",
+        "environment": "production"
+      }
+    ]
+  },
+  "observability": {
+    "enabled": true
+  }
+}
