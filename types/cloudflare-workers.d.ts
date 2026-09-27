@@ -24,6 +24,8 @@ declare module "cloudflare:workers" {
   export const env: {
     DB?: D1Database;
     MEDIA?: R2Bucket;
+    POLICY_AUD?: string;
+    TEAM_DOMAIN?: string;
     [key: string]: unknown;
   };
 }
