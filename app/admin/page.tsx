@@ -1,10 +1,12 @@
 const modules = [
-  ["Content", "Pages, announcements and institutional copy"],
-  ["Projects", "Vehicles, project status and public project pages"],
+  ["Content", "TR/EN pages, announcements and institutional copy"],
+  ["Projects", "Products, owners, integrations, status and completion percentage"],
+  ["Competitions", "Target competitions, official dates, locations and planning state"],
   ["Publications", "Research reports, papers and technical releases"],
-  ["Media", "Images, documents and public assets"],
-  ["Team", "Public team profiles and roles"],
-  ["Settings", "Homepage, navigation and publication settings"],
+  ["Media", "Images, project media, documents and public assets"],
+  ["Team", "Domain teams, shared service units and public profiles"],
+  ["Operations", "Read-only public status and approved telemetry exposure"],
+  ["Settings", "Homepage, navigation, SEO, language and publication settings"],
 ];
 
 export default function Admin() {
@@ -13,8 +15,10 @@ export default function Admin() {
       <p className="eyebrow">CORE CONTROL · PUBLIC CMS</p>
       <h1>Site Administration</h1>
       <p>
-        This administration surface will manage the public website only. CORE
-        Ops, telemetry and vehicle command authority are separate systems.
+        This surface manages the public YTÜ CORE website. Project completion,
+        bilingual content, competition targets and public status will be editable
+        here once D1 and authentication are connected. CORE Ops vehicle command
+        authority remains a separate security domain.
       </p>
 
       <div className="adminGrid">
@@ -23,7 +27,7 @@ export default function Admin() {
             <span>MODULE</span>
             <h2>{name}</h2>
             <p>{description}</p>
-            <small>NOT CONNECTED</small>
+            <small>SCHEMA READY · UI PENDING</small>
           </section>
         ))}
       </div>
@@ -31,7 +35,7 @@ export default function Admin() {
       <div className="terminal">
         <span>SECURITY BOUNDARY</span>
         <b>Closed until authentication is configured</b>
-        <small>CLOUDFLARE ACCESS + CORE ROLE AUTHORIZATION</small>
+        <small>CLOUDFLARE ACCESS + CORE ROLE AUTHORIZATION + AUDIT LOG</small>
       </div>
 
       <a href="/">← Return to public site</a>
