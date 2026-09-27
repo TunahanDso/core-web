@@ -39,5 +39,9 @@
   },
   "observability": {
     "enabled": true
+  },
+  "vars": {
+    "POLICY_AUD": "a63a6b694c7c45baa29b28fde72f634f5966f6e5a0275c466c384c19eb663c43",
+    "TEAM_DOMAIN": "https://young-block-abfe.cloudflareaccess.com"
   }
 }
