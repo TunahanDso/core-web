@@ -7,10 +7,15 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export default function Home({ params }: { params: { locale: string } }) {
-  if (!isLocale(params.locale)) notFound();
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
 
-  const locale = params.locale;
+  if (!isLocale(locale)) notFound();
+
   const content = copy[locale];
   const domainItems = domains[locale];
 
@@ -31,7 +36,11 @@ export default function Home({ params }: { params: { locale: string } }) {
 
       <section className="hero">
         <p className="eyebrow">{content.eyebrow}</p>
-        <h1>{content.title}</h1>
+        <h1>
+          {content.titleLine1}
+          <br />
+          <em>{content.titleLine2}</em>
+        </h1>
         <p className="lead">{content.lead}</p>
         <div className="actions">
           <a href="#domains">{content.explore}</a>
@@ -58,7 +67,11 @@ export default function Home({ params }: { params: { locale: string } }) {
       <section id="research" className="split">
         <div>
           <p className="eyebrow">CORE RESEARCH</p>
-          <h2>{content.researchTitle}</h2>
+          <h2>
+            {content.researchTitleLine1}
+            <br />
+            {content.researchTitleLine2}
+          </h2>
         </div>
         <p>{content.researchBody}</p>
       </section>
