@@ -650,3 +650,315 @@ footer{
   .nodeGS{right:5%;bottom:13%}
   .nodePower{left:50%;bottom:3%;transform:translateX(-50%)}
 }
+
+
+/* =========================================================
+   CORE Web V0.3 — Light surfaces + engineering motion
+   ========================================================= */
+
+:root{
+  --light:#f3f2ee;
+  --light-2:#ebe9e3;
+  --light-panel:#fbfbf9;
+  --light-line:#d8d7d2;
+  --ink:#0a0b0d;
+  --ink-soft:#4f5660;
+}
+
+.siteHeader{
+  position:fixed;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(100%,1600px);
+  min-height:82px;
+  transition:min-height .28s ease,background .28s ease,border-color .28s ease,box-shadow .28s ease;
+}
+.siteHeader.scrolled{
+  min-height:66px;
+  background:rgba(7,8,10,.9);
+  border-bottom-color:rgba(255,101,0,.24);
+  box-shadow:0 12px 40px rgba(0,0,0,.18);
+}
+.siteHeader nav [data-nav]{
+  position:relative;
+}
+.siteHeader nav [data-nav]::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-12px;
+  height:2px;
+  background:var(--orange);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .2s ease;
+}
+.siteHeader nav [data-nav].active{
+  color:var(--white);
+}
+.siteHeader nav [data-nav].active::after{
+  transform:scaleX(1);
+}
+
+.hero{
+  padding-top:154px;
+  background:
+    radial-gradient(circle at 76% 24%,rgba(255,101,0,.16),transparent 30%),
+    linear-gradient(135deg,#050608 0%,#090b0f 60%,#111318 100%);
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0;
+  height:120px;
+  background:linear-gradient(to bottom,transparent,rgba(255,255,255,.018));
+  pointer-events:none;
+}
+
+/* Large content areas switch to bright technical surfaces. */
+.sectionShell{
+  background:var(--light);
+  color:var(--ink);
+  border-bottom-color:var(--light-line);
+}
+.sectionShell.darkSection{
+  background:var(--light-2);
+  color:var(--ink);
+  border-bottom-color:var(--light-line);
+}
+.sectionShell .sectionHeading>p,
+.sectionShell .domainCard p,
+.sectionShell .serviceCard p,
+.sectionShell .projectDescription{
+  color:var(--ink-soft);
+}
+.sectionShell .sectionHeading h2,
+.sectionShell .domainCard h3,
+.sectionShell .serviceCard h3,
+.sectionShell .projectCard h3,
+.sectionShell .competitionRow h3{
+  color:var(--ink);
+}
+.sectionShell .eyebrow{color:#d44d00}
+
+.domainGrid{
+  border-top-color:var(--light-line);
+  border-left-color:var(--light-line);
+}
+.domainCard{
+  border-right-color:var(--light-line);
+  border-bottom-color:var(--light-line);
+  background:rgba(255,255,255,.42);
+}
+.domainCard:hover{
+  background:#fff;
+  border-color:#c9c7c2;
+  box-shadow:0 20px 50px rgba(20,20,20,.07);
+}
+.domainCard .index{color:#a3a19a}
+.domainCard small{color:#6a6d72}
+
+.serviceCard{
+  border-color:var(--light-line);
+  background:
+    linear-gradient(180deg,rgba(255,101,0,.07),transparent 44%),
+    var(--light-panel);
+  box-shadow:0 10px 35px rgba(12,13,15,.04);
+}
+.serviceCard::after{border-color:rgba(255,101,0,.26)}
+.capabilityList span{
+  color:#34383e;
+  background:#f0efea;
+  border-color:#d8d5ce;
+}
+.projectCard{
+  border-color:var(--light-line);
+  background:var(--light-panel);
+  box-shadow:0 8px 26px rgba(10,11,13,.035);
+  transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+}
+.projectCard:hover{
+  transform:translateY(-4px);
+  border-color:#c7c4bd;
+  box-shadow:0 20px 48px rgba(10,11,13,.08);
+}
+.projectHeader strong{color:var(--ink)}
+.projectCategory{color:#747981}
+.progressMeta{color:#6e747c}
+.progressTrack{background:#dedcd6}
+.integrationTags small{color:#73777d}
+.integrationTags div span{
+  color:#34383e;
+  background:#efeee9;
+  border-color:#d8d5ce;
+}
+
+.competitionList{border-top-color:var(--light-line)}
+.competitionRow{
+  border-bottom-color:var(--light-line);
+  transition:background .2s ease,padding .2s ease;
+}
+.competitionRow:hover{
+  background:rgba(255,255,255,.5);
+  padding-left:10px;
+  padding-right:10px;
+}
+.competitionIndex{color:#9b9a95}
+.competitionDate span,
+.competitionRow>p{color:#656b73}
+.statusPill{border-color:#c9c6bf}
+.statusPill.evaluation{color:#666b72}
+
+/* Keep system-of-systems dark for visual rhythm. */
+.integrationSection{
+  color:var(--white);
+}
+.integrationSection .sectionHeading>p{color:var(--muted)}
+.integrationSection .sectionHeading h2{color:var(--white)}
+
+/* Research stays bright, Ops stays dark. */
+.researchSection{
+  background:#fff;
+  border-bottom-color:#dddcd7;
+}
+.opsSection{
+  background:
+    radial-gradient(circle at 80% 0%,rgba(255,101,0,.08),transparent 28%),
+    #07090c;
+  color:var(--white);
+}
+.opsSection .sectionHeading>p{color:var(--muted)}
+
+footer{border-top:1px solid #13161b}
+
+/* Scroll reveal */
+.motion-ready [data-reveal]{
+  opacity:0;
+  transform:translateY(22px);
+}
+.motion-ready [data-reveal].is-visible{
+  opacity:1;
+  transform:translateY(0);
+  transition:
+    opacity .7s cubic-bezier(.2,.75,.2,1),
+    transform .7s cubic-bezier(.2,.75,.2,1);
+}
+.motion-ready .domainCard[data-reveal]:nth-child(2),
+.motion-ready .serviceCard[data-reveal]:nth-child(2),
+.motion-ready .projectCard[data-reveal]:nth-child(2){transition-delay:.06s}
+.motion-ready .domainCard[data-reveal]:nth-child(3),
+.motion-ready .serviceCard[data-reveal]:nth-child(3),
+.motion-ready .projectCard[data-reveal]:nth-child(3){transition-delay:.12s}
+.motion-ready .domainCard[data-reveal]:nth-child(4),
+.motion-ready .projectCard[data-reveal]:nth-child(4){transition-delay:.18s}
+
+/* Mechanical motion: slow, precise, deliberate. */
+.orbitOne{animation:coreOrbit 34s linear infinite}
+.orbitTwo{animation:coreOrbitReverse 25s linear infinite}
+.orbitThree{animation:coreOrbit 17s linear infinite}
+.corePulse{animation:coreBreath 3.8s ease-in-out infinite}
+.node{animation:nodeSignal 3.6s ease-in-out infinite}
+.n2,.n5{animation-delay:.55s}
+.n3,.n6{animation-delay:1.1s}
+.n4,.n7{animation-delay:1.65s}
+
+.integrationLine{
+  overflow:hidden;
+  background:linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,101,0,.15) 18%,
+    rgba(255,101,0,.95) 50%,
+    rgba(255,101,0,.15) 82%,
+    transparent 100%
+  );
+  background-size:220% 100%;
+  animation:signalFlow 3.8s linear infinite;
+}
+.integrationNode{
+  transition:border-color .25s ease,box-shadow .25s ease,transform .25s ease;
+}
+.integrationNode:not(.heroNode):hover{
+  border-color:rgba(255,101,0,.72);
+  box-shadow:0 0 32px rgba(255,101,0,.12);
+  transform:translateY(-3px);
+}
+.heroNode{animation:hubPulse 3.2s ease-in-out infinite}
+.liveBadge i{animation:livePulse 1.8s ease-in-out infinite}
+.opsTerminal{position:relative;overflow:hidden}
+.opsTerminal::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:-25%;
+  height:22%;
+  background:linear-gradient(to bottom,transparent,rgba(255,101,0,.045),transparent);
+  animation:terminalScan 6s linear infinite;
+  pointer-events:none;
+}
+.progressTrack span{
+  width:0;
+  transition:width 1.15s cubic-bezier(.2,.8,.2,1);
+}
+.statCard{
+  transition:transform .24s ease,border-color .24s ease;
+}
+.statCard:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,101,0,.4);
+}
+
+@keyframes coreOrbit{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes coreOrbitReverse{
+  from{transform:rotate(18deg)}
+  to{transform:rotate(-342deg)}
+}
+@keyframes coreBreath{
+  0%,100%{box-shadow:0 0 42px rgba(255,101,0,.12),inset 0 0 20px rgba(255,101,0,.07)}
+  50%{box-shadow:0 0 82px rgba(255,101,0,.28),inset 0 0 30px rgba(255,101,0,.13)}
+}
+@keyframes nodeSignal{
+  0%,100%{border-color:#353b45}
+  50%{border-color:rgba(255,101,0,.62)}
+}
+@keyframes signalFlow{
+  from{background-position:180% 0}
+  to{background-position:-40% 0}
+}
+@keyframes hubPulse{
+  0%,100%{box-shadow:0 0 30px rgba(255,101,0,.1)}
+  50%{box-shadow:0 0 58px rgba(255,101,0,.25)}
+}
+@keyframes livePulse{
+  0%,100%{opacity:.55;transform:scale(.85)}
+  50%{opacity:1;transform:scale(1.25)}
+}
+@keyframes terminalScan{
+  from{transform:translateY(-130%)}
+  to{transform:translateY(650%)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,
+  *::before,
+  *::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+  }
+  .motion-ready [data-reveal]{
+    opacity:1!important;
+    transform:none!important;
+  }
+}
+
+@media(max-width:800px){
+  .siteHeader{width:100%;min-height:70px}
+  .siteHeader.scrolled{min-height:62px}
+  .hero{padding-top:128px}
+}

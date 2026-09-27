@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import MotionRuntime from "@/components/MotionRuntime";
 import {
   competitions,
   domains,
@@ -33,6 +34,7 @@ export default async function Home({
 
   return (
     <main>
+      <MotionRuntime />
       <header className="siteHeader">
         <a className="brand" href={`/${locale}`} aria-label="YTÜ CORE">
           <span className="brandMark">C</span>
@@ -42,11 +44,11 @@ export default async function Home({
         </a>
 
         <nav>
-          <a href="#domains">{c.nav[0]}</a>
-          <a href="#teams">{c.nav[1]}</a>
-          <a href="#projects">{c.nav[2]}</a>
-          <a href="#competitions">{c.nav[3]}</a>
-          <a href="#research">{c.nav[4]}</a>
+          <a data-nav href="#domains">{c.nav[0]}</a>
+          <a data-nav href="#teams">{c.nav[1]}</a>
+          <a data-nav href="#projects">{c.nav[2]}</a>
+          <a data-nav href="#competitions">{c.nav[3]}</a>
+          <a data-nav href="#research">{c.nav[4]}</a>
           <LanguageSwitcher locale={locale} />
           <a className="adminLink" href="/admin">
             {c.admin}
@@ -56,7 +58,7 @@ export default async function Home({
 
       <section className="hero">
         <div className="heroNoise" />
-        <div className="heroCopy">
+        <div className="heroCopy revealHero" data-reveal>
           <p className="eyebrow">{c.kicker}</p>
           <h1>
             {c.heroA}
@@ -81,7 +83,7 @@ export default async function Home({
           </div>
         </div>
 
-        <div className="coreVisual" aria-hidden="true">
+        <div className="coreVisual revealHero" data-reveal aria-hidden="true">
           <div className="orbit orbitOne" />
           <div className="orbit orbitTwo" />
           <div className="orbit orbitThree" />
@@ -103,7 +105,7 @@ export default async function Home({
       </section>
 
       <section id="domains" className="sectionShell">
-        <div className="sectionHeading">
+        <div className="sectionHeading" data-reveal>
           <div>
             <p className="eyebrow">ENGINEERING DOMAINS</p>
             <h2>{c.domainsTitle}</h2>
@@ -113,7 +115,7 @@ export default async function Home({
 
         <div className="domainGrid">
           {domains.map((domain, index) => (
-            <article className="domainCard" key={domain.name}>
+            <article className="domainCard" key={domain.name} data-reveal>
               <div className="cardTop">
                 <span className="index">0{index + 1}</span>
                 <span className="domainCode">CORE-{domain.code}</span>
@@ -127,7 +129,7 @@ export default async function Home({
       </section>
 
       <section id="teams" className="sectionShell darkSection">
-        <div className="sectionHeading">
+        <div className="sectionHeading" data-reveal>
           <div>
             <p className="eyebrow">SHARED ENGINEERING SERVICES</p>
             <h2>{c.teamsTitle}</h2>
@@ -137,7 +139,7 @@ export default async function Home({
 
         <div className="serviceGrid">
           {serviceUnits.map((team) => (
-            <article className="serviceCard" key={team.name}>
+            <article className="serviceCard" key={team.name} data-reveal>
               <div className="serviceCode">{team.code}</div>
               <h3>{team.name}</h3>
               <p>{team.description[locale]}</p>
@@ -152,7 +154,7 @@ export default async function Home({
       </section>
 
       <section id="projects" className="sectionShell">
-        <div className="sectionHeading">
+        <div className="sectionHeading" data-reveal>
           <div>
             <p className="eyebrow">PRODUCT / PROJECT PORTFOLIO</p>
             <h2>{c.projectsTitle}</h2>
@@ -162,7 +164,7 @@ export default async function Home({
 
         <div className="projectGrid">
           {projects.map((project) => (
-            <article className="projectCard" key={project.name}>
+            <article className="projectCard" key={project.name} data-reveal>
               <div className="projectHeader">
                 <div>
                   <span className="ownerTag">{project.owner}</span>
@@ -182,7 +184,7 @@ export default async function Home({
                 className="progressTrack"
                 aria-label={`${project.name} ${project.progress}%`}
               >
-                <span style={{ width: `${project.progress}%` }} />
+                <span data-progress={project.progress} />
               </div>
 
               <div className="integrationTags">
@@ -199,7 +201,7 @@ export default async function Home({
       </section>
 
       <section className="integrationSection">
-        <div className="sectionHeading">
+        <div className="sectionHeading" data-reveal>
           <div>
             <p className="eyebrow">SYSTEM OF SYSTEMS</p>
             <h2>{c.integrationTitle}</h2>
@@ -210,7 +212,7 @@ export default async function Home({
           </p>
         </div>
 
-        <div className="integrationMap">
+        <div className="integrationMap" data-reveal>
           <div className="integrationNode heroNode">Hydronom</div>
           <div className="integrationLine lineA" />
           <div className="integrationLine lineB" />
@@ -226,7 +228,7 @@ export default async function Home({
       </section>
 
       <section id="competitions" className="sectionShell darkSection">
-        <div className="sectionHeading">
+        <div className="sectionHeading" data-reveal>
           <div>
             <p className="eyebrow">TARGET COMPETITIONS / FIELD GOALS</p>
             <h2>{c.competitionsTitle}</h2>
@@ -236,7 +238,7 @@ export default async function Home({
 
         <div className="competitionList">
           {competitions.map((competition, index) => (
-            <article className="competitionRow" key={competition.name}>
+            <article className="competitionRow" key={competition.name} data-reveal>
               <span className="competitionIndex">
                 {String(index + 1).padStart(2, "0")}
               </span>
@@ -257,7 +259,7 @@ export default async function Home({
         </div>
       </section>
 
-      <section id="research" className="researchSection">
+      <section id="research" className="researchSection" data-reveal>
         <div>
           <p className="eyebrow">CORE RESEARCH</p>
           <h2>{c.researchTitle}</h2>
@@ -273,7 +275,7 @@ export default async function Home({
       </section>
 
       <section className="opsSection">
-        <div className="sectionHeading compactHeading">
+        <div className="sectionHeading compactHeading" data-reveal>
           <div>
             <p className="eyebrow">PUBLIC OPERATIONS PREVIEW</p>
             <h2>{c.opsTitle}</h2>
@@ -285,8 +287,8 @@ export default async function Home({
 
         <div className="statsGrid">
           {networkStats.map((stat) => (
-            <div className="statCard" key={stat.value + stat.label.en}>
-              <strong>{stat.value}</strong>
+            <div className="statCard" key={stat.value + stat.label.en} data-reveal>
+              <strong data-count={Number(stat.value)}>{stat.value}</strong>
               <span>{stat.label[locale]}</span>
             </div>
           ))}
