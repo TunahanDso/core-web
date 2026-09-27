@@ -6,7 +6,8 @@ export type ContentType =
   | "publication"
   | "news"
   | "domain"
-  | "team";
+  | "team"
+  | "competition";
 
 export type PublicationStatus = "draft" | "published" | "archived";
 
@@ -35,4 +36,10 @@ export type CmsMedia = {
   sizeBytes: number;
   alt: LocalizedText;
   createdAt: string;
+};
+
+export type CmsSetting = {
+  key: string;
+  value: Record<string, unknown>;
+  updatedAt: string;
 };

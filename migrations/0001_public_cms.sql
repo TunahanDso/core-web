@@ -5,9 +5,20 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS content_items (
   id TEXT PRIMARY KEY,
-  type TEXT NOT NULL CHECK (type IN ('page','project','publication','news','domain','team')),
+  type TEXT NOT NULL CHECK (
+    type IN (
+      'page',
+      'project',
+      'publication',
+      'news',
+      'domain',
+      'team',
+      'competition'
+    )
+  ),
   slug TEXT NOT NULL UNIQUE,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published','archived')),
+  status TEXT NOT NULL DEFAULT 'draft'
+    CHECK (status IN ('draft','published','archived')),
   domain TEXT,
   cover_key TEXT,
   metadata_json TEXT NOT NULL DEFAULT '{}',
@@ -41,6 +52,12 @@ CREATE TABLE IF NOT EXISTS media_assets (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS site_settings (
+  setting_key TEXT PRIMARY KEY,
+  value_json TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   actor TEXT NOT NULL,
@@ -54,5 +71,17 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE INDEX IF NOT EXISTS idx_content_type_status
   ON content_items(type, status);
 
+CREATE INDEX IF NOT EXISTS idx_content_domain
+  ON content_items(domain);
+
+CREATE INDEX IF NOT EXISTS idx_content_sort_order
+  ON content_items(sort_order);
+
 CREATE INDEX IF NOT EXISTS idx_content_published
   ON content_items(published_at);
+
+CREATE INDEX IF NOT EXISTS idx_audit_entity
+  ON audit_log(entity_type, entity_id);
+
+CREATE INDEX IF NOT EXISTS idx_audit_created
+  ON audit_log(created_at);
