@@ -1,30 +1,31 @@
+import { getAdminIdentity } from "@/lib/cms/auth";
 import { listProjects } from "@/lib/cms/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProjectsPage() {
-  const projects = await listProjects();
+  const [projects, identity] = await Promise.all([
+    listProjects(),
+    getAdminIdentity(),
+  ]);
 
   return (
     <main className="admin">
       <div className="adminTopline">
         <div>
-          <a className="adminBreadcrumb" href="/admin">
-            CORE CONTROL / ADMIN
-          </a>
+          <a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a>
           <p className="eyebrow">PROJECT PORTFOLIO · LIVE D1</p>
         </div>
         <span className="cmsHealth online">
           <i />
-          READ ONLY
+          {identity.authenticated ? "WRITE ENABLED" : "READ ONLY"}
         </span>
       </div>
 
       <h1>Projects</h1>
       <p>
-        Project records are being read directly from the production D1 database.
-        Editing, publishing and deletion will be enabled after Cloudflare Access
-        protects the administration surface.
+        Project records are read directly from production D1. Every mutation
+        requires a verified Cloudflare Access JWT and writes an audit event.
       </p>
 
       {projects.length === 0 ? (
@@ -32,9 +33,7 @@ export default async function AdminProjectsPage() {
           <span>DATABASE ONLINE</span>
           <h2>No project records yet.</h2>
           <p>
-            The schema is live, but the showcase portfolio has not been seeded
-            into D1 yet. The public website is still using its current source
-            data until CMS migration is completed.
+            Return to the admin dashboard and load the prepared showcase seed.
           </p>
         </section>
       ) : (
@@ -48,16 +47,16 @@ export default async function AdminProjectsPage() {
               </div>
 
               <div className="adminProjectProgress">
-                <strong>
-                  {project.progress === null ? "—" : `${project.progress}%`}
-                </strong>
+                <strong>{project.progress === null ? "—" : `${project.progress}%`}</strong>
                 <span>PROGRESS</span>
               </div>
 
               <div className="adminProjectMeta">
                 <span>{project.owner ?? "No owner metadata"}</span>
                 <span>{project.status.toUpperCase()}</span>
-                <span>{project.updatedAt}</span>
+                <a className="adminEditLink" href={`/admin/projects/${encodeURIComponent(project.id)}`}>
+                  EDIT →
+                </a>
               </div>
             </article>
           ))}
@@ -66,8 +65,8 @@ export default async function AdminProjectsPage() {
 
       <div className="terminal">
         <span>WRITE AUTHORITY</span>
-        <b>Disabled</b>
-        <small>CLOUDFLARE ACCESS MUST BE ACTIVE BEFORE MUTATIONS ARE EXPOSED</small>
+        <b>{identity.authenticated ? "Cloudflare Access JWT verified" : "Disabled"}</b>
+        <small>EVERY PROJECT UPDATE IS RECORDED IN AUDIT_LOG</small>
       </div>
     </main>
   );
