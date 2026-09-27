@@ -71,6 +71,11 @@ export default async function TeamsPage({ params }: { params: Promise<{ locale: 
               <h3>CORE {domain.name}</h3>
               <p>{domain.description[locale]}</p>
               <small>{domain.focus[locale]}</small>
+              <div className="domainCapabilityList">
+                {domain.capabilities.map((capability) => (
+                  <span key={capability.en}>{capability[locale]}</span>
+                ))}
+              </div>
               <div className="teamCardCorner">STUDENT TEAM</div>
             </article>
           ))}
@@ -96,6 +101,30 @@ export default async function TeamsPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
+      <section className="teamClubMap">
+        <div className="teamClubMapIntro" data-reveal>
+          <p className="eyebrow">{locale === "tr" ? "KULÜP YAPISI" : "CLUB STRUCTURE"}</p>
+          <h2>
+            {locale === "tr"
+              ? "Üye → takım → ortak servis → proje → saha."
+              : "Member → team → shared service → project → field."}
+          </h2>
+          <p>
+            {locale === "tr"
+              ? "CORE'da bir öğrenci tek bir kutuya kapanmaz. Araç takımındaki problemi, gerektiğinde Systems, Embedded, Ops veya Research ile birlikte çözer."
+              : "A student at CORE is not trapped in one box. Problems inside a vehicle team cross into Systems, Embedded, Ops or Research whenever needed."}
+          </p>
+        </div>
+        <div className="clubMapRail" data-reveal aria-hidden="true">
+          <span>STUDENT</span><i>→</i>
+          <span>DOMAIN</span><i>↔</i>
+          <span>SHARED UNIT</span><i>→</i>
+          <span>PROJECT</span><i>→</i>
+          <span>FIELD TEST</span><i>→</i>
+          <span>DOCUMENT</span>
+        </div>
+      </section>
+
       <section className="teamFlowSection">
         <div data-reveal><p className="eyebrow">STUDENT PATH</p><h2>{c.flowTitle}</h2></div>
         <div className="teamFlow">
@@ -103,6 +132,25 @@ export default async function TeamsPage({ params }: { params: Promise<{ locale: 
             <article data-reveal key={n}><span>{n}</span><h3>{title}</h3><p>{text}</p></article>
           ))}
         </div>
+      </section>
+
+      <section className="teamsJoinCallout">
+        <div data-reveal>
+          <span>STUDENT-RUN / YTÜ CORE</span>
+          <h2>
+            {locale === "tr"
+              ? "Hangi takımda başlayacağını bilmiyor musun? Sorun değil."
+              : "Not sure where you would start? That is completely fine."}
+          </h2>
+          <p>
+            {locale === "tr"
+              ? "Katılım sayfası; ilgi alanından gerçek bir CORE görevine nasıl ilerlediğimizi anlatıyor."
+              : "The join page explains how an interest turns into a real CORE responsibility."}
+          </p>
+        </div>
+        <a className="primaryButton" href={`/${locale}/join`}>
+          {locale === "tr" ? "KATILIM YOLUNU GÖR" : "SEE THE STUDENT PATH"} →
+        </a>
       </section>
     </PublicChrome>
   );
