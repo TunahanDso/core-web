@@ -139,7 +139,7 @@ export default async function Home({
           </div>
         </div>
 
-        <div className="workbenchVisual" data-reveal aria-hidden="true">
+        <div className="workbenchVisual" data-tilt data-reveal aria-hidden="true">
           <div className="workbenchGrid" />
           <div className="workbenchCore">CORE</div>
           <div className="workbenchCard wbIdea">
