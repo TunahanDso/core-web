@@ -7,10 +7,11 @@ export const metadata: Metadata = {
   description: "Autonomous systems, engineering and research.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const locale = headers().get("x-core-locale") === "en" ? "en" : "tr";
+  const requestHeaders = await headers();
+  const locale = requestHeaders.get("x-core-locale") === "en" ? "en" : "tr";
 
   return (
     <html lang={locale}>
