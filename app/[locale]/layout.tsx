@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import MotionRuntime from "@/components/MotionRuntime";
 import { isLocale } from "@/lib/i18n";
 
 type LocaleLayoutProps = {
@@ -17,10 +18,12 @@ export async function generateMetadata({
   const tr = locale === "tr";
 
   return {
-    title: tr ? "YTÜ CORE | Otonom Sistemler" : "YTÜ CORE | Autonomous Systems",
+    title: tr
+      ? "YTÜ CORE | İnsan İçin Teknoloji"
+      : "YTÜ CORE | Technology for People",
     description: tr
-      ? "YTÜ CORE — otonom sistemler, mühendislik, araştırma ve saha operasyonları."
-      : "YTÜ CORE — autonomous systems, engineering, research and field operations.",
+      ? "YTÜ CORE — Yıldız Teknik Üniversitesi öğrenci mühendislik takımı. Otonom sistemler, araştırma, üretim ve saha doğrulaması."
+      : "YTÜ CORE — Yıldız Technical University student engineering team for autonomous systems, research, building and field validation.",
     alternates: {
       canonical: `/${locale}`,
       languages: {
@@ -32,5 +35,11 @@ export async function generateMetadata({
 }
 
 export default function LocaleLayout({ children }: LocaleLayoutProps) {
-  return children;
+  return (
+    <>
+      <MotionRuntime />
+      <div className="scrollProgress" data-scroll-progress aria-hidden="true" />
+      {children}
+    </>
+  );
 }
