@@ -26,5 +26,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify generated runtime config
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const cfg = JSON.parse(fs.readFileSync("dist/server/wrangler.json", "utf8"));
+            if (!cfg.vars?.POLICY_AUD) throw new Error("POLICY_AUD missing from generated config");
+            if (!cfg.vars?.TEAM_DOMAIN) throw new Error("TEAM_DOMAIN missing from generated config");
+            const d1 = (cfg.d1_databases ?? []).some((x) => x.binding === "DB");
+            const r2 = (cfg.r2_buckets ?? []).some((x) => x.binding === "MEDIA");
+            if (!d1) throw new Error("DB binding missing from generated config");
+            if (!r2) throw new Error("MEDIA binding missing from generated config");
+            console.log("Generated Cloudflare config contains DB, MEDIA, POLICY_AUD and TEAM_DOMAIN.");
+          '
+
       - name: Validate Worker package
         run: npm run deploy -- --dry-run
