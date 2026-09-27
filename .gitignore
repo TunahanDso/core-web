@@ -6,3 +6,8 @@ out
 .env.*.local
 .DS_Store
 *.log
+
+# Cloudflare / Wrangler
+.wrangler
+.dev.vars*
+!.dev.vars.example
