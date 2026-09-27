@@ -3,6 +3,7 @@ import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { domains, serviceUnits } from "@/lib/site-data";
 import { isLocale } from "@/lib/i18n";
+import { siteSlug } from "@/lib/site-slug";
 
 const copy = {
   tr: {
@@ -63,7 +64,14 @@ export default async function TeamsPage({ params }: { params: Promise<{ locale: 
         </div>
         <div className="domainGrid domainGridExpanded">
           {domains.map((domain, index) => (
-            <article id={domain.code.toLowerCase()} className="domainCard studentDomainCard" data-tilt data-reveal key={domain.name}>
+            <a
+              id={domain.code.toLowerCase()}
+              href={`/${locale}/teams/${siteSlug(domain.name)}`}
+              className="domainCard studentDomainCard"
+              data-tilt
+              data-reveal
+              key={domain.name}
+            >
               <div className="cardTop">
                 <span className="index">{String(index + 1).padStart(2, "0")}</span>
                 <span className="domainCode">CORE-{domain.code}</span>
@@ -76,27 +84,35 @@ export default async function TeamsPage({ params }: { params: Promise<{ locale: 
                   <span key={capability.en}>{capability[locale]}</span>
                 ))}
               </div>
-              <div className="teamCardCorner">STUDENT TEAM</div>
-            </article>
+              <div className="teamCardCorner">OPEN TEAM →</div>
+            </a>
           ))}
         </div>
       </section>
 
-      <section className="darkSection publicSection">
+      <section className="darkSection publicSection sharedTeamsSection">
         <div className="sectionHeading" data-reveal>
           <div><p className="eyebrow">{c.shared}</p><h2>{c.sharedTitle}</h2></div>
           <p>{c.sharedLead}</p>
         </div>
         <div className="serviceGrid">
           {serviceUnits.map((team) => (
-            <article id={team.code.toLowerCase()} className="serviceCard" data-tilt data-reveal key={team.name}>
+            <a
+              id={team.code.toLowerCase()}
+              href={`/${locale}/teams/${siteSlug(team.name.replace("CORE ", ""))}`}
+              className="serviceCard"
+              data-tilt
+              data-reveal
+              key={team.name}
+            >
               <div className="serviceCode">{team.code}</div>
               <h3>{team.name}</h3>
               <p>{team.description[locale]}</p>
               <div className="capabilityList">
                 {team.capabilities.map((item) => <span key={item.en}>{item[locale]}</span>)}
               </div>
-            </article>
+              <small className="serviceOpenLink">OPEN TEAM →</small>
+            </a>
           ))}
         </div>
       </section>

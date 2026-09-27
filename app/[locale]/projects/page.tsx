@@ -3,6 +3,7 @@ import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { projects } from "@/lib/site-data";
 import { isLocale } from "@/lib/i18n";
+import { siteSlug } from "@/lib/site-slug";
 
 const copy = {
   tr: {
@@ -46,7 +47,13 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
         </div>
         <div className="projectGrid publicProjectGrid">
           {projects.map((project, index) => (
-            <article className="projectCard publicProjectCard" data-tilt data-reveal key={project.name}>
+            <a
+              className="projectCard publicProjectCard"
+              href={`/${locale}/projects/${siteSlug(project.name)}`}
+              data-tilt
+              data-reveal
+              key={project.name}
+            >
               <div className="projectSerial">{String(index + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</div>
               <div className="projectHeader">
                 <div><span className="ownerTag">{project.owner}</span><h3>{project.name}</h3><p className="projectCategory">{project.category[locale]}</p></div>
@@ -56,7 +63,8 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
               <div className="progressMeta"><span>{c.progress}</span><span>{project.status[locale]}</span></div>
               <div className="progressTrack"><span data-progress={project.progress} /></div>
               <div className="integrationTags"><small>{c.integrated}</small><div>{project.integrations.map((x) => <span key={x}>{x}</span>)}</div></div>
-            </article>
+              <small className="projectOpenLink">OPEN PROJECT →</small>
+            </a>
           ))}
         </div>
       </section>
@@ -66,13 +74,44 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
           <div><p className="eyebrow">{c.map}</p><h2>{c.mapTitle}</h2></div>
           <p>Hydronom ↔ Hydronom AI ↔ CORE Runtime ↔ Gateway ↔ Ground Station ↔ OPS Screens</p>
         </div>
-        <div className="integrationMap" data-reveal>
-          <div className="integrationNode heroNode">Hydronom</div>
-          <div className="integrationLine lineA" /><div className="integrationLine lineB" /><div className="integrationLine lineC" />
-          <div className="integrationNode nodeAI">Hydronom AI</div><div className="integrationNode nodeRuntime">CORE Runtime</div>
-          <div className="integrationNode nodeGateway">Gateway</div><div className="integrationNode nodeGS">Ground Station</div>
-          <div className="integrationNode nodeOps">OPS Screens</div><div className="integrationNode nodeCard">Hydrocard</div>
-          <div className="integrationNode nodePower">CORE Power Stack</div>
+        <div className="systemConstellation" data-reveal>
+          <svg className="constellationLines" viewBox="0 0 1000 620" aria-hidden="true">
+            <path d="M500 310 C410 220 310 160 200 125" />
+            <path d="M500 310 C570 205 690 145 805 120" />
+            <path d="M500 310 C635 300 760 305 900 300" />
+            <path d="M500 310 C600 405 715 485 815 520" />
+            <path d="M500 310 C390 410 290 500 180 520" />
+            <path d="M500 310 C355 325 235 325 105 310" />
+            <path d="M200 125 C360 95 610 90 805 120" />
+            <path d="M805 120 C870 185 895 235 900 300" />
+            <path d="M900 300 C895 390 865 455 815 520" />
+            <path d="M815 520 C620 555 375 555 180 520" />
+            <path d="M180 520 C120 455 100 385 105 310" />
+            <path d="M105 310 C120 220 150 165 200 125" />
+          </svg>
+
+          <div className="constellationCore">
+            <small>SYSTEM OF SYSTEMS</small>
+            <b>CORE</b>
+            <span>shared architecture</span>
+          </div>
+
+          {projects.map((project, index) => (
+            <a
+              className={`constellationNode constellationNode${index + 1}`}
+              href={`/${locale}/projects/${siteSlug(project.name)}`}
+              key={project.name}
+            >
+              <small>{String(index + 1).padStart(2, "0")}</small>
+              <b>{project.name}</b>
+              <span>{project.owner}</span>
+            </a>
+          ))}
+
+          <div className="constellationOrbit orbitOuter" aria-hidden="true" />
+          <div className="constellationOrbit orbitInner" aria-hidden="true" />
+          <span className="constellationNote noteTop">DATA / POWER / STATE / MISSION</span>
+          <span className="constellationNote noteBottom">NO PROJECT IS AN ISLAND</span>
         </div>
       </section>
     </PublicChrome>
