@@ -6158,3 +6158,119 @@ html[data-core-native="native"] .portalMobileNav{
   .portalMobileDeviceList article>em{grid-column:2}
   .portalMobileDeviceList article>form{grid-column:3;grid-row:1/3}
 }
+
+
+/* =========================================================
+   CORE ADMIN — TRANSACTIONAL MAIL OPERATIONS
+   ========================================================= */
+
+.adminMailOps{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);
+  gap:12px;
+  margin:16px 0 22px;
+}
+.adminMailOps>div{
+  padding:20px;
+  border:1px solid #dde0da;
+  border-radius:12px;
+  background:#fff;
+}
+.adminMailOps>div>span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.adminMailOps h2{
+  margin:9px 0 8px;
+  font-size:24px;
+  letter-spacing:-.03em;
+}
+.adminMailOps p{
+  margin:0 0 16px;
+  color:#737b82;
+  font-size:11px;
+  line-height:1.65;
+}
+.adminMailIdentity{
+  display:grid;
+  grid-template-columns:100px minmax(0,1fr);
+  gap:8px 12px;
+  padding-top:14px;
+  border-top:1px solid #eceee9;
+}
+.adminMailIdentity small{
+  color:#93999e;
+  font:850 7px ui-monospace,monospace;
+}
+.adminMailIdentity b{
+  font-size:10px;
+  overflow-wrap:anywhere;
+}
+.adminMailTest form{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:7px;
+}
+.adminMailTest label{
+  display:grid;
+  gap:5px;
+}
+.adminMailTest label span{
+  color:#8c9297;
+  font:850 7px ui-monospace,monospace;
+}
+.adminMailTest input{
+  min-height:42px;
+  border:1px solid #d9dcd6;
+  border-radius:7px;
+  background:#fafbf8;
+  padding:0 11px;
+}
+.adminMailTest button{
+  align-self:end;
+  min-height:42px;
+  border:1px solid #17191d;
+  border-radius:7px;
+  background:#17191d;
+  color:#fff;
+  padding:0 13px;
+  font:900 7px ui-monospace,monospace;
+  cursor:pointer;
+}
+.adminMailTest button:disabled{opacity:.55;cursor:wait}
+.adminMailTestResult{
+  display:grid;
+  gap:4px;
+  margin-top:9px;
+  padding:10px 12px;
+  border:1px solid #dce0da;
+  border-radius:7px;
+  background:#f7f8f4;
+}
+.adminMailTestResult.sent{
+  border-color:#a9d4b8;
+  background:#f5fbf7;
+}
+.adminMailTestResult.failed,
+.adminMailTestResult.not_configured{
+  border-color:#e4b9a9;
+  background:#fff7f3;
+}
+.adminMailTestResult b{
+  font:900 8px ui-monospace,monospace;
+}
+.adminMailTestResult span,
+.adminMailTestResult small{
+  color:#737b82;
+  font-size:9px;
+  overflow-wrap:anywhere;
+}
+
+@media(max-width:900px){
+  .adminMailOps{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .adminMailTest form{grid-template-columns:1fr}
+  .adminMailIdentity{grid-template-columns:1fr}
+}
