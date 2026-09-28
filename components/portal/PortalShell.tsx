@@ -1,14 +1,16 @@
 import type { PortalMember } from "@/lib/portal/auth";
 import { portalNavigation } from "@/lib/portal/modules";
 import { logoutPortalAction } from "@/app/portal/actions";
+import { getSiteSetting } from "@/lib/cms/extensions";
 
-export default function PortalShell({
+export default async function PortalShell({
   member,
   children,
 }: {
   member: PortalMember;
   children: React.ReactNode;
 }) {
+  const banner = await getSiteSetting("portal_banner");
   const initials = member.fullName
     ? member.fullName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()
     : "CR";
@@ -63,6 +65,9 @@ export default function PortalShell({
             </div>
           </div>
         </header>
+        {banner?.enabled && banner.text ? (
+          <div className="portalSystemBanner"><span>CORE NOTICE</span><b>{String(banner.text)}</b></div>
+        ) : null}
         <div className="portalContent">{children}</div>
       </section>
     </main>
