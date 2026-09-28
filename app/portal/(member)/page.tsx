@@ -1,4 +1,5 @@
 import { portalModuleCards } from "@/lib/portal/modules";
+import { portalPriorityLabel, portalTaskStatusLabel, portalVehicleStatusLabel } from "@/lib/portal/labels";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
   getPortalMetrics,
@@ -68,9 +69,9 @@ export default async function PortalDashboard() {
           <div className="portalCompactList">
             {tasks.length ? tasks.map((task) => (
               <div key={String(task.id)}>
-                <span className={"portalPriority " + String(task.priority)}>{String(task.priority).toUpperCase()}</span>
+                <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                 <div><b>{String(task.title)}</b><small>{String(task.project_slug || task.team_code || "CORE")}</small></div>
-                <em>{String(task.status).toUpperCase()}</em>
+                <em>{portalTaskStatusLabel(String(task.status))}</em>
               </div>
             )) : <p className="portalMuted">Henüz görev yok. İlk mühendislik işini oluştur.</p>}
           </div>
@@ -83,7 +84,7 @@ export default async function PortalDashboard() {
               <div key={String(vehicle.id)}>
                 <span className={"portalVehicleDot " + String(vehicle.status)} />
                 <div><b>{String(vehicle.name)}</b><small>{String(vehicle.domain)}</small></div>
-                <em>{String(vehicle.status).toUpperCase()}</em>
+                <em>{portalVehicleStatusLabel(String(vehicle.status))}</em>
               </div>
             ))}
           </div>
