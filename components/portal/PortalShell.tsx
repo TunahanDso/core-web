@@ -40,7 +40,7 @@ export default async function PortalShell({
       <section className="portalWorkspace">
         <header className="portalTopbar">
           <div>
-            <span className="portalTopLabel">CORE NETWORK</span>
+            <span className="portalTopLabel">CORE AĞI</span>
             <b>Öğrenci mühendislik çalışma alanı</b>
           </div>
           <div className="portalTopActions">
