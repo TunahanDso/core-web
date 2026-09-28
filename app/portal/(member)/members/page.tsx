@@ -1,5 +1,6 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { listPortalMembers } from "@/lib/portal/db";
+import { portalMemberStatusLabel, portalRoleLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +17,11 @@ export default async function PortalMembersPage() {
             return (
               <article key={String(member.id)}>
                 <div className="portalMemberAvatar">{String(member.full_name || member.email).slice(0,2).toUpperCase()}</div>
-                <span>{String(member.role).toUpperCase()}</span>
+                <span>{portalRoleLabel(String(member.role))}</span>
                 <h3>{String(member.full_name || "Davetli üye")}</h3>
                 <p>{String(member.email)}</p>
                 <div>{teams.map((team) => <small key={team}>{team}</small>)}</div>
-                <footer><b>{String(member.status).toUpperCase()}</b><small>{member.last_login_at ? "Last " + String(member.last_login_at) : "Henüz giriş yok"}</small></footer>
+                <footer><b>{portalMemberStatusLabel(String(member.status))}</b><small>{member.last_login_at ? "Last " + String(member.last_login_at) : "Henüz giriş yok"}</small></footer>
               </article>
             );
           })}
