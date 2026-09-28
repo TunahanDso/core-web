@@ -38,7 +38,7 @@ export default async function PortalKütüphanePage({
         <span>R2 OBJECT STORAGE</span><i>+</i><span>D1 METADATA</span><i>+</i><span>SHA-256</span><i>+</i><span>REVISION HISTORY</span><i>+</i><span>BROWSER PREVIEW</span>
       </section>
 
-      <section className="portalPanel portalCreatePanel vaultUploadPanel">
+      <section className="portalPanel portalCreatePanel vaultUploadPanel" id="upload">
         <div className="portalPanelHead"><span>VAULT'A DOSYA YÜKLE</span><small>İLK DALGA · TEK DOSYA ≤ 25 MB</small></div>
         <form className="portalFormGrid" action={uploadPortalVaultAction}>
           <label>
