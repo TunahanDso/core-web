@@ -8,9 +8,14 @@ import {
   createNativeRepository,
   createNativeRepositoryBranch,
   createNativeRepositoryRelease,
-  RUNNER_TASKS,
-  submitPortalCodeRun,
 } from "@/lib/portal/engineering-services";
+import {
+  cancelPortalCodeRun,
+  createPortalCodeRun,
+  retryPortalCodeRun,
+  RUNNER_TASKS,
+  type RunnerLanguage,
+} from "@/lib/portal/code-lab";
 import {
   canManageNativeRepository,
   getAccessibleNativeRepository,
@@ -149,18 +154,41 @@ export async function createNativeRepositoryReleaseAction(formData: FormData) {
 
 export async function submitCodeRunAction(formData: FormData) {
   const member = await requirePortalMember();
-  const language = textValue(formData,"language");
+  const language = textValue(formData,"language") as RunnerLanguage;
   const task = textValue(formData,"task");
+  const repoSlugValue = repoSlug(textValue(formData,"repositoryRef"));
   if (!(language in RUNNER_TASKS)) throw new Error("Geçersiz runner dili.");
+  const repo = await getAccessibleNativeRepository(member,repoSlugValue);
+  if (!repo) throw new Error("Repository bulunamadı veya erişimin yok.");
 
-  await submitPortalCodeRun({
-    memberId: member.id,
-    repositoryRef: textValue(formData,"repositoryRef"),
-    snapshotRef: textValue(formData,"snapshotRef") || "main",
-    language: language as keyof typeof RUNNER_TASKS,
-    task,
+  const runId = await createPortalCodeRun({
+    memberId:member.id,
+    actorEmail:member.email,
+    repo,
+    snapshotRef:textValue(formData,"snapshotRef") || repo.default_branch || "main",
+    language,
+    taskId:task,
   });
 
   revalidatePath("/portal/code-lab");
-  redirect("/portal/code-lab?submitted=1");
+  redirect("/portal/code-lab/" + encodeURIComponent(runId) + "?submitted=1");
+}
+
+export async function cancelCodeRunAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const runId = textValue(formData,"runId");
+  if (!runId) throw new Error("Job kimliği gerekli.");
+  await cancelPortalCodeRun(member,runId);
+  revalidatePath("/portal/code-lab");
+  revalidatePath("/portal/code-lab/" + runId);
+  redirect("/portal/code-lab/" + encodeURIComponent(runId) + "?cancelled=1");
+}
+
+export async function retryCodeRunAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const runId = textValue(formData,"runId");
+  if (!runId) throw new Error("Job kimliği gerekli.");
+  const nextId = await retryPortalCodeRun(member,runId);
+  revalidatePath("/portal/code-lab");
+  redirect("/portal/code-lab/" + encodeURIComponent(nextId) + "?retried=1");
 }
