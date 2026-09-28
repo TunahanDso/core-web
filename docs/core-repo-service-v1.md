@@ -175,6 +175,8 @@ For ecosystems that do not have a direct equivalent, unused maps may be omitted.
 {
   "base": "main",
   "head": "feature/repo-workspace",
+  "baseSha": "1111111111111111111111111111111111111111",
+  "headSha": "2222222222222222222222222222222222222222",
   "aheadBy": 3,
   "behindBy": 0,
   "totalCommits": 3,
@@ -191,7 +193,77 @@ For ecosystems that do not have a direct equivalent, unused maps may be omitted.
 }
 ```
 
-RP-01 intentionally stops at file-level compare metadata. A later review contract will add unified hunks, line anchors, threaded comments, approvals and merge gates.
+## 7. Diff hunks for code review
+
+`GET /v1/repositories/:repositoryId/diff?base=<ref>&head=<ref>&path=<optionalFilePath>`
+
+The response **must resolve both refs to immutable commit SHAs**. Portal review metadata is anchored to these SHAs, never only to moving branch names.
+
+```json
+{
+  "base": "main",
+  "head": "feature/repo-workspace",
+  "baseSha": "1111111111111111111111111111111111111111",
+  "headSha": "2222222222222222222222222222222222222222",
+  "files": [
+    {
+      "path": "src/runtime.ts",
+      "previousPath": "src/runtime-old.ts",
+      "status": "modified",
+      "language": "TypeScript",
+      "additions": 2,
+      "deletions": 1,
+      "binary": false,
+      "hunks": [
+        {
+          "header": "@@ -10,4 +10,5 @@",
+          "oldStart": 10,
+          "oldLines": 4,
+          "newStart": 10,
+          "newLines": 5,
+          "lines": [
+            {
+              "kind": "context",
+              "content": "const ready = true;",
+              "oldLine": 10,
+              "newLine": 10,
+              "lineSha": "optional-stable-line-fingerprint"
+            },
+            {
+              "kind": "delete",
+              "content": "startLegacy();",
+              "oldLine": 11,
+              "lineSha": "optional-stable-line-fingerprint"
+            },
+            {
+              "kind": "add",
+              "content": "startRuntime();",
+              "newLine": 11,
+              "lineSha": "optional-stable-line-fingerprint"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Allowed line kinds are `context`, `add` and `delete`.
+
+When `path` is supplied, the service should return only that changed file while still returning `baseSha` and `headSha`. Binary files should set `binary: true` and omit hunks.
+
+### Review metadata boundary
+
+The Repo Service owns the Git diff. Portal D1 owns review metadata:
+
+- review snapshot identity (`baseSha` + `headSha`)
+- line threads and replies
+- resolve/reopen state
+- reviewer submissions: COMMENT / APPROVE / REQUEST CHANGES
+- portal audit events
+
+The portal validates a new line-thread target against the current immutable diff before storing the thread. It never trusts arbitrary browser-supplied file/line anchors.
 
 ## Security expectations
 
