@@ -28,6 +28,8 @@ function reviewHref(input: {
   slug: string;
   base: string;
   head: string;
+  baseRef?: string;
+  headRef?: string;
   view?: string;
   file?: string;
   anchor?: string;
@@ -36,6 +38,8 @@ function reviewHref(input: {
     base: input.base,
     head: input.head,
   });
+  if (input.baseRef) params.set("baseRef", input.baseRef);
+  if (input.headRef) params.set("headRef", input.headRef);
   if (input.view) params.set("view", input.view);
   if (input.file) params.set("file", input.file);
   const anchor = input.anchor ? "#" + encodeURIComponent(input.anchor) : "";
@@ -47,11 +51,13 @@ async function repoContext(formData: FormData) {
   const slug = textValue(formData, "repoSlug").toLowerCase();
   const base = textValue(formData, "base");
   const head = textValue(formData, "head");
+  const baseRef = textValue(formData, "baseRef") || base;
+  const headRef = textValue(formData, "headRef") || head;
   if (!slug || !base || !head) throw new Error("Repository, base ve head gerekli.");
 
   const repo = await getAccessibleNativeRepository(member, slug);
   if (!repo) throw new Error("Repository erişimi yok.");
-  return { member, repo, base, head };
+  return { member, repo, base, head, baseRef, headRef };
 }
 
 async function snapshotContext(formData: FormData) {
@@ -63,8 +69,8 @@ async function snapshotContext(formData: FormData) {
   }
 
   const diff: RepoDiff = {
-    base: compare.base,
-    head: compare.head,
+    base: context.baseRef,
+    head: context.headRef,
     baseSha: compare.baseSha,
     headSha: compare.headSha,
     files: [],
@@ -73,11 +79,15 @@ async function snapshotContext(formData: FormData) {
 }
 
 export async function createRepoReviewThreadAction(formData: FormData) {
-  const { member, repo, base, head } = await repoContext(formData);
+  const { member, repo, base, head, baseRef, headRef } = await repoContext(formData);
   const filePath = textValue(formData, "filePath");
   const loaded = await loadNativeRepositoryDiff(repo, base, head, filePath);
   if (!loaded.diff) throw new Error(loaded.error || "Diff yüklenemedi.");
-  const diff = loaded.diff;
+  const diff: RepoDiff = {
+    ...loaded.diff,
+    base: baseRef,
+    head: headRef,
+  };
   const side = textValue(formData, "side") === "base" ? "base" : "head";
   const lineNumber = Number.parseInt(textValue(formData, "lineNumber"), 10);
   const body = textValue(formData, "body");
@@ -101,8 +111,10 @@ export async function createRepoReviewThreadAction(formData: FormData) {
   revalidatePath(path);
   redirect(reviewHref({
     slug: repo.slug,
-    base: diff.base,
-    head: diff.head,
+    base: diff.baseSha,
+    head: diff.headSha,
+    baseRef: diff.base,
+    headRef: diff.head,
     view,
     file: anchor.file.path,
     anchor: "thread-" + threadId,
@@ -127,8 +139,10 @@ export async function replyRepoReviewThreadAction(formData: FormData) {
   revalidatePath("/portal/repositories/" + repo.slug + "/review");
   redirect(reviewHref({
     slug: repo.slug,
-    base: diff.base,
-    head: diff.head,
+    base: diff.baseSha,
+    head: diff.headSha,
+    baseRef: diff.base,
+    headRef: diff.head,
     view,
     file,
     anchor: "thread-" + threadId,
@@ -155,8 +169,10 @@ export async function setRepoReviewThreadResolvedAction(formData: FormData) {
   revalidatePath("/portal/repositories/" + repo.slug + "/review");
   redirect(reviewHref({
     slug: repo.slug,
-    base: diff.base,
-    head: diff.head,
+    base: diff.baseSha,
+    head: diff.headSha,
+    baseRef: diff.base,
+    headRef: diff.head,
     view,
     file,
     anchor: "thread-" + threadId,
@@ -184,8 +200,10 @@ export async function submitRepoReviewAction(formData: FormData) {
   revalidatePath("/portal/repositories/" + repo.slug + "/review");
   redirect(reviewHref({
     slug: repo.slug,
-    base: diff.base,
-    head: diff.head,
+    base: diff.baseSha,
+    head: diff.headSha,
+    baseRef: diff.base,
+    headRef: diff.head,
     view,
     anchor: "review-summary",
   }));
