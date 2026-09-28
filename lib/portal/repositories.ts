@@ -372,7 +372,7 @@ export async function loadNativeRepositoryWorkspace(
   const head = input?.head ? cleanRef(input.head, ref) : "";
   const errors: string[] = [];
 
-  if (!serviceStatus.configured || !serviceStatus.url || !repo.service_repository_id) {
+  if (!serviceStatus.configured || !repo.service_repository_id) {
     return {
       ref,
       path,
@@ -380,7 +380,7 @@ export async function loadNativeRepositoryWorkspace(
         available: false,
         configured: serviceStatus.configured,
         reason: !serviceStatus.configured
-          ? "CORE Repo Service henüz bağlı değil."
+          ? "CORE Repo Engine henüz bağlı değil."
           : "Repository servis kimliği henüz atanmadı.",
       },
       branches: [] as RepoBranch[],
