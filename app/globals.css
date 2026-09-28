@@ -3920,3 +3920,90 @@ html,body{max-width:100%;overflow-x:clip}
     grid-column:2;
   }
 }
+
+
+/* =========================================================
+   CMS competitions module
+   ========================================================= */
+
+.adminCompetitionList{
+  display:grid;
+  gap:10px;
+  margin-top:38px;
+}
+.adminCompetitionRow{
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) 210px minmax(240px,.8fr);
+  gap:22px;
+  align-items:center;
+  min-height:138px;
+  padding:22px;
+  border:1px solid var(--line);
+  background:#090b0f;
+}
+.adminCompetitionIdentity{
+  display:grid;
+  gap:7px;
+}
+.adminCompetitionIdentity>span{
+  color:var(--orange);
+  font:850 9px/1 ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.adminCompetitionIdentity h2{
+  margin:0;
+  font-size:24px;
+  letter-spacing:-.035em;
+}
+.adminCompetitionIdentity small{
+  color:#69727e;
+  font:750 9px ui-monospace,monospace;
+}
+.adminCompetitionTarget{
+  display:grid;
+  gap:9px;
+  padding:16px;
+  border:1px solid #2d333c;
+  background:#05070a;
+}
+.adminCompetitionTarget strong{
+  color:var(--orange);
+  font:900 10px/1 ui-monospace,monospace;
+  letter-spacing:.09em;
+}
+.adminCompetitionTarget span{
+  color:#d0d5db;
+  font-size:12px;
+  line-height:1.45;
+}
+.adminCompetitionMeta{
+  display:grid;
+  gap:9px;
+  justify-items:end;
+  text-align:right;
+}
+.adminCompetitionMeta>span{
+  color:#8e97a2;
+  font-size:11px;
+}
+
+@media(max-width:950px){
+  .adminCompetitionRow{
+    grid-template-columns:1fr 180px;
+  }
+  .adminCompetitionMeta{
+    grid-column:1/-1;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    justify-items:start;
+    text-align:left;
+  }
+}
+@media(max-width:620px){
+  .adminCompetitionRow{
+    grid-template-columns:1fr;
+  }
+  .adminCompetitionMeta{
+    grid-column:auto;
+    grid-template-columns:1fr;
+  }
+}
