@@ -72,17 +72,24 @@ jobs:
               "portal_native_repositories",
               "portal_repo_gateways",
               "portal_code_runs",
-              "portal_mobile_devices"
+              "portal_mobile_devices",
+              "portal_teams",
+              "portal_team_memberships",
+              "portal_role_profiles",
+              "portal_member_capabilities",
+              "portal_project_registry",
+              "portal_project_map_edges",
+              "portal_vehicle_profiles"
             ];
             for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL")) {
-              throw new Error("Portal engineering/mobile migrations must be part of the idempotent bootstrap path.");
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL")) {
+              throw new Error("Portal engineering/mobile/control-plane migrations must be part of the idempotent bootstrap path.");
             }
-            console.log("Portal bootstrap uses prepared D1 batch() and includes V5 native mobile tables.");
+            console.log("Portal bootstrap uses prepared D1 batch() and includes V6 governance/control-plane tables.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
             if (!mailSource.includes("not_configured")) {
@@ -132,6 +139,11 @@ jobs:
             if (!mobileRuntime.includes("core_mobile_handoff_attempted")) {
               throw new Error("Mobile browser handoff must prevent redirect loops.");
             }
+            for (const required of ["PushNotifications", "pushNotificationActionPerformed", "core:push-opt-in", "pushToken"]) {
+              if (!mobileRuntime.includes(required)) {
+                throw new Error(`Native push runtime missing capability: ${required}`);
+              }
+            }
             const capacitorConfig = fs.readFileSync("capacitor.config.ts", "utf8");
             if (!capacitorConfig.includes("appId: \"com.ytucore.portal\"") || !capacitorConfig.includes("https://ytucore.com/portal?native=1")) {
               throw new Error("Capacitor production portal shell identity is invalid.");
@@ -169,8 +181,13 @@ jobs:
               throw new Error("Native Vault upload API must authenticate and use the canonical Vault writer.");
             }
             const nativeConfigurator = fs.readFileSync("mobile/scripts/configure-native.mjs", "utf8");
-            if (!nativeConfigurator.includes("NSCameraUsageDescription") || !nativeConfigurator.includes("applinks:ytucore.com")) {
-              throw new Error("Generated iOS app must include camera privacy text and Universal Link entitlement.");
+            if (
+              !nativeConfigurator.includes("NSCameraUsageDescription") ||
+              !nativeConfigurator.includes("applinks:ytucore.com") ||
+              !nativeConfigurator.includes("aps-environment") ||
+              !nativeConfigurator.includes("capacitorDidRegisterForRemoteNotifications")
+            ) {
+              throw new Error("Generated iOS app must include camera, Universal Links and APNs native bridge configuration.");
             }
             const nativePluginVersions = {
               "@capacitor/haptics": "8.0.2",
@@ -178,7 +195,9 @@ jobs:
               "@capacitor/preferences": "8.0.1",
               "@capacitor/keyboard": "8.0.5",
               "@capacitor/status-bar": "8.0.3",
-              "@capacitor/camera": "8.2.4"
+              "@capacitor/camera": "8.2.4",
+              "@capacitor/push-notifications": "8.1.0",
+              "@capacitor/share": "8.0.1"
             };
             for (const [name, version] of Object.entries(nativePluginVersions)) {
               if (pkg.dependencies?.[name] !== version) {
@@ -209,10 +228,13 @@ jobs:
             if (!nativeCss.includes("CORE PORTAL V7") || !nativeCss.includes(".nativeSearchSheet") || !nativeCss.includes(".portalNativeTaskList")) {
               throw new Error("Native V7 mobile layout rules are missing.");
             }
-            if (mobileVars.PORTAL_MOBILE_APP_VERSION !== "0.2.0") {
-              throw new Error("Native application version must be 0.2.0 for the V7 UX release.");
+            if (mobileVars.PORTAL_MOBILE_APP_VERSION !== "0.3.0") {
+              throw new Error("Native application version must be 0.3.0 for the V9 control/native release.");
             }
-            console.log("Native-first V7 search, badges, favorites, recents and route layouts validated.");
+            if (!nativeExperience.includes("@capacitor/share") || !nativeExperience.includes("core:push-opt-in")) {
+              throw new Error("Native 0.3 experience must expose Share Sheet and explicit push opt-in.");
+            }
+            console.log("Native-first 0.3 search, badges, camera, push, share and route layouts validated.");
 
             const mailHealth = fs.readFileSync("lib/portal/mail-health.ts", "utf8");
             for (const required of [
@@ -257,6 +279,48 @@ jobs:
               throw new Error("Notification mark-all persistence helper is missing.");
             }
             console.log("Deliverability diagnostics, Command Center, task filters and notification controls validated.");
+
+            const governance = fs.readFileSync("lib/portal/governance.ts", "utf8");
+            for (const required of ["portalMemberCapabilitySet", "canAccessPortalTeam", "canManagePortalTeam", "team.project.manage", "team.vehicle.manage"]) {
+              if (!governance.includes(required)) {
+                throw new Error(`V9 governance engine missing capability boundary: ${required}`);
+              }
+            }
+            const controlService = fs.readFileSync("lib/portal/control.ts", "utf8");
+            for (const required of ["createOrUpdatePortalProject", "createPortalVehicleControl", "upsertPortalTeamMembership", "createPortalMapEdge"]) {
+              if (!controlService.includes(required)) {
+                throw new Error(`V9 control service missing: ${required}`);
+              }
+            }
+            const teamWorkspace = fs.readFileSync("app/portal/(member)/teams/[code]/page.tsx", "utf8");
+            if (!teamWorkspace.includes("canAccessPortalTeam") || !teamWorkspace.includes("notFound()")) {
+              throw new Error("Private team workspace must enforce server-side access before rendering.");
+            }
+            const projectWorkspace = fs.readFileSync("app/portal/(member)/projects/[slug]/page.tsx", "utf8");
+            if (!projectWorkspace.includes("visibility") || !projectWorkspace.includes("canAccessPortalTeam") || !projectWorkspace.includes("notFound()")) {
+              throw new Error("Internal project workspace must enforce visibility and team access.");
+            }
+            const projectMap = fs.readFileSync("components/portal/ProjectMappingCanvas.tsx", "utf8");
+            if (!projectMap.includes("projectMapViewport") || !projectMap.includes("zoom") || !projectMap.includes("visibleEdges")) {
+              throw new Error("Engineering project map must retain interactive pan/zoom/topology behavior.");
+            }
+            const controlPage = fs.readFileSync("app/portal/(member)/control/page.tsx", "utf8");
+            if (!controlPage.includes("CONTROL PLANE") || !controlPage.includes("ARAÇ KOMUTU")) {
+              throw new Error("Heavy control page must preserve the metadata-vs-command authority boundary.");
+            }
+            const codeReader = fs.readFileSync("components/portal/VaultCodeReader.tsx", "utf8");
+            for (const required of ["data-line", "matchLines", "gotoLine", "navigator.clipboard"]) {
+              if (!codeReader.includes(required)) throw new Error(`Engineering code reader missing: ${required}`);
+            }
+            const modelViewer = fs.readFileSync("components/portal/VaultModelViewer.tsx", "utf8");
+            for (const required of ["parseGlb", "parseGltfText", "triangles", "perspective", "wire"]) {
+              if (!modelViewer.includes(required)) throw new Error(`3D engineering viewer missing: ${required}`);
+            }
+            const pcbViewer = fs.readFileSync("components/portal/KiCadBoardPreview.tsx", "utf8");
+            for (const required of ["segmentRe", "viaRe", "selectedNet", "F.Cu", "B.Cu"]) {
+              if (!pcbViewer.includes(required)) throw new Error(`KiCad engineering viewer missing: ${required}`);
+            }
+            console.log("V9 governance, private team/project access, project map, control plane and engineering viewers validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
