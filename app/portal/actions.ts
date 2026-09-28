@@ -1,6 +1,7 @@
 "use server";
 
 import { createPortalFileResource, uploadPortalFile } from "@/lib/portal/files";
+import { commitPortalRepositoryFile, commitPortalRepositoryText, deletePortalRepositoryPath } from "@/lib/portal/repositories";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
@@ -147,7 +148,7 @@ export async function createRepositoryAction(formData: FormData) {
   const member = await requirePortalRole(["admin","lead"]);
   const name = textValue(formData, "name");
   const repoUrl = textValue(formData, "repoUrl");
-  if (!name || !repoUrl) throw new Error("Repo adı ve URL gerekli.");
+  if (!name) throw new Error("Repo adı gerekli.");
 
   await createPortalRepository({
     name,
@@ -455,4 +456,68 @@ export async function uploadFileVersionAction(formData: FormData) {
   revalidatePath("/portal/files/" + fileId);
   revalidatePath("/portal/library");
   redirect("/portal/files/" + encodeURIComponent(fileId) + "?versioned=1");
+}
+
+
+export async function commitRepoFileAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const repositoryId = textValue(formData, "repositoryId");
+  const path = textValue(formData, "path");
+  const message = textValue(formData, "message");
+  const file = formData.get("file");
+  if (!repositoryId || !(file instanceof File) || file.size <= 0) {
+    throw new Error("Repo ve dosya gerekli.");
+  }
+
+  await commitPortalRepositoryFile({
+    repositoryId,
+    path: path || file.name,
+    file,
+    message: message || "Add " + (path || file.name),
+    memberId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/repositories");
+  revalidatePath("/portal/repositories/" + repositoryId);
+  redirect("/portal/repositories/" + encodeURIComponent(repositoryId) + "?committed=1");
+}
+
+export async function commitRepoTextAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const repositoryId = textValue(formData, "repositoryId");
+  const path = textValue(formData, "path");
+  const content = String(formData.get("content") ?? "");
+  const message = textValue(formData, "message");
+  if (!repositoryId || !path) throw new Error("Repo ve dosya yolu gerekli.");
+
+  await commitPortalRepositoryText({
+    repositoryId,
+    path,
+    content,
+    message: message || "Update " + path,
+    memberId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/repositories/" + repositoryId);
+  redirect("/portal/repositories/" + encodeURIComponent(repositoryId) + "?path=" + encodeURIComponent(path) + "&committed=1");
+}
+
+export async function deleteRepoPathAction(formData: FormData) {
+  const member = await requirePortalRole(["admin","lead"]);
+  const repositoryId = textValue(formData, "repositoryId");
+  const path = textValue(formData, "path");
+  if (!repositoryId || !path) throw new Error("Repo ve dosya yolu gerekli.");
+
+  await deletePortalRepositoryPath({
+    repositoryId,
+    path,
+    message: textValue(formData, "message") || "Delete " + path,
+    memberId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/repositories/" + repositoryId);
+  redirect("/portal/repositories/" + encodeURIComponent(repositoryId) + "?deleted=1");
 }
