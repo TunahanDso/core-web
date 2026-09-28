@@ -20,6 +20,7 @@ export default async function PortalProfilePage({
   if (!data) return null;
 
   const profile = data.profile || {};
+  const headline = typeof profile.headline === "string" ? profile.headline : "";
   let skills: string[] = [];
   try {
     const parsed = JSON.parse(String(profile.skills_json || "[]"));
@@ -33,7 +34,7 @@ export default async function PortalProfilePage({
       <PortalPageHeader
         code="ID / PROFİL"
         title={member.fullName || member.email}
-        lead={(profile.headline && String(profile.headline)) || portalRoleLabel(member.role) + " · " + (member.teams.length ? member.teams.join(" / ") : "CORE")}
+        lead={headline || portalRoleLabel(member.role) + " · " + (member.teams.length ? member.teams.join(" / ") : "CORE")}
       />
 
       {query.saved === "1" ? <div className="portalSuccess">Profilin güncellendi.</div> : null}
