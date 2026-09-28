@@ -11,12 +11,20 @@ import {
   setPortalMemberStatus,
 } from "@/lib/portal/db";
 import type { PortalRole } from "@/lib/portal/auth";
-import { sendPortalInvitationEmail } from "@/lib/portal/mail";
+import { sendPortalInvitationEmail, sendPortalTestEmail } from "@/lib/portal/mail";
 
 function actorFrom(identity: Awaited<ReturnType<typeof requireAdminIdentity>>) {
   if (identity.email) return identity.email;
   return typeof identity.payload.sub === "string" ? identity.payload.sub : "cloudflare-access";
 }
+
+export type MailTestAdminState = {
+  error?: string;
+  status?: "sent" | "failed" | "not_configured";
+  provider?: string;
+  messageId?: string;
+  recipient?: string;
+};
 
 export type InviteAdminState = {
   error?: string;
@@ -27,6 +35,37 @@ export type InviteAdminState = {
   deliveryProvider?: string;
   deliveryError?: string;
 };
+
+
+export async function sendPortalMailTestAdminAction(
+  _state: MailTestAdminState,
+  formData: FormData
+): Promise<MailTestAdminState> {
+  try {
+    const identity = await requireAdminIdentity();
+    const recipient = String(formData.get("recipient") ?? "").trim().toLowerCase();
+    if (!recipient || !recipient.includes("@") || recipient.length > 254) {
+      return { error: "Geçerli bir test e-posta adresi gir." };
+    }
+
+    const delivery = await sendPortalTestEmail({
+      to: recipient,
+      requestedBy: actorFrom(identity),
+    });
+
+    return {
+      status: delivery.status,
+      provider: delivery.provider,
+      messageId: delivery.messageId,
+      recipient,
+      error: delivery.status === "sent" ? undefined : delivery.error,
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Test e-postası gönderilemedi.",
+    };
+  }
+}
 
 export async function initializePortalAction() {
   const identity = await requireAdminIdentity();
