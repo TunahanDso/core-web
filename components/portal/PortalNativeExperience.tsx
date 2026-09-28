@@ -16,6 +16,12 @@ type NativeExperienceProps = {
   memberName: string;
   memberRole: string;
   memberInitials: string;
+  counts: {
+    tasks: number;
+    notifications: number;
+    mail: number;
+    chat: number;
+  };
 };
 
 type IconName =
@@ -30,7 +36,10 @@ type IconName =
   | "plus"
   | "refresh"
   | "wifi"
-  | "camera";
+  | "camera"
+  | "search"
+  | "star"
+  | "recent";
 
 function Icon({ name }: { name: IconName }) {
   const common = {
@@ -56,6 +65,9 @@ function Icon({ name }: { name: IconName }) {
   if (name === "plus") return <svg {...common}><path d="M12 5v14M5 12h14"/></svg>;
   if (name === "refresh") return <svg {...common}><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.2 9A7 7 0 0 0 6.4 6.4L4 9M5.8 15A7 7 0 0 0 17.6 17.6L20 15"/></svg>;
   if (name === "camera") return <svg {...common}><path d="M4 7h3l1.5-2h7L17 7h3v12H4z"/><circle cx="12" cy="13" r="4"/></svg>;
+  if (name === "search") return <svg {...common}><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>;
+  if (name === "star") return <svg {...common}><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2 6.4 20.2 7.5 14 3 9.6l6.2-.9z"/></svg>;
+  if (name === "recent") return <svg {...common}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>;
   return <svg {...common}><path d="M3 9c5-4 13-4 18 0"/><path d="M6 13c3.4-2.7 8.6-2.7 12 0"/><path d="M9.5 17c1.4-1.2 3.6-1.2 5 0"/><circle cx="12" cy="20" r=".7" fill="currentColor" stroke="none"/></svg>;
 }
 
@@ -67,12 +79,44 @@ const tabs = [
 ] as const;
 
 const quickActions = [
-  ["Yeni görev", "/portal/tasks", "İş oluştur veya görev panosuna git"],
+  ["Yeni görev", "/portal/tasks#create-task", "İş oluştur veya görev panosuna git"],
   ["Mail yaz", "/portal/mail?compose=1", "CORE iç yazışmasını başlat"],
   ["Vault'a yükle", "/portal/library#upload", "Dosya ve teknik veri ekle"],
   ["Takvime git", "/portal/calendar", "Toplantı, test ve saha planı"],
   ["Stok işlemi", "/portal/inventory", "Parça ve ekipman hareketi"],
 ] as const;
+
+const nativeModules = portalNavigation.flatMap((group) =>
+  group.items.map(([label, href, code]) => ({ label, href, code, group: group.label }))
+);
+
+const routeTitles = new Map<string, string>([
+  ["/portal", "Ana Sayfa"],
+  ["/portal/tasks", "Görevler"],
+  ["/portal/chat", "Sohbet"],
+  ["/portal/mail", "Mail"],
+  ["/portal/library", "Vault"],
+  ["/portal/calendar", "Takvim"],
+  ["/portal/notifications", "Bildirimler"],
+  ["/portal/inventory", "Stok"],
+  ["/portal/projects", "Projeler"],
+  ["/portal/repositories", "Repo"],
+  ["/portal/mechanical", "Mekanik / CAD"],
+  ["/portal/electronics", "PCB / Elektronik"],
+  ["/portal/code-lab", "Code Lab"],
+  ["/portal/members", "Üyeler"],
+  ["/portal/security", "Güvenlik"],
+  ["/portal/ops", "Canlı Araç"],
+]);
+
+function nativeRouteTitle(pathname: string) {
+  const exact = routeTitles.get(pathname);
+  if (exact) return exact;
+  const parent = [...routeTitles.entries()]
+    .filter(([route]) => route !== "/portal" && pathname.startsWith(route + "/"))
+    .sort((a,b) => b[0].length - a[0].length)[0];
+  return parent?.[1] || "CORE";
+}
 
 function isInteractiveTarget(target: EventTarget | null) {
   return target instanceof HTMLElement &&
@@ -83,12 +127,17 @@ export default function PortalNativeExperience({
   memberName,
   memberRole,
   memberInitials,
+  counts,
 }: NativeExperienceProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [native, setNative] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [moduleQuery, setModuleQuery] = useState("");
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [recentRoutes, setRecentRoutes] = useState<string[]>([]);
   const [connected, setConnected] = useState(true);
   const [connectionType, setConnectionType] = useState<ConnectionType>("unknown");
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -119,7 +168,25 @@ export default function PortalNativeExperience({
     hapticTap();
     setMoreOpen(false);
     setQuickOpen(false);
+    setSearchOpen(false);
+    const clean = href.split("?")[0]?.split("#")[0] || "/portal";
+    const nextRecent = [clean, ...recentRoutes.filter((item) => item !== clean)].slice(0, 6);
+    setRecentRoutes(nextRecent);
+    if (Capacitor.isNativePlatform()) {
+      void Preferences.set({ key: "core_recent_routes", value: JSON.stringify(nextRecent) }).catch(() => undefined);
+    }
     router.push(href);
+  };
+
+  const toggleFavorite = (href: string) => {
+    hapticTap();
+    const next = favorites.includes(href)
+      ? favorites.filter((item) => item !== href)
+      : [href, ...favorites].slice(0, 8);
+    setFavorites(next);
+    if (Capacitor.isNativePlatform()) {
+      void Preferences.set({ key: "core_favorite_routes", value: JSON.stringify(next) }).catch(() => undefined);
+    }
   };
 
   const capturePhoto = async () => {
@@ -222,6 +289,13 @@ export default function PortalNativeExperience({
 
     void StatusBar.setStyle({ style: Style.Dark }).catch(() => undefined);
     void Preferences.set({ key: "core_last_portal_route", value: pathname }).catch(() => undefined);
+    void Promise.all([
+      Preferences.get({ key: "core_recent_routes" }),
+      Preferences.get({ key: "core_favorite_routes" }),
+    ]).then(([recent, favorite]) => {
+      try { setRecentRoutes(JSON.parse(recent.value || "[]")); } catch { setRecentRoutes([]); }
+      try { setFavorites(JSON.parse(favorite.value || "[]")); } catch { setFavorites([]); }
+    }).catch(() => undefined);
 
     const handles: Array<{ remove: () => Promise<void> }> = [];
 
@@ -258,6 +332,10 @@ export default function PortalNativeExperience({
     }).then((handle) => handles.push(handle));
 
     void App.addListener("backButton", () => {
+      if (searchOpen) {
+        setSearchOpen(false);
+        return;
+      }
       if (quickOpen) {
         setQuickOpen(false);
         return;
@@ -318,7 +396,7 @@ export default function PortalNativeExperience({
     };
   // The listener set is intentionally rebound per route so Android back behavior
   // always acts on the current portal path.
-  }, [pathname, router, moreOpen, quickOpen]);
+  }, [pathname, router, moreOpen, quickOpen, searchOpen]);
 
   useEffect(() => {
     if (!native) return;
@@ -356,14 +434,18 @@ export default function PortalNativeExperience({
             <span className="nativeBrandMark">C</span>
           )}
           <div className="nativeAppIdentity">
-            <b>YTÜ CORE</b>
-            <small>{connected ? (connectionType === "wifi" ? "Wi-Fi · bağlı" : connectionType === "cellular" ? "Mobil · bağlı" : "Bağlı") : "Çevrimdışı"}</small>
+            <b>{nativeRouteTitle(pathname)}</b>
+            <small>YTÜ CORE · {connected ? (connectionType === "wifi" ? "Wi-Fi" : connectionType === "cellular" ? "Mobil" : "Bağlı") : "Çevrimdışı"}</small>
           </div>
         </div>
 
         <div className="nativeAppBarActions">
-          <button type="button" className="nativeIconButton" onClick={() => navigate("/portal/notifications")} aria-label="Bildirimler">
+          <button type="button" className="nativeIconButton" onClick={() => { hapticTap(); setSearchOpen(true); setMoreOpen(false); setQuickOpen(false); }} aria-label="Ara">
+            <Icon name="search" />
+          </button>
+          <button type="button" className="nativeIconButton nativeBadgeButton" onClick={() => navigate("/portal/notifications")} aria-label="Bildirimler">
             <Icon name="bell" />
+            {counts.notifications > 0 ? <em>{counts.notifications > 99 ? "99+" : counts.notifications}</em> : null}
           </button>
           <button type="button" className="nativeAvatarButton" onClick={() => navigate("/portal/profile")} aria-label="Profil">
             {memberInitials}
@@ -397,6 +479,9 @@ export default function PortalNativeExperience({
               >
                 <Icon name={tab.icon} />
                 <span>{tab.label}</span>
+                {tab.href === "/portal/tasks" && counts.tasks > 0 ? <em className="nativeTabBadge">{counts.tasks > 99 ? "99+" : counts.tasks}</em> : null}
+                {tab.href === "/portal/chat" && counts.chat > 0 ? <em className="nativeTabBadge">{counts.chat > 99 ? "99+" : counts.chat}</em> : null}
+                {tab.href === "/portal/mail" && counts.mail > 0 ? <em className="nativeTabBadge">{counts.mail > 99 ? "99+" : counts.mail}</em> : null}
               </button>
             ))}
             <button
@@ -413,6 +498,42 @@ export default function PortalNativeExperience({
             </button>
           </nav>
         </>
+      ) : null}
+
+
+      {searchOpen ? (
+        <div className="nativeSheetBackdrop" role="presentation" onClick={() => setSearchOpen(false)}>
+          <section className="nativeSheet nativeSearchSheet" role="dialog" aria-modal="true" aria-label="CORE içinde ara" onClick={(event) => event.stopPropagation()}>
+            <div className="nativeSheetHandle" />
+            <header>
+              <div><span>CORE / SEARCH</span><h2>Ne arıyorsun?</h2></div>
+              <button type="button" onClick={() => setSearchOpen(false)}>KAPAT</button>
+            </header>
+            <form className="nativeSearchForm" action="/portal/search" method="get" onSubmit={() => hapticTap()}>
+              <Icon name="search" />
+              <input
+                name="q"
+                autoFocus
+                value={moduleQuery}
+                onChange={(event) => setModuleQuery(event.target.value)}
+                placeholder="Görev, dosya, repo, stok, üye..."
+              />
+              <button type="submit">ARA</button>
+            </form>
+            <div className="nativeSearchSuggestions">
+              {nativeModules
+                .filter((item) => !moduleQuery || (item.label + " " + item.group).toLowerCase().includes(moduleQuery.toLowerCase()))
+                .slice(0,10)
+                .map((item) => (
+                  <button type="button" key={item.href} onClick={() => navigate(item.href)}>
+                    <span>{item.code}</span>
+                    <div><b>{item.label}</b><small>{item.group}</small></div>
+                    <i>›</i>
+                  </button>
+                ))}
+            </div>
+          </section>
+        </div>
       ) : null}
 
       {moreOpen ? (
@@ -433,6 +554,35 @@ export default function PortalNativeExperience({
               <button type="button" onClick={() => navigate("/portal/profile")}>PROFİL →</button>
             </div>
 
+            {favorites.length || recentRoutes.length ? (
+              <div className="nativePersonalRail">
+                {favorites.length ? (
+                  <section>
+                    <p><Icon name="star" /> FAVORİLER</p>
+                    <div>
+                      {favorites.map((href) => {
+                        const item = nativeModules.find((module) => module.href === href);
+                        if (!item) return null;
+                        return <button type="button" key={href} onClick={() => navigate(href)}><span>{item.code}</span><b>{item.label}</b></button>;
+                      })}
+                    </div>
+                  </section>
+                ) : null}
+                {recentRoutes.length ? (
+                  <section>
+                    <p><Icon name="recent" /> SON KULLANILAN</p>
+                    <div>
+                      {recentRoutes.slice(0,4).map((href) => {
+                        const item = nativeModules.find((module) => module.href === href);
+                        if (!item) return null;
+                        return <button type="button" key={href} onClick={() => navigate(href)}><span>{item.code}</span><b>{item.label}</b></button>;
+                      })}
+                    </div>
+                  </section>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="nativeModuleGroups">
               {portalNavigation.map((group) => (
                 <section key={group.label}>
@@ -444,10 +594,12 @@ export default function PortalNativeExperience({
                         key={href}
                         className={activeTab(href) ? "active" : ""}
                         onClick={() => navigate(href)}
+                        onDoubleClick={(event) => { event.preventDefault(); toggleFavorite(href); }}
+                        title={favorites.includes(href) ? "Favorilerde · kaldırmak için çift dokun" : "Favoriye eklemek için çift dokun"}
                       >
                         <span>{code}</span>
                         <b>{label}</b>
-                        <i>›</i>
+                        <i>{favorites.includes(href) ? "★" : "›"}</i>
                       </button>
                     ))}
                   </div>
