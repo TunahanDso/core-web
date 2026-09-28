@@ -1,4 +1,4 @@
-import { requirePortalMember } from "@/lib/portal/auth";
+import { getPortalMember } from "@/lib/portal/auth";
 import {
   registerPortalMobileDevice,
   type MobilePlatform,
@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 const PLATFORMS = new Set<MobilePlatform>(["android","ios","pwa","web","unknown"]);
 
 export async function POST(request: Request) {
-  const member = await requirePortalMember();
+  const member = await getPortalMember();
+  if (!member) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
+  }
   const payload = await request.json().catch(() => ({})) as Record<string, unknown>;
 
   const installId = String(payload.installId || "").trim();
