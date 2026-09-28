@@ -46,6 +46,7 @@ export default async function PortalMemberLayout({
       <PortalNativeExperience
         memberName={member.fullName || member.email}
         memberRole={portalRoleLabel(member.role)}
+        portalRole={member.role}
         memberInitials={initials}
         counts={{
           tasks: metrics.openTasks,
