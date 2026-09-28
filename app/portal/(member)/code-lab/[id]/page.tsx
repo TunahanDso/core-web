@@ -39,11 +39,12 @@ export default async function PortalCodeRunDetailPage({
   params: Promise<{ id:string }>;
   searchParams?: Promise<{ submitted?:string;cancelled?:string;retried?:string }>;
 }) {
-  const [{ id },member,query] = await Promise.all([
+  const [{ id },member] = await Promise.all([
     params,
     requirePortalMember(),
-    searchParams ? searchParams : Promise.resolve({}),
   ]);
+  const query: { submitted?:string;cancelled?:string;retried?:string } =
+    searchParams ? await searchParams : {};
   const [detail,runner] = await Promise.all([
     getPortalCodeRunDetail(member,decodeURIComponent(id)),
     probeCodeRunner(),
