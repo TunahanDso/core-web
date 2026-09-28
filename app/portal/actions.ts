@@ -18,6 +18,7 @@ import {
   createPortalRepository,
   createPortalResource,
   createPortalTask,
+  markPortalChannelRead,
   markPortalNotificationRead,
   savePortalMemberProfile,
   sendPortalMailReply,
@@ -370,4 +371,14 @@ export async function replyMailThreadAction(formData: FormData) {
   revalidatePath("/portal/mail");
   revalidatePath("/portal/mail/" + threadId);
   redirect("/portal/mail/" + encodeURIComponent(threadId) + "?replied=1");
+}
+
+
+export async function openChatChannelAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const channelId = textValue(formData, "channelId");
+  if (!channelId) throw new Error("Kanal kimliği gerekli.");
+  await markPortalChannelRead(channelId, member.id);
+  revalidatePath("/portal/chat");
+  redirect("/portal/chat?channel=" + encodeURIComponent(channelId));
 }
