@@ -2,6 +2,7 @@
 
 import { createPortalFileResource, uploadPortalFile } from "@/lib/portal/files";
 import { commitPortalRepositoryFile, commitPortalRepositoryText, deletePortalRepositoryPath } from "@/lib/portal/repositories";
+import { runPortalCode } from "@/lib/portal/runner";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
@@ -542,4 +543,45 @@ export async function setMailThreadStateAction(formData: FormData) {
 
   revalidatePath("/portal/mail");
   revalidatePath("/portal/mail/" + threadId);
+}
+
+
+export type PortalRunState = {
+  error?: string;
+  success?: boolean;
+  unavailable?: boolean;
+  stdout?: string;
+  stderr?: string;
+  exitCode?: number | null;
+  durationMs?: number | null;
+  runId?: string;
+};
+
+export async function runCodeAction(
+  _state: PortalRunState,
+  formData: FormData
+): Promise<PortalRunState> {
+  try {
+    const member = await requirePortalMember();
+    const language = textValue(formData,"language");
+    const code = String(formData.get("code") ?? "");
+    const result = await runPortalCode({
+      memberId:member.id,
+      repositoryId:textValue(formData,"repositoryId") || null,
+      language,
+      code,
+    });
+    revalidatePath("/portal/lab");
+    return {
+      success:result.success,
+      unavailable:result.unavailable,
+      stdout:result.stdout,
+      stderr:result.stderr,
+      exitCode:result.exitCode,
+      durationMs:result.durationMs,
+      runId:result.id,
+    };
+  } catch (error) {
+    return { error:error instanceof Error ? error.message : "Kod çalıştırılamadı." };
+  }
 }
