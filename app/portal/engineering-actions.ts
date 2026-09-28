@@ -92,7 +92,9 @@ export async function commitNativeRepositoryFileAction(formData: FormData) {
   const deleting = textValue(formData,"operation") === "delete";
   const fileContent = deleting ? null : String(formData.get("content") ?? "");
   if (!path) throw new Error("Dosya yolu gerekli.");
-  if (!deleting && fileContent.length > 520_000) throw new Error("Dosya portal editörü için çok büyük.");
+  if (typeof fileContent === "string" && fileContent.length > 520_000) {
+    throw new Error("Dosya portal editörü için çok büyük.");
+  }
 
   await commitNativeRepositoryTextFile({
     serviceRepositoryId:repo.service_repository_id!,
