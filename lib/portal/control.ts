@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import type { PortalMember } from "@/lib/portal/auth";
-import { canAccessPortalTeam } from "@/lib/portal/governance";
+import { canAccessPortalTeam, PORTAL_CAPABILITY_OPTIONS } from "@/lib/portal/governance";
 
 function db() {
   if (!env.DB) throw new Error("DB bağlantısı kullanılamıyor.");
@@ -135,6 +135,202 @@ export async function listPortalRoleProfiles() {
   } catch {
     return [];
   }
+}
+
+
+
+export async function createOrUpdatePortalTeam(input: {
+  code: string;
+  name: string;
+  domain: string;
+  description: string;
+  visibility: string;
+  actorEmail: string;
+}) {
+  const teamCode = code(input.code);
+  if (!/^[A-Z0-9-]{2,16}$/.test(teamCode)) {
+    throw new Error("Takım kodu 2-16 karakter; yalnız A-Z, 0-9 ve '-' içerebilir.");
+  }
+  if (!input.name.trim()) throw new Error("Takım adı gerekli.");
+  if (!["restricted","members"].includes(input.visibility)) {
+    throw new Error("Geçersiz takım görünürlüğü.");
+  }
+
+  const database = db();
+  await database.batch([
+    database.prepare(
+      "INSERT INTO portal_teams (code,name,domain,description,visibility,status) VALUES (?,?,?,?,?,'active') " +
+      "ON CONFLICT(code) DO UPDATE SET name=excluded.name,domain=excluded.domain,description=excluded.description," +
+      "visibility=excluded.visibility,status='active',updated_at=CURRENT_TIMESTAMP"
+    ).bind(teamCode,input.name.trim(),input.domain.trim(),input.description.trim(),input.visibility),
+    database.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.team.upsert','team',?,?)"
+    ).bind(input.actorEmail,teamCode,JSON.stringify({
+      name:input.name.trim(),
+      domain:input.domain.trim(),
+      visibility:input.visibility,
+    })),
+  ]);
+  return teamCode;
+}
+
+export async function deletePortalTeam(input: {
+  teamCode: string;
+  actorEmail: string;
+}) {
+  const teamCode = code(input.teamCode);
+  if (!teamCode) throw new Error("Takım kodu gerekli.");
+  const database = db();
+  const existing = await database.prepare(
+    "SELECT code,name FROM portal_teams WHERE code=? LIMIT 1"
+  ).bind(teamCode).first<{ code:string; name:string }>();
+  if (!existing) throw new Error("Takım bulunamadı.");
+
+  const members = await database.prepare(
+    "SELECT id,teams_json FROM portal_members WHERE teams_json LIKE ?"
+  ).bind("%" + teamCode + "%").all<{ id:string; teams_json:string }>();
+
+  const legacyUpdates = (members.results ?? []).map((member) => {
+    let teams: string[] = [];
+    try {
+      const parsed = JSON.parse(member.teams_json || "[]");
+      if (Array.isArray(parsed)) teams = parsed.map((item) => String(item));
+    } catch {
+      teams = [];
+    }
+    const next = teams.filter((item) => code(item) !== teamCode);
+    return database.prepare(
+      "UPDATE portal_members SET teams_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(JSON.stringify(next),member.id);
+  });
+
+  await database.batch([
+    ...legacyUpdates,
+    database.prepare("UPDATE portal_tasks SET team_code=NULL WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_resources SET team_code=NULL WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_repositories SET team_code=NULL WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_channels SET team_code=NULL WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_calendar_events SET team_code=NULL WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_vault_files SET team_code=NULL WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_native_repositories SET team_code=NULL WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_project_registry SET team_code=NULL,updated_at=CURRENT_TIMESTAMP WHERE team_code=?").bind(teamCode),
+    database.prepare("UPDATE portal_vehicle_profiles SET team_code=NULL,updated_at=CURRENT_TIMESTAMP WHERE team_code=?").bind(teamCode),
+    database.prepare(
+      "DELETE FROM portal_project_map_edges WHERE (source_type='team' AND source_ref=?) OR (target_type='team' AND target_ref=?)"
+    ).bind(teamCode,teamCode),
+    database.prepare("DELETE FROM portal_team_memberships WHERE team_code=?").bind(teamCode),
+    database.prepare("DELETE FROM portal_teams WHERE code=?").bind(teamCode),
+    database.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.team.delete','team',?,?)"
+    ).bind(input.actorEmail,teamCode,JSON.stringify({
+      name:existing.name,
+      detached:["tasks","resources","repositories","channels","calendar","vault","native-repositories","projects","vehicles"],
+      legacyMembershipsUpdated:legacyUpdates.length,
+    })),
+  ]);
+  return true;
+}
+
+export async function removePortalTeamMembership(input: {
+  teamCode: string;
+  memberId: string;
+  actorEmail: string;
+}) {
+  const teamCode = code(input.teamCode);
+  if (!teamCode || !input.memberId) throw new Error("Takım ve üye gerekli.");
+  const database = db();
+
+  const member = await database.prepare(
+    "SELECT teams_json FROM portal_members WHERE id=? LIMIT 1"
+  ).bind(input.memberId).first<{ teams_json:string }>();
+  let teams: string[] = [];
+  try {
+    const parsed = JSON.parse(member?.teams_json || "[]");
+    if (Array.isArray(parsed)) teams = parsed.map((item) => String(item));
+  } catch {
+    teams = [];
+  }
+  const next = teams.filter((item) => code(item) !== teamCode);
+
+  await database.batch([
+    database.prepare(
+      "DELETE FROM portal_team_memberships WHERE team_code=? AND member_id=?"
+    ).bind(teamCode,input.memberId),
+    database.prepare(
+      "UPDATE portal_members SET teams_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(JSON.stringify(next),input.memberId),
+    database.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.team.membership.remove','team',?,?)"
+    ).bind(input.actorEmail,teamCode,JSON.stringify({ memberId:input.memberId })),
+  ]);
+}
+
+export async function updatePortalRoleProfile(input: {
+  roleKey: string;
+  description: string;
+  capabilities: string[];
+  actorEmail: string;
+}) {
+  const roleKey = input.roleKey.trim();
+  if (!/^[a-z0-9_-]{2,40}$/.test(roleKey)) throw new Error("Geçersiz rol anahtarı.");
+  const allowed = new Set<string>(PORTAL_CAPABILITY_OPTIONS);
+  const capabilities = Array.from(new Set(input.capabilities.map((item) => item.trim()).filter((item) => allowed.has(item))));
+  if (roleKey === "admin" && !capabilities.includes("portal.admin")) capabilities.unshift("portal.admin");
+
+  const database = db();
+  const existing = await database.prepare(
+    "SELECT role_key,scope FROM portal_role_profiles WHERE role_key=? LIMIT 1"
+  ).bind(roleKey).first<{ role_key:string; scope:string }>();
+  if (!existing) throw new Error("Rol profili bulunamadı.");
+
+  await database.batch([
+    database.prepare(
+      "UPDATE portal_role_profiles SET description=?,capabilities_json=?,updated_at=CURRENT_TIMESTAMP WHERE role_key=?"
+    ).bind(input.description.trim(),JSON.stringify(capabilities),roleKey),
+    database.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.role.profile.update','role',?,?)"
+    ).bind(input.actorEmail,roleKey,JSON.stringify({ scope:existing.scope,capabilities })),
+  ]);
+}
+
+export async function updatePortalMemberGlobalRole(input: {
+  memberId: string;
+  role: string;
+  actorMemberId: string;
+  actorEmail: string;
+}) {
+  const allowed = ["admin","lead","member","alumni","viewer"];
+  if (!allowed.includes(input.role)) throw new Error("Geçersiz global rol.");
+  const database = db();
+  const target = await database.prepare(
+    "SELECT id,role,full_name,email FROM portal_members WHERE id=? LIMIT 1"
+  ).bind(input.memberId).first<{ id:string; role:string; full_name:string; email:string }>();
+  if (!target) throw new Error("Portal üyesi bulunamadı.");
+
+  if (target.id === input.actorMemberId && target.role === "admin" && input.role !== "admin") {
+    throw new Error("Kendi yönetici rolünü bu ekrandan düşüremezsin.");
+  }
+  if (target.role === "admin" && input.role !== "admin") {
+    const admins = await database.prepare(
+      "SELECT COUNT(*) AS count FROM portal_members WHERE role='admin' AND status='active'"
+    ).first<{ count:number }>();
+    if (Number(admins?.count || 0) <= 1) {
+      throw new Error("Son aktif portal yöneticisinin rolü düşürülemez.");
+    }
+  }
+
+  await database.batch([
+    database.prepare(
+      "UPDATE portal_members SET role=?,updated_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(input.role,input.memberId),
+    database.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.member.role.update','member',?,?)"
+    ).bind(input.actorEmail,input.memberId,JSON.stringify({
+      from:target.role,
+      to:input.role,
+      member:target.full_name || target.email,
+    })),
+  ]);
 }
 
 export async function listPortalProjectRegistry() {
