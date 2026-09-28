@@ -14,7 +14,7 @@ export default async function PortalMailPage() {
 
   return (
     <>
-      <PortalPageHeader code="ML / INTERNAL MAIL" title="İç Yazışma" lead="Sohbette kaybolmaması gereken karar, talep ve devir teslimler için kalıcı yazışma alanı." />
+      <PortalPageHeader code="ML / İÇ YAZIŞMA" title="İç Yazışma" lead="Sohbette kaybolmaması gereken karar, talep ve devir teslimler için kalıcı yazışma alanı." />
 
       <section className="portalPanel portalCreatePanel">
         <div className="portalPanelHead"><span>YENİ YAZIŞMA</span><small>YALNIZCA İÇ KULLANIM</small></div>
