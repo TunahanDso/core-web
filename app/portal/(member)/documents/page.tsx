@@ -1,5 +1,6 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { listPortalResources } from "@/lib/portal/db";
+import { portalResourceKindLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function PortalDokümanlarPage() {
         <div className="portalListTable">
           {resources.map((item) => (
             <article key={String(item.id)}>
-              <span>{String(item.kind).toUpperCase()}</span>
+              <span>{portalResourceKindLabel(String(item.kind))}</span>
               <div><b>{String(item.title)}</b><small>{String(item.description || "")}</small></div>
               <em>{String(item.team_code || "CORE")}</em>
               {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">AÇ ↗</a> : <small>YALNIZCA İNDEKS</small>}
