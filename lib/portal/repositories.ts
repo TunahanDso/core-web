@@ -107,11 +107,49 @@ export type RepoCompareFile = {
 export type RepoCompare = {
   base: string;
   head: string;
+  baseSha?: string;
+  headSha?: string;
   aheadBy?: number;
   behindBy?: number;
   totalCommits?: number;
   mergeBaseSha?: string;
   files: RepoCompareFile[];
+};
+
+export type RepoDiffLine = {
+  kind: "context" | "add" | "delete";
+  content: string;
+  oldLine?: number;
+  newLine?: number;
+  lineSha?: string;
+};
+
+export type RepoDiffHunk = {
+  header: string;
+  oldStart: number;
+  oldLines: number;
+  newStart: number;
+  newLines: number;
+  lines: RepoDiffLine[];
+};
+
+export type RepoDiffFile = {
+  path: string;
+  previousPath?: string;
+  status?: string;
+  language?: string;
+  additions?: number;
+  deletions?: number;
+  binary?: boolean;
+  hunks: RepoDiffHunk[];
+};
+
+export type RepoDiff = {
+  base: string;
+  head: string;
+  baseSha: string;
+  headSha: string;
+  files: RepoDiffFile[];
 };
 
 type ServiceResult<T> =
@@ -175,6 +213,8 @@ function comparePayload(payload: unknown, base: string, head: string): RepoCompa
   return {
     base: String(raw.base || base),
     head: String(raw.head || head),
+    baseSha: raw.baseSha ? String(raw.baseSha) : undefined,
+    headSha: raw.headSha ? String(raw.headSha) : undefined,
     aheadBy: Number.isFinite(Number(raw.aheadBy)) ? Number(raw.aheadBy) : undefined,
     behindBy: Number.isFinite(Number(raw.behindBy)) ? Number(raw.behindBy) : undefined,
     totalCommits: Number.isFinite(Number(raw.totalCommits)) ? Number(raw.totalCommits) : undefined,
@@ -335,4 +375,100 @@ export async function loadNativeRepositoryWorkspace(
     compare,
     errors,
   };
+}
+
+
+function diffPayload(payload: unknown, base: string, head: string): RepoDiff | null {
+  if (!payload || typeof payload !== "object") return null;
+  const raw = payload as Record<string, unknown>;
+  const baseSha = String(raw.baseSha || "").trim();
+  const headSha = String(raw.headSha || "").trim();
+  if (!baseSha || !headSha) return null;
+
+  const files = listPayload<Record<string, unknown>>(raw.files, "files").map((file) => {
+    const hunks = listPayload<Record<string, unknown>>(file.hunks, "hunks").map((hunk) => {
+      const lines = listPayload<Record<string, unknown>>(hunk.lines, "lines").map((line) => ({
+        kind: ["add","delete","context"].includes(String(line.kind))
+          ? String(line.kind) as RepoDiffLine["kind"]
+          : "context",
+        content: String(line.content || ""),
+        oldLine: Number.isFinite(Number(line.oldLine)) && Number(line.oldLine) > 0 ? Number(line.oldLine) : undefined,
+        newLine: Number.isFinite(Number(line.newLine)) && Number(line.newLine) > 0 ? Number(line.newLine) : undefined,
+        lineSha: line.lineSha ? String(line.lineSha) : undefined,
+      }));
+      return {
+        header: String(hunk.header || ""),
+        oldStart: Number(hunk.oldStart || 0),
+        oldLines: Number(hunk.oldLines || 0),
+        newStart: Number(hunk.newStart || 0),
+        newLines: Number(hunk.newLines || 0),
+        lines,
+      } satisfies RepoDiffHunk;
+    });
+
+    return {
+      path: String(file.path || ""),
+      previousPath: file.previousPath ? String(file.previousPath) : undefined,
+      status: file.status ? String(file.status) : undefined,
+      language: file.language ? String(file.language) : undefined,
+      additions: Number.isFinite(Number(file.additions)) ? Number(file.additions) : undefined,
+      deletions: Number.isFinite(Number(file.deletions)) ? Number(file.deletions) : undefined,
+      binary: Boolean(file.binary),
+      hunks,
+    } satisfies RepoDiffFile;
+  }).filter((file) => file.path);
+
+  return {
+    base: String(raw.base || base),
+    head: String(raw.head || head),
+    baseSha,
+    headSha,
+    files,
+  };
+}
+
+export async function loadNativeRepositoryDiff(
+  repo: NativeRepositoryRecord,
+  baseValue: string,
+  headValue: string,
+  filePath?: string | null
+): Promise<{ diff: RepoDiff | null; error: string | null }> {
+  if (!repo.service_repository_id) {
+    return { diff: null, error: "Repository servis kimliği henüz atanmadı." };
+  }
+
+  const base = cleanRef(baseValue, repo.default_branch || "main");
+  const head = cleanRef(headValue, repo.default_branch || "main");
+  const path = cleanPath(filePath);
+  const serviceId = encodeURIComponent(repo.service_repository_id);
+  const params = new URLSearchParams({ base, head });
+  if (path) params.set("path", path);
+
+  const result = await serviceGet<unknown>(
+    `/v1/repositories/${serviceId}/diff?${params.toString()}`
+  );
+  if (!result.ok) return { diff: null, error: result.error };
+
+  const diff = diffPayload(result.data, base, head);
+  if (!diff) return { diff: null, error: "Repo Service diff cevabı geçersiz veya SHA içermiyor." };
+  return { diff, error: null };
+}
+
+export function findRepoDiffLine(
+  diff: RepoDiff,
+  filePath: string,
+  side: "base" | "head",
+  lineNumber: number
+) {
+  const normalizedPath = cleanPath(filePath);
+  const file = diff.files.find((item) => item.path === normalizedPath || item.previousPath === normalizedPath);
+  if (!file) return null;
+
+  for (const hunk of file.hunks) {
+    for (const line of hunk.lines) {
+      const candidate = side === "base" ? line.oldLine : line.newLine;
+      if (candidate === lineNumber) return { file, hunk, line };
+    }
+  }
+  return null;
 }
