@@ -16,13 +16,13 @@ export default async function PortalNotificationsPage() {
 
   return (
     <>
-      <PortalPageHeader code="NT / NOTIFICATIONS" title="Bildirim Merkezi" lead="Takım duyuruları, stok uyarıları, test değişiklikleri ve üyeye özel hatırlatmalar." />
+      <PortalPageHeader code="NT / BİLDİRİMLER" title="Bildirim Merkezi" lead="Takım duyuruları, stok uyarıları, test değişiklikleri ve üyeye özel hatırlatmalar." />
       {canWrite ? (
         <section className="portalPanel portalCreatePanel">
           <div className="portalPanelHead"><span>YENİ BİLDİRİM</span><small>LİDER / ADMİN</small></div>
           <form className="portalFormGrid" action={createNotificationAction}>
             <label><span>Başlık</span><input name="title" required /></label>
-            <label><span>Tür</span><select name="kind"><option>info</option><option>warning</option><option>action</option><option>success</option></select></label>
+            <label><span>Tür</span><select name="kind"><option>Bilgi</option><option>Uyarı</option><option>İşlem</option><option>Başarılı</option></select></label>
             <label>
               <span>Alıcı</span>
               <select name="memberId" defaultValue="">
