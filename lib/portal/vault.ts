@@ -382,3 +382,35 @@ export function formatVaultBytes(value: unknown) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
+
+
+export async function queuePortalDesignDerivative(input: {
+  fileId: string;
+  derivativeType: "gltf" | "glb" | "preview-svg" | "preview-png" | "pcb-3d" | "thumbnail" | "pdf";
+  actorEmail: string;
+}) {
+  const file = await getPortalVaultFile(input.fileId);
+  if (!file) throw new Error("Vault kaydı bulunamadı.");
+
+  const revision = Number(file.revision || 1);
+  const existing = await database().prepare(
+    "SELECT id,status FROM portal_design_derivatives WHERE file_id=? AND source_revision=? AND derivative_type=? AND status IN ('queued','processing','ready') ORDER BY created_at DESC LIMIT 1"
+  ).bind(input.fileId,revision,input.derivativeType).first<Record<string, unknown>>();
+  if (existing) return { id: String(existing.id), status: String(existing.status) };
+
+  const id = crypto.randomUUID();
+  const db = database();
+  await db.batch([
+    db.prepare(
+      "INSERT INTO portal_design_derivatives (id,file_id,source_revision,derivative_type,status) VALUES (?,?,?,?, 'queued')"
+    ).bind(id,input.fileId,revision,input.derivativeType),
+    db.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'vault.derivative.queue','vault_file',?,?)"
+    ).bind(input.actorEmail,input.fileId,JSON.stringify({
+      derivativeId: id,
+      revision,
+      derivativeType: input.derivativeType,
+    })),
+  ]);
+  return { id, status: "queued" };
+}
