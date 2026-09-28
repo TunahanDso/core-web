@@ -11,12 +11,16 @@ import {
   canAccessPortalTeam,
   canManagePortalTeam,
   canManageTeamProjects,
+  memberHasPortalCapability,
   canManageTeamVehicles,
   portalRoleLabelDetailed,
 } from "@/lib/portal/governance";
 import {
   createPortalTeamProjectAction,
   createPortalTeamVehicleAction,
+  deletePortalTeamAction,
+  removePortalTeamMembershipScopedAction,
+  updatePortalTeamAction,
   upsertPortalTeamMembershipScopedAction,
 } from "@/app/portal/control-actions";
 import { listPortalMembers, listPortalRepositories, listPortalTasks } from "@/lib/portal/db";
@@ -27,8 +31,10 @@ export const dynamic = "force-dynamic";
 
 export default async function PortalTeamDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ code: string }>;
+  searchParams?: Promise<{ created?: string; updated?: string; membership?: string }>;
 }) {
   const member = await requirePortalMember();
   const { code: rawCode } = await params;
@@ -36,7 +42,7 @@ export default async function PortalTeamDetailPage({
   const team = await getPortalTeam(teamCode);
   if (!team || !(await canAccessPortalTeam(member,teamCode))) notFound();
 
-  const [members, allPortalMembers, projects, vehicles, tasks, repositories, vaultFiles, canManageMembers, canManageProjects, canManageVehicles] = await Promise.all([
+  const [members, allPortalMembers, projects, vehicles, tasks, repositories, vaultFiles, canManageMembers, canManageProjects, canManageVehicles, canDeleteTeam] = await Promise.all([
     listPortalTeamMembers(teamCode),
     listPortalMembers(),
     listPortalProjectRegistry(),
@@ -51,7 +57,9 @@ export default async function PortalTeamDetailPage({
     canManagePortalTeam(member,teamCode),
     canManageTeamProjects(member,teamCode),
     canManageTeamVehicles(member,teamCode),
+    memberHasPortalCapability(member,"teams.manage"),
   ]);
+  const query: { created?: string; updated?: string; membership?: string } = searchParams ? await searchParams : {};
 
   const activePortalMembers = allPortalMembers.filter((item) => String(item.status) === "active");
     const teamProjects = projects.filter((item) => String(item.team_code || "") === teamCode && String(item.status) !== "archived");
@@ -68,6 +76,10 @@ export default async function PortalTeamDetailPage({
         lead={String(team.description || team.domain || "CORE takım çalışma alanı.")}
         action={<a className="portalOutlineButton" href="/portal/teams">← TAKIMLAR</a>}
       />
+
+      {query.created === "1" ? <div className="portalSuccess">Takım registry kaydı oluşturuldu.</div> : null}
+      {query.updated === "1" ? <div className="portalSuccess">Takım bilgileri güncellendi.</div> : null}
+      {query.membership === "removed" ? <div className="portalSuccess">Takım üyeliği kaldırıldı.</div> : null}
 
       <section className="portalTeamHeroFacts">
         <article><span>DOMAIN</span><b>{String(team.domain || "CORE")}</b></article>
@@ -168,6 +180,20 @@ export default async function PortalTeamDetailPage({
           </div>
 
           <div className="portalTeamLocalControlGrid">
+            {canManageMembers ? (
+              <section className="portalTeamSettingsPanel">
+                <h3>Takım bilgileri</h3>
+                <form className="portalFormGrid compact" action={updatePortalTeamAction}>
+                  <input type="hidden" name="code" value={teamCode} />
+                  <label><span>Kod</span><input value={teamCode} readOnly disabled /></label>
+                  <label><span>Ad</span><input name="name" defaultValue={String(team.name)} required /></label>
+                  <label><span>Domain</span><input name="domain" defaultValue={String(team.domain || "")} /></label>
+                  <label><span>Görünürlük</span><select name="visibility" defaultValue={String(team.visibility || "restricted")}><option value="restricted">Yalnız yetkililer / üyeler</option><option value="members">Tüm CORE üyeleri</option></select></label>
+                  <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={4} defaultValue={String(team.description || "")} /></label>
+                  <button className="portalPrimaryButton" type="submit">TAKIMI GÜNCELLE →</button>
+                </form>
+              </section>
+            ) : null}
             {canManageProjects ? (
               <section>
                 <h3>Yeni proje</h3>
@@ -216,9 +242,31 @@ export default async function PortalTeamDetailPage({
                   <button className="portalPrimaryButton" type="submit">TAKIM ROLÜNÜ UYGULA →</button>
                 </form>
                 <p className="portalMuted">Bu form mevcut takım üyelerinin scoped rolünü değiştirir. Yeni portal hesabı Admin → Üyeler üzerinden davet edilir.</p>
+                {members.length ? (
+                  <form className="portalMembershipRemove" action={removePortalTeamMembershipScopedAction}>
+                    <input type="hidden" name="teamCode" value={teamCode} />
+                    <label><span>Üyeliği kaldır</span><select name="memberId" required>{members.map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.full_name || item.email)} · {portalRoleLabelDetailed(String(item.team_role))}</option>)}</select></label>
+                    <button className="portalDangerButton" type="submit">TAKIMDAN ÇIKAR</button>
+                  </form>
+                ) : null}
               </section>
             ) : null}
           </div>
+        </section>
+      ) : null}
+
+      {canDeleteTeam ? (
+        <section className="portalDangerZone">
+          <div>
+            <span>DANGER ZONE</span>
+            <h3>Takımı kalıcı olarak sil</h3>
+            <p>Takım üyelikleri silinir. Proje, araç, repository, görev, Vault ve takvim kayıtları silinmez; yalnızca bu takım bağlantıları kaldırılır.</p>
+          </div>
+          <form action={deletePortalTeamAction}>
+            <input type="hidden" name="teamCode" value={teamCode} />
+            <label><span>Onay için {teamCode} yaz</span><input name="confirmation" autoComplete="off" required /></label>
+            <button className="portalDangerButton" type="submit">TAKIMI KALICI SİL</button>
+          </form>
         </section>
       ) : null}
 
