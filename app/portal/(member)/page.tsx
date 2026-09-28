@@ -23,7 +23,7 @@ export default async function PortalDashboard() {
     <>
       <section className="portalHero">
         <div>
-          <span>CORE / HOME</span>
+          <span>CORE / ANA SAYFA</span>
           <h1>İyi mühendislik<br />hafıza ister.</h1>
           <p>
             One operating surface for the work students usually scatter across
