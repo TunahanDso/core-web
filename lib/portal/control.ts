@@ -420,6 +420,7 @@ export async function deletePortalProject(input: {
     database.prepare("UPDATE portal_resources SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
     database.prepare("UPDATE portal_repositories SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
     database.prepare("UPDATE portal_inventory_movements SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare("UPDATE portal_calendar_events SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
     database.prepare("UPDATE portal_vault_files SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
     database.prepare("UPDATE portal_native_repositories SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
     database.prepare("UPDATE portal_vehicle_profiles SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
@@ -432,7 +433,7 @@ export async function deletePortalProject(input: {
       "VALUES (?,'control.project.delete','project',?,?)"
     ).bind(input.actorEmail,projectSlug,JSON.stringify({
       title: existing?.title || projectSlug,
-      detached: ["tasks","resources","repositories","inventory-movements","vault","native-repositories","vehicles"],
+      detached: ["tasks","resources","repositories","inventory-movements","calendar","vault","native-repositories","vehicles"],
     })),
   ]);
 
@@ -452,6 +453,7 @@ export async function resetPortalProjectCatalog(input: {
     database.prepare("UPDATE portal_resources SET project_slug=NULL WHERE project_slug IS NOT NULL"),
     database.prepare("UPDATE portal_repositories SET project_slug=NULL WHERE project_slug IS NOT NULL"),
     database.prepare("UPDATE portal_inventory_movements SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("UPDATE portal_calendar_events SET project_slug=NULL WHERE project_slug IS NOT NULL"),
     database.prepare("UPDATE portal_vault_files SET project_slug=NULL WHERE project_slug IS NOT NULL"),
     database.prepare("UPDATE portal_native_repositories SET project_slug=NULL WHERE project_slug IS NOT NULL"),
     database.prepare("UPDATE portal_vehicle_profiles SET project_slug=NULL WHERE project_slug IS NOT NULL"),
