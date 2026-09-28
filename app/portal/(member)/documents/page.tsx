@@ -9,7 +9,7 @@ export default async function PortalDokümanlarPage() {
   const resources = all.filter((item) => ["document","procedure","drawing","dataset"].includes(String(item.kind)));
   return (
     <>
-      <PortalPageHeader code="DC / DOCUMENTS" title="Dokümanlar" lead="Mühendislik kararlarını geleceğe taşıyan raporlar, prosedürler, çizimler ve veri setleri." />
+      <PortalPageHeader code="DC / DOKÜMANLAR" title="Dokümanlar" lead="Mühendislik kararlarını geleceğe taşıyan raporlar, prosedürler, çizimler ve veri setleri." />
       {resources.length ? (
         <div className="portalListTable">
           {resources.map((item) => (
