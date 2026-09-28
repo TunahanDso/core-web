@@ -59,17 +59,29 @@ jobs:
             if (!portalBootstrap.includes("db.batch(")) {
               throw new Error("Portal bootstrap must execute prepared statements through D1 batch().");
             }
-            const portalV2Tables = [
+            const portalV4Tables = [
               "portal_invite_deliveries",
               "portal_member_profiles",
-              "portal_channel_reads"
+              "portal_channel_reads",
+              "portal_vault_files",
+              "portal_vault_versions",
+              "portal_design_derivatives",
+              "portal_mail_state",
+              "portal_mail_drafts",
+              "portal_mail_attachments",
+              "portal_native_repositories",
+              "portal_repo_gateways",
+              "portal_code_runs"
             ];
-            for (const table of portalV2Tables) {
+            for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
-                throw new Error(`Portal V2 schema missing required table: ${table}`);
+                throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            console.log("Portal bootstrap uses prepared D1 batch() and includes V2 workspace tables.");
+            if (!portalBootstrap.includes("PORTAL_V4_SQL")) {
+              throw new Error("Portal engineering OS migration must be part of the idempotent bootstrap path.");
+            }
+            console.log("Portal bootstrap uses prepared D1 batch() and includes V4 engineering OS tables.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
             if (!mailSource.includes("not_configured")) {
@@ -80,6 +92,19 @@ jobs:
               throw new Error("RESEND_API_KEY must never be committed to wrangler.jsonc.");
             }
             console.log("Invitation email service keeps provider secrets out of source control.");
+
+            const serviceWorker = fs.readFileSync("public/portal-sw.js", "utf8");
+            if (!serviceWorker.includes('url.pathname.startsWith("/portal")') || !serviceWorker.includes('url.pathname.startsWith("/api/portal")')) {
+              throw new Error("Portal service worker must explicitly exclude authenticated portal data.");
+            }
+            if (serviceWorker.includes("caches.put(")) {
+              throw new Error("Portal service worker must not cache authenticated application responses.");
+            }
+            const engineeringServices = fs.readFileSync("lib/portal/engineering-services.ts", "utf8");
+            if (engineeringServices.includes("eval(") || engineeringServices.includes("new Function(")) {
+              throw new Error("CMS Worker must not execute arbitrary user code.");
+            }
+            console.log("PWA cache boundary and isolated engineering-service boundary validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
