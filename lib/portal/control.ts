@@ -401,3 +401,70 @@ export async function createPortalMapEdge(input: {
     input.relation.trim() || "depends_on",input.label.trim(),input.actorEmail
   ).run();
 }
+
+
+export async function deletePortalProject(input: {
+  slug: string;
+  actorEmail: string;
+}) {
+  const projectSlug = slug(input.slug);
+  if (!projectSlug) throw new Error("Proje slug değeri gerekli.");
+
+  const database = db();
+  const existing = await database.prepare(
+    "SELECT title FROM portal_project_registry WHERE slug=? LIMIT 1"
+  ).bind(projectSlug).first<{ title: string }>();
+
+  await database.batch([
+    database.prepare("UPDATE portal_tasks SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare("UPDATE portal_resources SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare("UPDATE portal_repositories SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare("UPDATE portal_inventory_movements SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare("UPDATE portal_vault_files SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare("UPDATE portal_native_repositories SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare("UPDATE portal_vehicle_profiles SET project_slug=NULL WHERE project_slug=?").bind(projectSlug),
+    database.prepare(
+      "DELETE FROM portal_project_map_edges WHERE (source_type='project' AND source_ref=?) OR (target_type='project' AND target_ref=?)"
+    ).bind(projectSlug,projectSlug),
+    database.prepare("DELETE FROM portal_project_registry WHERE slug=?").bind(projectSlug),
+    database.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) " +
+      "VALUES (?,'control.project.delete','project',?,?)"
+    ).bind(input.actorEmail,projectSlug,JSON.stringify({
+      title: existing?.title || projectSlug,
+      detached: ["tasks","resources","repositories","inventory-movements","vault","native-repositories","vehicles"],
+    })),
+  ]);
+
+  return Boolean(existing);
+}
+
+export async function resetPortalProjectCatalog(input: {
+  actorEmail: string;
+}) {
+  const database = db();
+  const count = Number(
+    (await database.prepare("SELECT COUNT(*) AS count FROM portal_project_registry").first<{ count: number }>())?.count ?? 0
+  );
+
+  await database.batch([
+    database.prepare("UPDATE portal_tasks SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("UPDATE portal_resources SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("UPDATE portal_repositories SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("UPDATE portal_inventory_movements SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("UPDATE portal_vault_files SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("UPDATE portal_native_repositories SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("UPDATE portal_vehicle_profiles SET project_slug=NULL WHERE project_slug IS NOT NULL"),
+    database.prepare("DELETE FROM portal_project_map_edges WHERE source_type='project' OR target_type='project'"),
+    database.prepare("DELETE FROM portal_project_registry"),
+    database.prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) " +
+      "VALUES (?,'control.project.reset','project','*',?)"
+    ).bind(input.actorEmail,JSON.stringify({
+      count,
+      preserved: ["members","teams","chat","mail","vault-files","repositories","inventory","vehicles"],
+    })),
+  ]);
+
+  return count;
+}
