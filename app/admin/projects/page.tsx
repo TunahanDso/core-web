@@ -1,11 +1,12 @@
 import { getAdminIdentity } from "@/lib/cms/auth";
-import { listProjeler } from "@/lib/cms/db";
+import { listProjects } from "@/lib/cms/db";
+import { cmsStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProjelerPage() {
   const [projects, identity] = await Promise.all([
-    listProjeler(),
+    listProjects(),
     getAdminIdentity(),
   ]);
 
