@@ -6,6 +6,7 @@ import { requirePortalMember, requirePortalRole } from "@/lib/portal/auth";
 import {
   createPortalVaultFile,
   createPortalVaultVersion,
+  queuePortalDesignDerivative,
   updatePortalVaultApproval,
   updatePortalVaultLifecycle,
 } from "@/lib/portal/vault";
@@ -106,4 +107,24 @@ export async function setPortalVaultApprovalAction(formData: FormData) {
   revalidatePath("/portal/library");
   revalidatePath("/portal/library/" + fileId);
   redirect("/portal/library/" + encodeURIComponent(fileId) + "?approval=" + encodeURIComponent(approval));
+}
+
+
+export async function queuePortalDesignDerivativeAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const fileId = textValue(formData, "fileId");
+  const derivativeType = textValue(formData, "derivativeType");
+  const allowed = ["gltf","glb","preview-svg","preview-png","pcb-3d","thumbnail","pdf"];
+  if (!fileId || !allowed.includes(derivativeType)) {
+    throw new Error("Geçersiz türev isteği.");
+  }
+
+  await queuePortalDesignDerivative({
+    fileId,
+    derivativeType: derivativeType as "gltf" | "glb" | "preview-svg" | "preview-png" | "pcb-3d" | "thumbnail" | "pdf",
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/library/" + fileId);
+  redirect("/portal/library/" + encodeURIComponent(fileId) + "?derivative=queued");
 }
