@@ -1,5 +1,5 @@
 import { PortalPageHeader } from "@/components/portal/PortalPage";
-import { replyMailThreadAction } from "@/app/portal/actions";
+import { replyMailThreadAction, setMailThreadStateAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { getPortalMailThread } from "@/lib/portal/db";
 import { notFound } from "next/navigation";
@@ -18,12 +18,42 @@ export default async function PortalMailThreadPage({
 
   return (
     <>
-      <PortalPageHeader code="ML / YAZIŞMA" title={String(data.thread.subject)} lead="Kalıcı iç karar ve devir teslim geçmişi." />
+      <PortalPageHeader
+        code="ML / THREAD"
+        title={String(data.thread.subject)}
+        lead={"Katılımcılar · " + String(data.thread.participants || "CORE")}
+        action={
+          <div className="portalMailThreadActions">
+            <form action={setMailThreadStateAction}>
+              <input type="hidden" name="threadId" value={String(data.thread.id)} />
+              <input type="hidden" name="action" value="star" />
+              <button type="submit">☆ YILDIZLA</button>
+            </form>
+            <form action={setMailThreadStateAction}>
+              <input type="hidden" name="threadId" value={String(data.thread.id)} />
+              <input type="hidden" name="action" value="archive" />
+              <button type="submit">ARŞİVLE</button>
+            </form>
+          </div>
+        }
+      />
       <div className="portalThread">
         {data.messages.map((message) => (
           <article key={String(message.id)}>
             <header><b>{String(message.full_name || message.email)}</b><small>{String(message.created_at)}</small></header>
             <p>{String(message.body)}</p>
+            {data.attachments.filter((item) => String(item.message_id) === String(message.id)).length ? (
+              <div className="portalMailAttachments">
+                {data.attachments
+                  .filter((item) => String(item.message_id) === String(message.id))
+                  .map((item) => (
+                    <a href={"/portal/files/" + encodeURIComponent(String(item.file_id))} key={String(item.file_id)}>
+                      <span>{String(item.preview_kind || "FILE").toUpperCase()}</span>
+                      <b>{String(item.name)}</b>
+                    </a>
+                  ))}
+              </div>
+            ) : null}
           </article>
         ))}
       </div>
