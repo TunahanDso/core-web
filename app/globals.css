@@ -6017,3 +6017,10 @@ html,body{max-width:100%;overflow-x:clip}
   .vaultMetaStrip article:last-child{grid-column:1/-1}
   .navInlineUtility{display:flex;flex-wrap:wrap;border-left:0;padding-left:0;margin-left:0}
 }
+
+
+/* V4 public-nav mobile override: Portal / Katıl / language remain visible. */
+@media(max-width:800px){
+  .publicHeader .joinNav{display:inline-flex!important}
+  .navInlineUtility{display:flex!important;align-items:center;gap:5px}
+}
