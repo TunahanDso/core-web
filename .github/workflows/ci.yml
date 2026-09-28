@@ -164,6 +164,16 @@ jobs:
                 throw new Error(`Native mobile UX missing required capability: ${required}`);
               }
             }
+            const inventoryScanner = fs.readFileSync("components/portal/PortalInventoryScanner.tsx", "utf8");
+            if (!inventoryScanner.includes("CapacitorBarcodeScanner.scanBarcode") || !inventoryScanner.includes("/portal/inventory?scan=")) {
+              throw new Error("Native inventory scanner must use the Capacitor scanner and route results back to inventory.");
+            }
+
+            const mobileRuntimeV7 = fs.readFileSync("components/portal/PortalMobileRuntime.tsx", "utf8");
+            if (!mobileRuntimeV7.includes("@capacitor/push-notifications") || !mobileRuntimeV7.includes("config.pushEnabled") || !mobileRuntimeV7.includes("pushNotificationActionPerformed")) {
+              throw new Error("Native push client must stay provider-gated and support notification deep actions.");
+            }
+
             const mobileUpload = fs.readFileSync("app/api/portal/vault/upload/route.ts", "utf8");
             if (!mobileUpload.includes("getPortalMember") || !mobileUpload.includes("createPortalVaultFile")) {
               throw new Error("Native Vault upload API must authenticate and use the canonical Vault writer.");
@@ -172,20 +182,29 @@ jobs:
             if (!nativeConfigurator.includes("NSCameraUsageDescription") || !nativeConfigurator.includes("applinks:ytucore.com")) {
               throw new Error("Generated iOS app must include camera privacy text and Universal Link entitlement.");
             }
+            if (!nativeConfigurator.includes("minSdkVersion = 26") || !nativeConfigurator.includes("CORE_PUSH_BRIDGE")) {
+              throw new Error("Native configuration must preserve scanner minSdk 26 and the iOS push bridge.");
+            }
             const nativePluginVersions = {
               "@capacitor/haptics": "8.0.2",
               "@capacitor/network": "8.0.1",
               "@capacitor/preferences": "8.0.1",
               "@capacitor/keyboard": "8.0.5",
               "@capacitor/status-bar": "8.0.3",
-              "@capacitor/camera": "8.2.4"
+              "@capacitor/camera": "8.2.4",
+              "@capacitor/barcode-scanner": "3.1.2",
+              "@capacitor/push-notifications": "8.1.2"
             };
             for (const [name, version] of Object.entries(nativePluginVersions)) {
               if (pkg.dependencies?.[name] !== version) {
                 throw new Error(`${name} must stay pinned to reviewed version ${version}.`);
               }
             }
-            console.log("Native-first UX, camera-to-Vault and reviewed Capacitor plugins validated.");
+            const runtimeVars = JSON.parse(fs.readFileSync("wrangler.jsonc", "utf8")).vars ?? {};
+            if (runtimeVars.PORTAL_PUSH_ENABLED !== "false") {
+              throw new Error("Push must remain disabled in committed production config until APNs/FCM credentials exist.");
+            }
+            console.log("Native-first UX, scanner, gated push and reviewed Capacitor plugins validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
@@ -221,6 +240,7 @@ jobs:
             if (!cfg.vars?.PORTAL_MOBILE_APP_SCHEME) throw new Error("PORTAL_MOBILE_APP_SCHEME missing from generated config");
             if (!cfg.vars?.PORTAL_ANDROID_PACKAGE) throw new Error("PORTAL_ANDROID_PACKAGE missing from generated config");
             if (!cfg.vars?.PORTAL_IOS_BUNDLE_ID) throw new Error("PORTAL_IOS_BUNDLE_ID missing from generated config");
+            if (cfg.vars?.PORTAL_PUSH_ENABLED !== "false") throw new Error("PORTAL_PUSH_ENABLED must remain false until provider credentials are deployed");
             const d1 = (cfg.d1_databases ?? []).some((x) => x.binding === "DB");
             const r2 = (cfg.r2_buckets ?? []).some((x) => x.binding === "MEDIA");
             const email = (cfg.send_email ?? []).some((x) => x.name === "EMAIL");
