@@ -222,13 +222,15 @@ export async function clearPortalSession() {
     await env.DB.prepare("DELETE FROM portal_sessions WHERE session_hash = ?").bind(hash).run();
   }
 
-  jar.set(SESSION_COOKIE, "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/portal",
-    maxAge: 0,
-  });
+  for (const path of ["/", "/portal"]) {
+    jar.set(SESSION_COOKIE, "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path,
+      maxAge: 0,
+    });
+  }
 }
 
 export async function getPortalMember(): Promise<PortalMember | null> {
