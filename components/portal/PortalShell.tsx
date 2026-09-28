@@ -22,11 +22,11 @@ export default async function PortalShell({
           <span className="portalBrandMark">C</span>
           <span>
             <b>YTÜ CORE</b>
-            <small>INTERNAL PORTAL</small>
+            <small>İÇ PORTAL</small>
           </span>
         </a>
 
-        <nav className="portalNav" aria-label="Portal navigation">
+        <nav className="portalNav" aria-label="Portal navigasyonu">
           {portalNavigation.map((group) => (
             <section key={group.label}>
               <p>{group.label}</p>
@@ -41,9 +41,9 @@ export default async function PortalShell({
         </nav>
 
         <div className="portalSidebarFoot">
-          <a href="/tr" className="portalPublicLink">← Public site</a>
+          <a href="/tr" className="portalPublicLink">← Vitrin sitesi</a>
           <form action={logoutPortalAction}>
-            <button type="submit">Sign out</button>
+            <button type="submit">Çıkış yap</button>
           </form>
         </div>
       </aside>
@@ -52,10 +52,10 @@ export default async function PortalShell({
         <header className="portalTopbar">
           <div>
             <span className="portalTopLabel">CORE NETWORK</span>
-            <b>Student engineering workspace</b>
+            <b>Öğrenci mühendislik çalışma alanı</b>
           </div>
           <div className="portalTopActions">
-            <a href="/portal/notifications" className="portalTopChip">Notifications</a>
+            <a href="/portal/notifications" className="portalTopChip">Bildirimler</a>
             <div className="portalIdentity">
               <span>{initials}</span>
               <div>
@@ -66,7 +66,7 @@ export default async function PortalShell({
           </div>
         </header>
         {banner?.enabled && banner.text ? (
-          <div className="portalSystemBanner"><span>CORE NOTICE</span><b>{String(banner.text)}</b></div>
+          <div className="portalSystemBanner"><span>CORE DUYURU</span><b>{String(banner.text)}</b></div>
         ) : null}
         <div className="portalContent">{children}</div>
       </section>
