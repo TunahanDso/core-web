@@ -2,20 +2,50 @@ import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createInventoryMovementAction, upsertInventoryAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalInventory, listPortalInventoryMovements } from "@/lib/portal/db";
+import PortalInventoryScanner from "@/components/portal/PortalInventoryScanner";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalInventoryPage() {
+export default async function PortalInventoryPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ scan?: string }>;
+}) {
+  const query = searchParams ? await searchParams : {};
+  const scannedCode = String(query.scan || "").trim();
   const [member, items, movements] = await Promise.all([
     requirePortalMember(),
     listPortalInventory(),
     listPortalInventoryMovements(40),
   ]);
   const canWrite = member.role === "admin" || member.role === "lead";
+  const matchedItem = scannedCode
+    ? items.find((item) => String(item.sku || "").trim().toLowerCase() === scannedCode.toLowerCase())
+    : undefined;
+  const displayItems = matchedItem
+    ? [matchedItem, ...items.filter((item) => String(item.id) !== String(matchedItem.id))]
+    : items;
 
   return (
     <>
       <PortalPageHeader code="ST / ENVANTER" title="Stok & Araçlar" lead="Parçalar, araçlar ve sarf malzemeleri; konum, kullanılabilir miktar, rezerv ve minimum stok uyarılarıyla izlenir." />
+
+      <PortalInventoryScanner />
+
+      {scannedCode ? (
+        <section className={"nativeScanResult " + (matchedItem ? "matched" : "missing")}>
+          <span>{matchedItem ? "KOD EŞLEŞTİ" : "KOD BULUNAMADI"}</span>
+          <div>
+            <b>{scannedCode}</b>
+            <small>
+              {matchedItem
+                ? String(matchedItem.name) + " · " + String(matchedItem.location || "konum yok")
+                : "Bu barkod / QR henüz CORE envanterinde bir SKU ile eşleşmiyor."}
+            </small>
+          </div>
+          {matchedItem ? <strong>{String(matchedItem.available_quantity)} {String(matchedItem.unit)}</strong> : null}
+        </section>
+      ) : null}
 
       {canWrite ? (
         <section className="portalPanel portalCreatePanel">
@@ -40,9 +70,9 @@ export default async function PortalInventoryPage() {
           <form className="portalFormGrid" action={createInventoryMovementAction}>
             <label>
               <span>Ürün</span>
-              <select name="itemId" required defaultValue="">
+              <select name="itemId" required defaultValue={matchedItem ? String(matchedItem.id) : ""}>
                 <option value="" disabled>Ürün seç</option>
-                {items.map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.sku)} · {String(item.name)}</option>)}
+                {displayItems.map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.sku)} · {String(item.name)}</option>)}
               </select>
             </label>
             <label>
@@ -61,10 +91,10 @@ export default async function PortalInventoryPage() {
 
         <div className="portalInventoryTable">
           <header><span>SKU</span><span>ÜRÜN</span><span>KONUM</span><span>KULLANILABİLİR</span><span>MİN</span></header>
-          {items.map((item) => {
+          {displayItems.map((item) => {
             const low = Number(item.available_quantity) <= Number(item.minimum_quantity);
             return (
-              <article className={low ? "low" : ""} key={String(item.id)}>
+              <article className={(low ? "low " : "") + (matchedItem && String(item.id) === String(matchedItem.id) ? "scanned" : "")} key={String(item.id)}>
                 <span>{String(item.sku)}</span>
                 <div><b>{String(item.name)}</b><small>{String(item.category)}</small></div>
                 <span>{String(item.location || "—")}</span>
