@@ -277,3 +277,110 @@ export async function listPortalActivity(limit = 40) {
     .bind(limit).all<Record<string, unknown>>();
   return response.results ?? [];
 }
+
+
+export async function createPortalMailThread(input: {
+  subject: string;
+  body: string;
+  senderId: string;
+  participantIds: string[];
+}) {
+  const db = database();
+  const threadId = crypto.randomUUID();
+  const messageId = crypto.randomUUID();
+  const uniqueParticipants = Array.from(new Set([input.senderId, ...input.participantIds]));
+
+  const statements = [
+    db.prepare("INSERT INTO portal_mail_threads (id,subject,created_by) VALUES (?,?,?)")
+      .bind(threadId,input.subject,input.senderId),
+    db.prepare("INSERT INTO portal_mail_messages (id,thread_id,author_id,body) VALUES (?,?,?,?)")
+      .bind(messageId,threadId,input.senderId,input.body),
+    ...uniqueParticipants.map((memberId) =>
+      db.prepare("INSERT OR IGNORE INTO portal_mail_participants (thread_id,member_id) VALUES (?,?)")
+        .bind(threadId,memberId)
+    ),
+  ];
+  await db.batch(statements);
+  return threadId;
+}
+
+export async function createPortalCalendarEvent(input: {
+  title: string;
+  description: string;
+  startsAt: string;
+  endsAt: string | null;
+  location: string;
+  teamCode: string | null;
+  projectSlug: string | null;
+  actorId: string;
+  actorEmail: string;
+}) {
+  const id = crypto.randomUUID();
+  const db = database();
+  await db.batch([
+    db.prepare("INSERT INTO portal_calendar_events (id,title,description,starts_at,ends_at,location,team_code,project_slug,created_by) VALUES (?,?,?,?,?,?,?,?,?)")
+      .bind(id,input.title,input.description,input.startsAt,input.endsAt,input.location,input.teamCode,input.projectSlug,input.actorId),
+    db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'calendar.create','calendar',?,?)")
+      .bind(input.actorEmail,id,JSON.stringify({ title: input.title, startsAt: input.startsAt })),
+  ]);
+  return id;
+}
+
+export async function createPortalNotification(input: {
+  memberId: string | null;
+  kind: string;
+  title: string;
+  body: string;
+  href: string | null;
+  actorEmail: string;
+}) {
+  const id = crypto.randomUUID();
+  const db = database();
+  await db.batch([
+    db.prepare("INSERT INTO portal_notifications (id,member_id,kind,title,body,href) VALUES (?,?,?,?,?,?)")
+      .bind(id,input.memberId,input.kind,input.title,input.body,input.href),
+    db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'notification.create','notification',?,?)")
+      .bind(input.actorEmail,id,JSON.stringify({ title: input.title, memberId: input.memberId })),
+  ]);
+  return id;
+}
+
+export async function markPortalNotificationRead(id: string, memberId: string) {
+  await database().prepare(
+    "UPDATE portal_notifications SET read_at=CURRENT_TIMESTAMP WHERE id=? AND (member_id=? OR member_id IS NULL)"
+  ).bind(id,memberId).run();
+}
+
+export async function getPortalAnalytics() {
+  const row = await database().prepare(
+    "SELECT " +
+    "(SELECT COUNT(*) FROM portal_members) AS members_total," +
+    "(SELECT COUNT(*) FROM portal_members WHERE status='active') AS members_active," +
+    "(SELECT COUNT(*) FROM portal_tasks) AS tasks_total," +
+    "(SELECT COUNT(*) FROM portal_tasks WHERE status='done') AS tasks_done," +
+    "(SELECT COUNT(*) FROM portal_resources) AS resources_total," +
+    "(SELECT COUNT(*) FROM portal_inventory_items) AS inventory_total," +
+    "(SELECT COUNT(*) FROM portal_messages) AS messages_total," +
+    "(SELECT COUNT(*) FROM audit_log) AS cms_audit_total," +
+    "(SELECT COUNT(*) FROM portal_activity_log) AS portal_activity_total"
+  ).first<Record<string, unknown>>();
+  return row ?? {};
+}
+
+export async function getPortalMailThread(threadId: string, memberId: string) {
+  const participant = await database().prepare(
+    "SELECT 1 AS ok FROM portal_mail_participants WHERE thread_id=? AND member_id=? LIMIT 1"
+  ).bind(threadId,memberId).first<{ ok: number }>();
+  if (!participant) return null;
+
+  const thread = await database().prepare(
+    "SELECT * FROM portal_mail_threads WHERE id=? LIMIT 1"
+  ).bind(threadId).first<Record<string, unknown>>();
+  if (!thread) return null;
+
+  const messages = await database().prepare(
+    "SELECT mm.id,mm.body,mm.created_at,m.full_name,m.email FROM portal_mail_messages mm JOIN portal_members m ON m.id=mm.author_id WHERE mm.thread_id=? ORDER BY mm.created_at"
+  ).bind(threadId).all<Record<string, unknown>>();
+
+  return { thread, messages: messages.results ?? [] };
+}
