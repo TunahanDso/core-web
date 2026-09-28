@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from "@capacitor/cli";
+import { KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
 
 const config: CapacitorConfig = {
   appId: "com.ytucore.portal",
@@ -11,6 +12,14 @@ const config: CapacitorConfig = {
   },
   android: {
     allowMixedContent: false,
+  },
+  plugins: {
+    Keyboard: {
+      resize: KeyboardResize.Body,
+      style: KeyboardStyle.Light,
+      resizeOnFullScreen: true,
+      autoBackdropColor: "dom",
+    },
   },
 };
 
