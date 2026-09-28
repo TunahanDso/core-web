@@ -11,7 +11,7 @@ export default async function PortalKütüphanePage() {
   return (
     <>
       <PortalPageHeader
-        code="KB / LIBRARY"
+        code="KB / KÜTÜPHANE"
         title="Bilgi Kütüphanesi"
         lead="CORE tarafından üretilen rapor, prosedür, veri seti, çizim, kod referansı ve kanıtların aranabilir indeksi."
       />
