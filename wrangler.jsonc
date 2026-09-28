@@ -47,7 +47,7 @@
     "PORTAL_BASE_URL": "https://ytucore.com",
     "PORTAL_MAIL_FROM": "YTÜ CORE Portal <portal@ytucore.com>",
     "PORTAL_MOBILE_APP_SCHEME": "ytucore",
-    "PORTAL_MOBILE_APP_VERSION": "0.2.0",
+    "PORTAL_MOBILE_APP_VERSION": "0.3.0",
     "PORTAL_MOBILE_HANDOFF_ENABLED": "false",
     "PORTAL_ANDROID_PACKAGE": "com.ytucore.portal",
     "PORTAL_IOS_BUNDLE_ID": "com.ytucore.portal",
