@@ -171,3 +171,21 @@ export async function getPortalMailboxCounts(memberId: string) {
     return { inbox: legacy.length, unread: 0, starred: 0, archive: 0, trash: 0 };
   }
 }
+
+
+export async function getPortalMailDraft(draftId: string, memberId: string) {
+  try {
+    return await database().prepare(
+      "SELECT * FROM portal_mail_drafts WHERE id=? AND owner_id=? LIMIT 1"
+    ).bind(draftId,memberId).first<Record<string, unknown>>();
+  } catch {
+    return null;
+  }
+}
+
+export async function listPortalMailParticipants(threadId: string) {
+  const response = await database().prepare(
+    "SELECT m.id,m.full_name,m.email,m.role FROM portal_mail_participants p JOIN portal_members m ON m.id=p.member_id WHERE p.thread_id=? ORDER BY m.full_name,m.email"
+  ).bind(threadId).all<Record<string, unknown>>();
+  return response.results ?? [];
+}
