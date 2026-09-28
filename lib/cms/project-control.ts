@@ -86,7 +86,7 @@ export async function syncShowcaseProject(
     db
       .prepare(
         "INSERT INTO content_items (id,type,slug,status,domain,metadata_json,sort_order,published_at) " +
-          "VALUES (?,'project',?,?,?,?,?,?,CASE WHEN ?='published' THEN CURRENT_TIMESTAMP ELSE NULL END) " +
+          "VALUES (?,'project',?,?,?,?,?,CASE WHEN ?='published' THEN CURRENT_TIMESTAMP ELSE NULL END) " +
           "ON CONFLICT(id) DO UPDATE SET slug=excluded.slug,status=excluded.status,domain=excluded.domain," +
           "metadata_json=excluded.metadata_json,updated_at=CURRENT_TIMESTAMP," +
           "published_at=CASE WHEN excluded.status='published' THEN COALESCE(content_items.published_at,CURRENT_TIMESTAMP) ELSE content_items.published_at END"
