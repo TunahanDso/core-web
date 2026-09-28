@@ -25,6 +25,7 @@ import {
   savePortalMemberProfile,
   sendPortalMailReply,
   sendPortalMessage,
+  setPortalMailThreadState,
   updatePortalTaskDetails,
   updatePortalTaskStatus,
   upsertPortalInventoryItem,
@@ -210,15 +211,16 @@ export async function createMailThreadAction(formData: FormData) {
   const participants = formData.getAll("participantId").map((item) => String(item)).filter(Boolean);
   if (!subject || !body) throw new Error("Konu ve mesaj gerekli.");
 
-  await createPortalMailThread({
+  const threadId = await createPortalMailThread({
     subject,
     body,
     senderId: member.id,
     participantIds: participants,
+    attachmentIds: formData.getAll("attachmentId").map((item) => String(item)).filter(Boolean),
   });
 
   revalidatePath("/portal/mail");
-  redirect("/portal/mail?created=1");
+  redirect("/portal/mail/" + encodeURIComponent(threadId) + "?created=1");
 }
 
 export async function createCalendarEventAction(formData: FormData) {
@@ -520,4 +522,24 @@ export async function deleteRepoPathAction(formData: FormData) {
 
   revalidatePath("/portal/repositories/" + repositoryId);
   redirect("/portal/repositories/" + encodeURIComponent(repositoryId) + "?deleted=1");
+}
+
+
+export async function setMailThreadStateAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const threadId = textValue(formData, "threadId");
+  const action = textValue(formData, "action");
+  const allowed = ["star","unstar","archive","restore","read","unread"] as const;
+  if (!threadId || !allowed.includes(action as (typeof allowed)[number])) {
+    throw new Error("Geçersiz posta işlemi.");
+  }
+
+  await setPortalMailThreadState({
+    threadId,
+    memberId: member.id,
+    action: action as (typeof allowed)[number],
+  });
+
+  revalidatePath("/portal/mail");
+  revalidatePath("/portal/mail/" + threadId);
 }
