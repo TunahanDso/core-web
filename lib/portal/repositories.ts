@@ -223,6 +223,29 @@ function comparePayload(payload: unknown, base: string, head: string): RepoCompa
   };
 }
 
+
+export async function loadNativeRepositoryCompare(
+  repo: NativeRepositoryRecord,
+  baseValue: string,
+  headValue: string
+): Promise<{ compare: RepoCompare | null; error: string | null }> {
+  if (!repo.service_repository_id) {
+    return { compare: null, error: "Repository servis kimliği henüz atanmadı." };
+  }
+
+  const base = cleanRef(baseValue, repo.default_branch || "main");
+  const head = cleanRef(headValue, repo.default_branch || "main");
+  const serviceId = encodeURIComponent(repo.service_repository_id);
+  const result = await serviceGet<unknown>(
+    `/v1/repositories/${serviceId}/compare?base=${encodeURIComponent(base)}&head=${encodeURIComponent(head)}`
+  );
+  if (!result.ok) return { compare: null, error: result.error };
+
+  const compare = comparePayload(result.data, base, head);
+  if (!compare) return { compare: null, error: "Repo Service compare cevabı geçersiz." };
+  return { compare, error: null };
+}
+
 export async function listAccessibleNativeRepositories(member: PortalMember) {
   let rows: NativeRepositoryRecord[] = [];
   try {
