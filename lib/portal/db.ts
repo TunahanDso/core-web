@@ -193,7 +193,7 @@ export async function listPortalRepositories() {
 
 export async function createPortalRepository(input: {
   name: string;
-  repoUrl: string;
+  repoUrl?: string | null;
   projectSlug: string | null;
   teamCode: string | null;
   visibility: string;
@@ -201,11 +201,14 @@ export async function createPortalRepository(input: {
 }) {
   const id = crypto.randomUUID();
   const db = database();
+  const externalUrl = input.repoUrl?.trim() || null;
+  const provider = externalUrl ? "github" : "core";
+  const repoUrl = externalUrl || "core://repo/" + id;
   await db.batch([
-    db.prepare("INSERT INTO portal_repositories (id,name,repo_url,project_slug,team_code,visibility) VALUES (?,?,?,?,?,?)")
-      .bind(id,input.name,input.repoUrl,input.projectSlug,input.teamCode,input.visibility),
+    db.prepare("INSERT INTO portal_repositories (id,name,provider,repo_url,project_slug,team_code,visibility,health) VALUES (?,?,?,?,?,?,?,?)")
+      .bind(id,input.name,provider,repoUrl,input.projectSlug,input.teamCode,input.visibility,provider === "core" ? "healthy" : "unverified"),
     db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'repository.register','repository',?,?)")
-      .bind(input.actorEmail,id,JSON.stringify({ name: input.name, url: input.repoUrl })),
+      .bind(input.actorEmail,id,JSON.stringify({ name: input.name, url: repoUrl, provider })),
   ]);
   return id;
 }
