@@ -115,23 +115,28 @@ export async function portalBootstrapStatus() {
     const tableCount = Number(tableRow?.table_count ?? 0);
     const ready = tableCount === REQUIRED_PORTAL_TABLES.length;
 
+    let row: { member_count: number; task_count: number; resource_count: number } | null = null;
+    try {
+      row = await db.prepare(`
+        SELECT
+          (SELECT COUNT(*) FROM portal_members) AS member_count,
+          (SELECT COUNT(*) FROM portal_tasks) AS task_count,
+          (SELECT COUNT(*) FROM portal_resources) AS resource_count
+      `).first<{ member_count: number; task_count: number; resource_count: number }>();
+    } catch {
+      row = null;
+    }
+
     if (!ready) {
       return {
         ready: false,
         tableCount,
         requiredTableCount: REQUIRED_PORTAL_TABLES.length,
-        memberCount: 0,
-        taskCount: 0,
-        resourceCount: 0,
+        memberCount: Number(row?.member_count ?? 0),
+        taskCount: Number(row?.task_count ?? 0),
+        resourceCount: Number(row?.resource_count ?? 0),
       };
     }
-
-    const row = await db.prepare(`
-      SELECT
-        (SELECT COUNT(*) FROM portal_members) AS member_count,
-        (SELECT COUNT(*) FROM portal_tasks) AS task_count,
-        (SELECT COUNT(*) FROM portal_resources) AS resource_count
-    `).first<{ member_count: number; task_count: number; resource_count: number }>();
 
     return {
       ready: true,
