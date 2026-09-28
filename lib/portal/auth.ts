@@ -6,7 +6,9 @@ import { Buffer } from "node:buffer";
 
 const SESSION_COOKIE = "core_portal_session";
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
-const PBKDF2_ITERATIONS = 310000;
+// Cloudflare Workers WebCrypto currently rejects PBKDF2 iteration counts above 100,000.
+const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_SCHEME = "pbkdf2-sha256-v1";
 
 export type PortalRole = "admin" | "lead" | "member" | "alumni" | "viewer";
 
@@ -134,7 +136,7 @@ export async function hashPortalPassword(password: string) {
     256
   );
 
-  return ["pbkdf2-sha256", String(PBKDF2_ITERATIONS), bytesToHex(salt), bytesToHex(new Uint8Array(derived))].join("$");
+  return [PBKDF2_SCHEME, String(PBKDF2_ITERATIONS), bytesToHex(salt), bytesToHex(new Uint8Array(derived))].join("$");
 }
 
 export async function verifyPortalPassword(password: string, stored: string) {
@@ -144,7 +146,18 @@ export async function verifyPortalPassword(password: string, stored: string) {
   const saltHex = parts[2];
   const expectedHex = parts[3];
 
-  if (algorithm !== "pbkdf2-sha256" || !Number.isInteger(iterations) || iterations < 100000 || !saltHex || !expectedHex) {
+  const supportedScheme =
+    algorithm === PBKDF2_SCHEME ||
+    algorithm === "pbkdf2-sha256";
+
+  if (
+    !supportedScheme ||
+    !Number.isInteger(iterations) ||
+    iterations < 100000 ||
+    iterations > PBKDF2_ITERATIONS ||
+    !saltHex ||
+    !expectedHex
+  ) {
     return false;
   }
 
