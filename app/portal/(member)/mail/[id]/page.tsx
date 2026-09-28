@@ -21,13 +21,13 @@ export default async function PortalMailThreadPage({
   const member = await requirePortalMember();
   const { id } = await params;
   const threadId = decodeURIComponent(id);
-  const [data, participants, attachments, vaultFiles, query] = await Promise.all([
+  const [data, participants, attachments, vaultFiles] = await Promise.all([
     getPortalMailThread(threadId, member.id),
     listPortalMailParticipants(threadId),
     listPortalMailAttachments(threadId),
     listPortalVaultFiles({ lifecycle: "active", limit: 40, viewer: member }),
-    searchParams ?? Promise.resolve({}),
   ]);
+  const query: { replied?: string; sent?: string } = searchParams ? await searchParams : {};
   if (!data) notFound();
 
   return (
