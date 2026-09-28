@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const modules = [
   ["Projects", "Products, integrations, status and completion percentage", "/admin/projects", true],
   ["Competitions", "Target competitions, official dates and planning state", "/admin/competitions", true],
-  ["Content", "TR/EN pages, announcements and institutional copy", "#", false],
+  ["Content", "TR/EN pages, announcements and institutional copy", "/admin/content", true],
   ["Publications", "Research reports, papers and technical releases", "#", false],
   ["Media", "Images, project media, documents and public assets", "#", false],
   ["Team", "Domain teams, shared service units and public profiles", "#", false],
@@ -49,6 +49,7 @@ export default async function Admin({
         <div><strong>{stats.contentCount}</strong><span>CONTENT ITEMS</span></div>
         <div><strong>{stats.projectCount}</strong><span>PROJECTS</span></div>
         <div><strong>{stats.competitionCount}</strong><span>COMPETITIONS</span></div>
+        <div><strong>{stats.pageCount}</strong><span>PAGES</span></div>
         <div><strong>{stats.mediaCount}</strong><span>MEDIA RECORDS</span></div>
         <div><strong>{stats.auditCount}</strong><span>AUDIT EVENTS</span></div>
       </div>
@@ -91,20 +92,20 @@ export default async function Admin({
         </div>
       ) : null}
 
-      {writeEnabled && stats.contentCount === 0 ? (
+      {writeEnabled && (stats.contentCount === 0 || stats.pageCount < 7) ? (
         <section className="cmsActionPanel">
           <div>
-            <span>INITIALIZE CONTENT</span>
-            <h2>Load the CORE showcase into D1</h2>
+            <span>{stats.contentCount === 0 ? "INITIALIZE CONTENT" : "SYNC PAGE CONTENT"}</span>
+            <h2>{stats.contentCount === 0 ? "Load the CORE showcase into D1" : "Add the public page copy to D1"}</h2>
             <p>
-              Inserts the prepared 10 projects and 10 competition targets with
-              TR/EN localizations. The operation is idempotent and records the
-              authenticated Access identity in the audit log.
+              {stats.contentCount === 0
+                ? "Inserts projects, competition targets and public page copy with TR/EN localizations."
+                : "Adds the 7 public page records for Home, Teams, Projects, Research, Competitions, About and Join. Existing project and competition records are synchronized idempotently."}
             </p>
           </div>
           <form action={applyShowcaseSeedAction}>
             <button className="adminPrimaryButton" type="submit">
-              LOAD SHOWCASE SEED →
+              {stats.contentCount === 0 ? "LOAD SHOWCASE SEED →" : "SYNC PUBLIC PAGES →"}
             </button>
           </form>
         </section>
