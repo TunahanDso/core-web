@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
+  listPortalAllTeamMemberships,
+  listPortalCapabilityGrants,
   listPortalProjectRegistry,
   listPortalRoleProfiles,
   listPortalTeams,
@@ -14,6 +16,7 @@ import {
 } from "@/lib/portal/governance";
 import {
   grantPortalCapabilityAction,
+  revokePortalCapabilityAction,
   upsertPortalProjectControlAction,
   upsertPortalTeamMembershipAction,
   upsertPortalVehicleControlAction,
@@ -23,7 +26,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PortalControlPlanePage() {
   const member = await requirePortalMember();
-  const [canProjects,canVehicles,canTeams,canRoles,teams,projects,vehicles,members,roleProfiles] = await Promise.all([
+  const [canProjects,canVehicles,canTeams,canRoles,teams,projects,vehicles,members,roleProfiles,capabilityGrants,teamMemberships] = await Promise.all([
     memberHasPortalCapability(member,"control.projects"),
     memberHasPortalCapability(member,"control.vehicles"),
     memberHasPortalCapability(member,"teams.manage"),
@@ -33,6 +36,8 @@ export default async function PortalControlPlanePage() {
     listPortalVehicleProfiles(),
     listPortalMembers(),
     listPortalRoleProfiles(),
+    listPortalCapabilityGrants(),
+    listPortalAllTeamMemberships(),
   ]);
 
   if (!canProjects && !canVehicles && !canTeams && !canRoles) notFound();
@@ -151,11 +156,43 @@ export default async function PortalControlPlanePage() {
           })}
         </div>
         {canRoles ? (
-          <form className="portalFormGrid compact portalCapabilityGrant" action={grantPortalCapabilityAction}>
-            <label><span>Üye</span><select name="memberId">{activeMembers.map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.full_name || item.email)} · {portalRoleLabelDetailed(String(item.role))}</option>)}</select></label>
-            <label><span>Capability</span><input name="capability" placeholder="teams.read_all" required /></label>
-            <button className="portalPrimaryButton" type="submit">CAPABILITY GRANT →</button>
-          </form>
+          <>
+            <form className="portalFormGrid compact portalCapabilityGrant" action={grantPortalCapabilityAction}>
+              <label><span>Üye</span><select name="memberId">{activeMembers.map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.full_name || item.email)} · {portalRoleLabelDetailed(String(item.role))}</option>)}</select></label>
+              <label><span>Capability</span><input name="capability" placeholder="teams.read_all" required /></label>
+              <button className="portalPrimaryButton" type="submit">CAPABILITY GRANT →</button>
+            </form>
+
+            <div className="portalCapabilityGrantList">
+              <div className="portalPanelHead"><span>EXPLICIT GRANTS</span><small>{capabilityGrants.length}</small></div>
+              {capabilityGrants.length ? capabilityGrants.map((grant) => (
+                <article key={String(grant.member_id) + ":" + String(grant.capability)}>
+                  <div>
+                    <b>{String(grant.full_name || grant.email)}</b>
+                    <small>{String(grant.email)}</small>
+                  </div>
+                  <code>{String(grant.capability)}</code>
+                  <small>by {String(grant.granted_by)}</small>
+                  <form action={revokePortalCapabilityAction}>
+                    <input type="hidden" name="memberId" value={String(grant.member_id)} />
+                    <input type="hidden" name="capability" value={String(grant.capability)} />
+                    <button type="submit">REVOKE</button>
+                  </form>
+                </article>
+              )) : <p className="portalMuted">Explicit capability grant'i yok.</p>}
+            </div>
+
+            <div className="portalTeamAssignmentList">
+              <div className="portalPanelHead"><span>TEAM ROLE ASSIGNMENTS</span><small>{teamMemberships.length}</small></div>
+              {teamMemberships.length ? teamMemberships.slice(0,80).map((assignment) => (
+                <article key={String(assignment.team_code) + ":" + String(assignment.member_id)}>
+                  <span>{String(assignment.team_code)}</span>
+                  <div><b>{String(assignment.full_name || assignment.email)}</b><small>{String(assignment.team_name)}</small></div>
+                  <em>{portalRoleLabelDetailed(String(assignment.team_role))}</em>
+                </article>
+              )) : <p className="portalMuted">V6 takım rol ataması henüz yok.</p>}
+            </div>
+          </>
         ) : null}
       </section>
     </>
