@@ -1,7 +1,8 @@
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { getPortalMailThread } from "@/lib/portal/db";
-import { listPortalMailParticipants } from "@/lib/portal/mailbox";
+import { listPortalMailAttachments, listPortalMailParticipants } from "@/lib/portal/mailbox";
+import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
 import {
   mutateMailboxThreadAction,
   replyMailboxThreadAction,
@@ -20,9 +21,11 @@ export default async function PortalMailThreadPage({
   const member = await requirePortalMember();
   const { id } = await params;
   const threadId = decodeURIComponent(id);
-  const [data, participants, query] = await Promise.all([
+  const [data, participants, attachments, vaultFiles, query] = await Promise.all([
     getPortalMailThread(threadId, member.id),
     listPortalMailParticipants(threadId),
+    listPortalMailAttachments(threadId),
+    listPortalVaultFiles({ lifecycle: "active", limit: 40, viewer: member }),
     searchParams ?? Promise.resolve({}),
   ]);
   if (!data) notFound();
@@ -82,6 +85,16 @@ export default async function PortalMailThreadPage({
               <small>{String(message.created_at)}</small>
             </header>
             <p>{String(message.body)}</p>
+            {attachments.some((item) => String(item.message_id) === String(message.id)) ? (
+              <div className="mailMessageAttachments">
+                {attachments.filter((item) => String(item.message_id) === String(message.id)).map((item) => (
+                  <a href={"/api/portal/vault/" + encodeURIComponent(String(item.vault_file_id)) + "?revision=" + encodeURIComponent(String(item.revision)) + "&download=1"} key={String(item.id)}>
+                    <span>{String(item.extension || "FILE").toUpperCase()}</span>
+                    <div><b>{String(item.title)}</b><small>R{String(item.revision)} · {formatVaultBytes(item.size_bytes)}</small></div>
+                  </a>
+                ))}
+              </div>
+            ) : null}
             <footer><small>MSG {String(index + 1).padStart(2,"0")} / {String(data.messages.length).padStart(2,"0")}</small></footer>
           </article>
         ))}
@@ -92,6 +105,19 @@ export default async function PortalMailThreadPage({
         <form action={replyMailboxThreadAction}>
           <input type="hidden" name="threadId" value={threadId} />
           <textarea name="body" rows={6} placeholder="Karar, durum güncellemesi veya devir teslim notu..." required />
+          {vaultFiles.length ? (
+            <details className="mailReplyAttachments">
+              <summary>Vault'tan teknik dosya ekle</summary>
+              <div className="mailboxAttachmentPicker">
+                {vaultFiles.slice(0,24).map((file) => (
+                  <label key={String(file.id)}>
+                    <input type="checkbox" name="vaultFileId" value={String(file.id)} />
+                    <span><b>{String(file.title)}</b><small>R{String(file.revision)} · {String(file.extension || "FILE").toUpperCase()}</small></span>
+                  </label>
+                ))}
+              </div>
+            </details>
+          ) : null}
           <button className="portalPrimaryButton" type="submit">YANITI GÖNDER →</button>
         </form>
       </section>
