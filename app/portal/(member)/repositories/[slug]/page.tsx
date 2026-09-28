@@ -8,6 +8,11 @@ import {
   type RepoPackageManifest,
 } from "@/lib/portal/repositories";
 import { listPortalRepoReviewsForRepository } from "@/lib/portal/repository-reviews";
+import {
+  commitNativeRepositoryFileAction,
+  createNativeRepositoryBranchAction,
+  createNativeRepositoryReleaseAction,
+} from "@/app/portal/engineering-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +93,9 @@ export default async function PortalRepositoryWorkspacePage({
     file?: string;
     base?: string;
     head?: string;
+    committed?: string;
+    branchCreated?: string;
+    released?: string;
   }>;
 }) {
   const [{ slug }, member] = await Promise.all([
@@ -100,6 +108,9 @@ export default async function PortalRepositoryWorkspacePage({
     file?: string;
     base?: string;
     head?: string;
+    committed?: string;
+    branchCreated?: string;
+    released?: string;
   } = searchParams ? await searchParams : {};
 
   const repo = await getAccessibleNativeRepository(member, decodeURIComponent(slug));
@@ -114,6 +125,13 @@ export default async function PortalRepositoryWorkspacePage({
     workspace.ref,
     ...workspace.branches.map((branch) => String(branch.name)),
   ]));
+  const writeBranch = workspace.branches.some((branch) => branch.name === workspace.ref)
+    ? workspace.ref
+    : repo.default_branch;
+  const writeHead = workspace.branches.find((branch) => branch.name === writeBranch)?.sha || "";
+  const editableBlob = workspace.blob?.encoding === "utf-8"
+    ? String(workspace.blob.content || "")
+    : null;
 
   return (
     <>
@@ -138,16 +156,20 @@ export default async function PortalRepositoryWorkspacePage({
         </dl>
       </section>
 
+      {query.committed === "1" ? <div className="portalSuccess">Commit oluşturuldu ve branch HEAD güncellendi.</div> : null}
+      {query.branchCreated === "1" ? <div className="portalSuccess">Branch oluşturuldu.</div> : null}
+      {query.released === "1" ? <div className="portalSuccess">Release/tag oluşturuldu.</div> : null}
+
       {!workspace.service.available ? (
         <section className="repoServiceNotice offline">
           <b>CORE REPO SERVICE OFFLINE</b>
           <p>{workspace.service.reason}</p>
-          <small>Portal catalog ve erişim modeli hazır. Git refs / tree / commits / package verisi servis bağlandığında bu workspace'e akacak.</small>
+          <small>Repository engine okunamıyor. D1 katalog kaydı korunur; object store geri geldiğinde refs / tree / commits tekrar yüklenir.</small>
         </section>
       ) : (
         <section className="repoServiceNotice ready">
-          <b>CORE REPO SERVICE CONNECTED</b>
-          <p>Workspace verisi native repository servisinden okunuyor.</p>
+          <b>CORE REPO ENGINE ACTIVE</b>
+          <p>Workspace verisi native repository object store üzerinden okunuyor.</p>
         </section>
       )}
 
@@ -233,6 +255,67 @@ export default async function PortalRepositoryWorkspacePage({
               )}
             </article>
           ) : null}
+
+          {canManage && repo.service_repository_id ? (
+            <section className="repoWriteWorkspace">
+              {workspace.blob && editableBlob !== null ? (
+                <article className="repoEditorCard">
+                  <header>
+                    <div>
+                      <span>EDIT FILE</span>
+                      <b>{workspace.blob.path}</b>
+                    </div>
+                    <small>{writeBranch} · HEAD {shortSha(writeHead)}</small>
+                  </header>
+                  <form action={commitNativeRepositoryFileAction}>
+                    <input type="hidden" name="repoSlug" value={repo.slug} />
+                    <input type="hidden" name="branch" value={writeBranch} />
+                    <input type="hidden" name="expectedHead" value={writeHead} />
+                    <input type="hidden" name="filePath" value={workspace.blob.path} />
+                    <textarea name="content" rows={18} defaultValue={editableBlob} spellCheck={false} />
+                    <label>
+                      <span>COMMIT MESSAGE</span>
+                      <input name="message" defaultValue={"chore: update " + workspace.blob.path} required />
+                    </label>
+                    <div>
+                      <button type="submit" className="portalPrimaryButton">COMMIT FILE →</button>
+                    </div>
+                  </form>
+                  <form action={commitNativeRepositoryFileAction} className="repoDeleteFileForm">
+                    <input type="hidden" name="repoSlug" value={repo.slug} />
+                    <input type="hidden" name="branch" value={writeBranch} />
+                    <input type="hidden" name="expectedHead" value={writeHead} />
+                    <input type="hidden" name="filePath" value={workspace.blob.path} />
+                    <input type="hidden" name="operation" value="delete" />
+                    <input type="hidden" name="message" value={"chore: delete " + workspace.blob.path} />
+                    <button type="submit">DELETE FILE + COMMIT</button>
+                  </form>
+                </article>
+              ) : null}
+
+              <details className="repoNewFile">
+                <summary>+ NEW TEXT FILE / FOLDER PATH</summary>
+                <form action={commitNativeRepositoryFileAction}>
+                  <input type="hidden" name="repoSlug" value={repo.slug} />
+                  <input type="hidden" name="branch" value={writeBranch} />
+                  <input type="hidden" name="expectedHead" value={writeHead} />
+                  <label>
+                    <span>PATH</span>
+                    <input name="filePath" placeholder="src/navigation/runtime.ts" required />
+                  </label>
+                  <label>
+                    <span>CONTENT</span>
+                    <textarea name="content" rows={14} placeholder="// CORE repository file" spellCheck={false} />
+                  </label>
+                  <label>
+                    <span>COMMIT MESSAGE</span>
+                    <input name="message" placeholder="feat: add navigation runtime" required />
+                  </label>
+                  <button type="submit" className="portalPrimaryButton">CREATE + COMMIT →</button>
+                </form>
+              </details>
+            </section>
+          ) : null}
         </section>
 
         <aside className="repoWorkspaceSide">
@@ -249,8 +332,26 @@ export default async function PortalRepositoryWorkspacePage({
                   <em>{branch.protected ? "PROTECTED" : "OPEN"}</em>
                 </a>
               ))}
-              {!workspace.branches.length ? <small>Branch verisi servis bekliyor.</small> : null}
+              {!workspace.branches.length ? <small>Branch verisi bulunamadı.</small> : null}
             </div>
+            {canManage && repo.service_repository_id ? (
+              <form action={createNativeRepositoryBranchAction} className="repoBranchCreate">
+                <input type="hidden" name="repoSlug" value={repo.slug} />
+                <label>
+                  <span>NEW BRANCH</span>
+                  <input name="branchName" placeholder="feature/navigation" required />
+                </label>
+                <label>
+                  <span>FROM</span>
+                  <select name="fromRef" defaultValue={writeBranch}>
+                    {workspace.branches.map((branch) => (
+                      <option key={branch.name} value={branch.name}>{branch.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <button type="submit">CREATE BRANCH →</button>
+              </form>
+            ) : null}
           </section>
 
           <section className="portalPanel">
@@ -305,6 +406,42 @@ export default async function PortalRepositoryWorkspacePage({
             text="package.json, pyproject.toml, requirements, Cargo.toml, go.mod, CMake/PlatformIO gibi manifestleri Repo Service normalize ederek burada gösterecek."
           />
         )}
+      </section>
+
+      <section className="portalPanel repoReleasePanel">
+        <div className="portalPanelHead">
+          <span>RELEASES / TAGS</span>
+          <small>{workspace.releases.length} RELEASE</small>
+        </div>
+        {workspace.releases.length ? (
+          <div className="repoReleaseList">
+            {workspace.releases.map((release) => (
+              <article key={release.id}>
+                <div>
+                  <span>{release.tag}</span>
+                  <b>{release.name}</b>
+                  <p>{release.notes || "Release note yok."}</p>
+                </div>
+                <aside>
+                  <code>{shortSha(release.commitSha)}</code>
+                  <small>{formatDate(release.createdAt)} · {release.createdBy}</small>
+                </aside>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <PortalEmpty title="Release henüz yok." text="Bir branch veya commit ref'i tag'leyerek ilk release'i oluşturabilirsin." />
+        )}
+        {canManage && repo.service_repository_id ? (
+          <form action={createNativeRepositoryReleaseAction} className="repoReleaseForm">
+            <input type="hidden" name="repoSlug" value={repo.slug} />
+            <label><span>REF</span><select name="ref" defaultValue={writeBranch}>{workspace.branches.map((branch) => <option key={branch.name} value={branch.name}>{branch.name}</option>)}</select></label>
+            <label><span>TAG</span><input name="tag" placeholder="v0.1.0" required /></label>
+            <label><span>NAME</span><input name="releaseName" placeholder="CORE Runtime 0.1" required /></label>
+            <label className="repoReleaseNotes"><span>NOTES</span><textarea name="notes" rows={3} placeholder="Bu sürümde..." /></label>
+            <button type="submit" className="portalOutlineButton">CREATE RELEASE →</button>
+          </form>
+        ) : null}
       </section>
 
       <section className="portalPanel repoReviewPanel">
