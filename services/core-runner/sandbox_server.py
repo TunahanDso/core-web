@@ -69,6 +69,27 @@ def safe_relative_path(raw):
         return None
     return Path(*parts)
 
+def materialize_files(files, workspace):
+    if not isinstance(files, list) or len(files) > MAX_FILES:
+        raise ValueError("Snapshot file limit exceeded.")
+    if workspace.exists():
+        shutil.rmtree(workspace, ignore_errors=True)
+    workspace.mkdir(parents=True, exist_ok=True)
+
+    total = 0
+    for item in files:
+        rel = safe_relative_path(item.get("path"))
+        if rel is None:
+            raise ValueError("Unsafe snapshot path.")
+        data = base64.b64decode(str(item.get("contentBase64") or ""), validate=True)
+        total += len(data)
+        if total > MAX_SNAPSHOT:
+            raise ValueError("Snapshot byte limit exceeded.")
+        target = workspace / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    return total
+
 def clamp(data, limit=MAX_OUTPUT):
     if len(data) <= limit:
         return data
@@ -127,26 +148,8 @@ def execute_job(payload):
 
     if not job_id or task_id not in TASKS or LANGUAGE.get(task_id) != language:
         raise ValueError("Invalid fixed task contract.")
-    if not isinstance(files, list) or len(files) > MAX_FILES:
-        raise ValueError("Snapshot file limit exceeded.")
-
     workspace = Path(tempfile.gettempdir()) / "core-runner" / job_id
-    if workspace.exists():
-        shutil.rmtree(workspace, ignore_errors=True)
-    workspace.mkdir(parents=True, exist_ok=True)
-
-    total = 0
-    for item in files:
-        rel = safe_relative_path(item.get("path"))
-        if rel is None:
-            raise ValueError("Unsafe snapshot path.")
-        data = base64.b64decode(str(item.get("contentBase64") or ""), validate=True)
-        total += len(data)
-        if total > MAX_SNAPSHOT:
-            raise ValueError("Snapshot byte limit exceeded.")
-        target = workspace / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
+    materialize_files(files, workspace)
 
     stdout_chunks = []
     stderr_chunks = []
@@ -158,6 +161,7 @@ def execute_job(payload):
         "HOME": str(workspace),
         "TMPDIR": str(workspace / ".tmp"),
         "CI": "1",
+        "TERM": "dumb",
         "CORE_RUNNER_NETWORK": "deny",
     }
     Path(env["TMPDIR"]).mkdir(exist_ok=True)
@@ -217,6 +221,22 @@ def execute_job(payload):
         "artifacts": artifacts,
     }
 
+def prepare_terminal(payload):
+    session_id = str(payload.get("sessionId") or "")
+    files = payload.get("files") or []
+    if not session_id or len(session_id) > 80 or any(ch not in "0123456789abcdefABCDEF-" for ch in session_id):
+        raise ValueError("Invalid terminal session.")
+    workspace = Path(tempfile.gettempdir()) / "core-terminal" / session_id
+    total = materialize_files(files, workspace)
+    tmpdir = workspace / ".tmp"
+    tmpdir.mkdir(exist_ok=True)
+    return {
+        "ok": True,
+        "workspace": str(workspace),
+        "fileCount": len(files),
+        "sizeBytes": total,
+    }
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "CORE-RUNNER/1"
 
@@ -236,7 +256,7 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "not_found"})
 
     def do_POST(self):
-        if self.path != "/run":
+        if self.path not in ("/run", "/prepare-terminal"):
             self._json(404, {"error": "not_found"})
             return
         try:
@@ -248,9 +268,15 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             payload = json.loads(self.rfile.read(size))
+            if self.path == "/prepare-terminal":
+                self._json(200, prepare_terminal(payload))
+                return
             result = execute_job(payload)
             self._json(200, result)
         except Exception as exc:
+            if self.path == "/prepare-terminal":
+                self._json(400, {"ok": False, "error": str(exc)[:12000]})
+                return
             self._json(400, {
                 "status": "failed",
                 "exitCode": None,
