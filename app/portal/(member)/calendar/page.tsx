@@ -9,7 +9,7 @@ export default async function PortalCalendarPage() {
   return (
     <>
       <PortalPageHeader code="CL / TAKVİM" title="Operasyon Takvimi" lead="Toplantılar, saha testleri, incelemeler, son tarihler ve yarışma kilometre taşları tek mühendislik zaman çizgisinde." />
-      <section className="portalPanel portalCreatePanel">
+      <section className="portalPanel portalCreatePanel" id="create-event">
         <div className="portalPanelHead"><span>YENİ ETKİNLİK</span><small>TAKIM TAKVİMİ</small></div>
         <form className="portalFormGrid" action={createCalendarEventAction}>
           <label><span>Başlık</span><input name="title" required /></label>
