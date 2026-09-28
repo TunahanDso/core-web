@@ -47,14 +47,19 @@ declare module "cloudflare:workers" {
     messageId?: string;
   }
 
+  export interface EmailAddress {
+    email: string;
+    name?: string;
+  }
+
   export interface EmailBinding {
     send(message: {
-      from: string;
-      to: string | string[];
+      from: string | EmailAddress;
+      to: string | EmailAddress | Array<string | EmailAddress>;
       subject: string;
       text?: string;
       html?: string;
-      replyTo?: string;
+      replyTo?: string | EmailAddress;
     }): Promise<EmailSendResult>;
   }
 
