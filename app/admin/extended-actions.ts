@@ -20,7 +20,7 @@ function value(formData: FormData, key: string) {
 export async function createPublicationAction(formData: FormData) {
   const identity = await requireAdminIdentity();
   const titleTr = value(formData, "titleTr");
-  if (!titleTr) throw new Error("Turkish publication title is required.");
+  if (!titleTr) throw new Error("Türkçe yayın başlığı gerekli.");
   const statusRaw = value(formData, "status") || "draft";
   const status = ["draft","published","archived"].includes(statusRaw)
     ? statusRaw as "draft" | "published" | "archived"
@@ -49,7 +49,7 @@ export async function createPublicationAction(formData: FormData) {
 export async function uploadMediaAction(formData: FormData) {
   const identity = await requireAdminIdentity();
   const file = formData.get("file");
-  if (!(file instanceof File)) throw new Error("File is required.");
+  if (!(file instanceof File)) throw new Error("Dosya gerekli.");
 
   await storeMediaAsset({
     file,
