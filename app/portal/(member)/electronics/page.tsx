@@ -9,7 +9,7 @@ export default async function PortalElectronicsPage() {
   const resources = all.filter((item) => ["pcb","bom","drawing"].includes(String(item.kind)));
   return (
     <>
-      <PortalPageHeader code="HW / ELECTRONICS" title="PCB & Elektronik" lead="Kart dosyaları, BOM'lar, şemalar, kablolama referansları ve donanım kanıtları takım ve projeye göre indekslenir." />
+      <PortalPageHeader code="HW / ELEKTRONİK" title="PCB & Elektronik" lead="Kart dosyaları, BOM'lar, şemalar, kablolama referansları ve donanım kanıtları takım ve projeye göre indekslenir." />
       <section className="portalHardwareRibbon">
         <span>ŞEMA</span><i>→</i><span>PCB</span><i>→</i><span>BOM</span><i>→</i><span>MONTAJ</span><i>→</i><span>SMOKE TEST</span><i>→</i><span>SAHA</span>
       </section>
