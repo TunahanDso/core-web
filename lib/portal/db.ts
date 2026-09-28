@@ -634,6 +634,11 @@ export async function sendPortalMailReply(input: {
   body: string;
 }) {
   const db = database();
+  const participant = await db.prepare(
+    "SELECT 1 AS ok FROM portal_mail_participants WHERE thread_id=? AND member_id=? LIMIT 1"
+  ).bind(input.threadId,input.authorId).first<{ ok: number }>();
+  if (!participant) throw new Error("Bu yazışmaya yanıt verme yetkiniz yok.");
+
   await db.batch([
     db.prepare("INSERT INTO portal_mail_messages (id,thread_id,author_id,body) VALUES (?,?,?,?)")
       .bind(crypto.randomUUID(),input.threadId,input.authorId,input.body),
@@ -642,10 +647,14 @@ export async function sendPortalMailReply(input: {
 }
 
 export async function markPortalChannelRead(channelId: string, memberId: string) {
-  await database().prepare(
-    "INSERT INTO portal_channel_reads (channel_id,member_id,last_read_at) VALUES (?,?,CURRENT_TIMESTAMP) " +
-    "ON CONFLICT(channel_id,member_id) DO UPDATE SET last_read_at=CURRENT_TIMESTAMP"
-  ).bind(channelId,memberId).run();
+  try {
+    await database().prepare(
+      "INSERT INTO portal_channel_reads (channel_id,member_id,last_read_at) VALUES (?,?,CURRENT_TIMESTAMP) " +
+      "ON CONFLICT(channel_id,member_id) DO UPDATE SET last_read_at=CURRENT_TIMESTAMP"
+    ).bind(channelId,memberId).run();
+  } catch {
+    // V1 compatibility: read tracking becomes active after the V2 schema upgrade.
+  }
 }
 
 export async function listPortalChannelsForMember(memberId: string) {
