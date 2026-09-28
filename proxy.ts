@@ -5,6 +5,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (
+    pathname.startsWith("/.well-known") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/portal") ||
     pathname.startsWith("/api") ||
