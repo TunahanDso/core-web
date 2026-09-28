@@ -1,16 +1,12 @@
 import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
-import { domains, projects, serviceUnits } from "@/lib/site-data";
-import { isLocale, locales } from "@/lib/i18n";
+import { domains, serviceUnits } from "@/lib/site-data";
+import { isLocale } from "@/lib/i18n";
 import { siteSlug } from "@/lib/site-slug";
+import { listPublicProjects } from "@/lib/cms/public-projects";
 
-export function generateStaticParams() {
-  return locales.flatMap((locale) =>
-    projects.map((project) => ({ locale, slug: siteSlug(project.name) }))
-  );
-}
-
+export const dynamic = "force-dynamic";
 function teamLinksForOwner(owner: string) {
   const candidates = [
     ...domains.map((team) => ({
@@ -37,7 +33,8 @@ export default async function ProjectDetailPage({
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
 
-  const project = projects.find((item) => siteSlug(item.name) === slug);
+  const projects = await listPublicProjects(locale);
+  const project = projects.find((item) => item.slug === slug);
   if (!project) notFound();
 
   const ownerTeams = teamLinksForOwner(project.owner);
@@ -51,7 +48,7 @@ export default async function ProjectDetailPage({
         code="PROJECT"
         eyebrow={project.owner}
         title={project.name}
-        lead={project.description[locale]}
+        lead={project.description}
       />
 
       <section className="projectDetailStatus">
@@ -59,13 +56,13 @@ export default async function ProjectDetailPage({
           <span>{locale === "tr" ? "GEÇİCİ VİTRİN İLERLEMESİ" : "TEMPORARY SHOWCASE PROGRESS"}</span>
           <strong>{project.progress}%</strong>
           <div className="projectDetailTrack"><i style={{ width: `${project.progress}%` }} /></div>
-          <small>{project.status[locale]}</small>
+          <small>{project.status}</small>
         </div>
 
         <div className="projectDetailMeta" data-reveal>
           <div>
             <span>{locale === "tr" ? "KATEGORİ" : "CATEGORY"}</span>
-            <b>{project.category[locale]}</b>
+            <b>{project.category}</b>
           </div>
           <div>
             <span>{locale === "tr" ? "SAHİP TAKIM" : "OWNER TEAM"}</span>
@@ -86,7 +83,7 @@ export default async function ProjectDetailPage({
               ? "Tek başına çalışan bir ürün değil; CORE mimarisindeki bir görev sahibi."
               : "Not a standalone product; a responsibility inside the CORE architecture."}
           </h2>
-          <p>{project.description[locale]}</p>
+          <p>{project.description}</p>
         </div>
 
         <div className="projectEngineeringLoop">
@@ -127,7 +124,7 @@ export default async function ProjectDetailPage({
             const linked = integrations.find((item) => item.name === name);
             const className = `orbitPartner orbitPartner${index + 1}`;
             return linked ? (
-              <a className={className} href={`/${locale}/projects/${siteSlug(linked.name)}`} key={name}>
+              <a className={className} href={`/${locale}/projects/${linked.slug}`} key={name}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <b>{name}</b>
                 <small>OPEN →</small>
@@ -168,7 +165,7 @@ export default async function ProjectDetailPage({
 
       <section className="detailClosing">
         <div data-reveal>
-          <span>PROJECT / {siteSlug(project.name).toUpperCase()}</span>
+          <span>PROJECT / {project.slug.toUpperCase()}</span>
           <h2>{locale === "tr" ? "Bir sistem, ancak bağlandığında CORE olur." : "A system becomes CORE when it connects."}</h2>
         </div>
         <a className="primaryButton" href={`/${locale}/projects`}>
