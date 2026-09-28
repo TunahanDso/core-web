@@ -48,6 +48,18 @@ jobs:
               throw new Error("Showcase seed must use quote-aware SQL statement parsing.");
             }
             console.log("D1 seed runner uses atomic batch() with quote-aware SQL parsing.");
+
+            const portalBootstrap = fs.readFileSync("lib/portal/bootstrap.ts", "utf8");
+            if (portalBootstrap.includes("db.exec(PORTAL_SCHEMA_SQL)")) {
+              throw new Error("Portal bootstrap must not execute the full schema through D1 exec().");
+            }
+            if (!portalBootstrap.includes("splitPortalSql")) {
+              throw new Error("Portal bootstrap must use quote-aware SQL parsing.");
+            }
+            if (!portalBootstrap.includes("db.batch(")) {
+              throw new Error("Portal bootstrap must execute prepared statements through D1 batch().");
+            }
+            console.log("Portal bootstrap uses prepared D1 batch() with quote-aware SQL parsing.");
           '
 
       - name: Typecheck
