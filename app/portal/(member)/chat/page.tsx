@@ -33,7 +33,7 @@ export default async function PortalChatPage({
           <div className="portalMessages">
             {messages.length ? messages.map((message) => (
               <article key={String(message.id)}>
-                <div><b>{String(message.full_name || message.email)}</b><span>{String(message.role).toUpperCase()}</span><small>{String(message.created_at)}</small></div>
+                <div><b>{String(message.full_name || message.email)}</b><span>{portalRoleLabel(String(message.role))}</span><small>{String(message.created_at)}</small></div>
                 <p>{String(message.body)}</p>
               </article>
             )) : <PortalEmpty title="Kanal is quiet." text="İlk mesajı aşağıdan gönder." />}
