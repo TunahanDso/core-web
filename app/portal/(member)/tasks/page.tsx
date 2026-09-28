@@ -24,7 +24,7 @@ export default async function PortalTasksPage() {
         lead="Teknik niyeti sahipliği belli işe dönüştür. Görevler proje, takım, öncelik ve inceleme durumuyla bağlı kalır."
       />
 
-      <section className="portalPanel portalCreatePanel">
+      <section className="portalPanel portalCreatePanel" id="create-task">
         <div className="portalPanelHead"><span>YENİ İŞ KALEMİ</span><small>ÜYE YAZMA YETKİSİ</small></div>
         <form className="portalFormGrid" action={createTaskAction}>
           <label><span>Görev başlığı</span><input name="title" required /></label>
@@ -58,6 +58,30 @@ export default async function PortalTasksPage() {
           <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={3} /></label>
           <button type="submit" className="portalPrimaryButton">GÖREV OLUŞTUR →</button>
         </form>
+      </section>
+
+      <section className="portalNativeTaskList" aria-label="Mobil görev listesi">
+        {tasks
+          .filter((task) => String(task.status) !== "done")
+          .sort((a,b) => {
+            const rank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+            return (rank[String(a.priority)] ?? 4) - (rank[String(b.priority)] ?? 4);
+          })
+          .slice(0,40)
+          .map((task) => (
+            <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
+              <div className="portalNativeTaskTop">
+                <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
+                <em>{portalTaskStatusLabel(String(task.status))}</em>
+              </div>
+              <h3>{String(task.title)}</h3>
+              <p>{String(task.description || "Açıklama yok.")}</p>
+              <footer>
+                <span>{String(task.assignee_name || "Atanmamış")}</span>
+                <small>{String(task.project_slug || task.team_code || "CORE")}</small>
+              </footer>
+            </a>
+          ))}
       </section>
 
       <section className="portalTaskBoard">
