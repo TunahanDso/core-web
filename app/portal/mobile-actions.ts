@@ -17,3 +17,21 @@ export async function revokePortalMobileDeviceAction(formData: FormData) {
 
   revalidatePath("/portal/security");
 }
+
+
+export async function setPortalMobileDeviceTrustAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const deviceId = String(formData.get("deviceId") || "").trim();
+  const state = String(formData.get("state") || "").trim();
+  if (!deviceId || !["pending","trusted"].includes(state)) {
+    throw new Error("Geçersiz cihaz güven isteği.");
+  }
+
+  await setPortalMobileDeviceTrust({
+    memberId: member.id,
+    deviceId,
+    trustedState: state as "pending" | "trusted",
+  });
+
+  revalidatePath("/portal/security");
+}
