@@ -43,7 +43,7 @@ export async function registerPortalMobileDevice(input: {
   ).run();
 
   return database().prepare(
-    "SELECT id,install_id,platform,app_version,device_label,trusted_state,biometric_enabled,last_path,last_seen_at,created_at " +
+    "SELECT id,install_id,platform,app_version,device_label,push_provider,trusted_state,biometric_enabled,last_path,last_seen_at,created_at " +
     "FROM portal_mobile_devices WHERE install_id=? AND member_id=? LIMIT 1"
   ).bind(installId,input.memberId).first<Record<string, unknown>>();
 }
@@ -51,7 +51,7 @@ export async function registerPortalMobileDevice(input: {
 export async function listPortalMobileDevices(memberId: string) {
   try {
     const response = await database().prepare(
-      "SELECT id,install_id,platform,app_version,device_label,trusted_state,biometric_enabled,last_path,last_seen_at,created_at " +
+      "SELECT id,install_id,platform,app_version,device_label,push_provider,trusted_state,biometric_enabled,last_path,last_seen_at,created_at " +
       "FROM portal_mobile_devices WHERE member_id=? ORDER BY datetime(last_seen_at) DESC LIMIT 50"
     ).bind(memberId).all<Record<string, unknown>>();
     return response.results ?? [];
