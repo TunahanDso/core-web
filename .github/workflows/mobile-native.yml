@@ -9,6 +9,7 @@ on:
       - "mobile/**"
       - "components/portal/PortalMobileRuntime.tsx"
       - "components/portal/PortalNativeExperience.tsx"
+      - "components/portal/PortalInventoryScanner.tsx"
       - "app/globals.css"
       - "app/portal/**"
       - "app/api/portal/mobile/**"
@@ -70,6 +71,8 @@ jobs:
           npm run mobile:configure:android
           npx cap sync android
           grep -q "ytucore" android/app/src/main/AndroidManifest.xml
+          grep -q "minSdkVersion = 26" android/variables.gradle
+          grep -R -q "BarcodeScanner" android/app/src android/capacitor-cordova-android-plugins 2>/dev/null || grep -R -q "capacitor-barcode-scanner" android 2>/dev/null
           grep -R -q "PushNotifications" android/app/src android/capacitor-cordova-android-plugins 2>/dev/null || grep -R -q "capacitor-push-notifications" android 2>/dev/null
 
       - name: Build debug APK
@@ -113,6 +116,7 @@ jobs:
           grep -q "aps-environment" ios/App/App/App.entitlements
           grep -q "capacitorDidRegisterForRemoteNotifications" ios/App/App/AppDelegate.swift
           grep -R -q "CapacitorPushNotifications" ios/CapApp-SPM ios/App 2>/dev/null
+          grep -R -q "BarcodeScanner" ios/CapApp-SPM ios/App 2>/dev/null
           grep -R -q "CapacitorShare" ios/CapApp-SPM ios/App 2>/dev/null
 
       - name: Build iOS Simulator app
