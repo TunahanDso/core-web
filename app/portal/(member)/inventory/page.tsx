@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function PortalInventoryPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ scan?: string }>;
+  searchParams?: Promise<{ scan?: string; scanNow?: string }>;
 }) {
   const query = searchParams ? await searchParams : {};
   const scannedCode = String(query.scan || "").trim();
@@ -30,7 +30,7 @@ export default async function PortalInventoryPage({
     <>
       <PortalPageHeader code="ST / ENVANTER" title="Stok & Araçlar" lead="Parçalar, araçlar ve sarf malzemeleri; konum, kullanılabilir miktar, rezerv ve minimum stok uyarılarıyla izlenir." />
 
-      <PortalInventoryScanner />
+      <PortalInventoryScanner autoStart={String(query.scanNow || "") === "1"} />
 
       {scannedCode ? (
         <section className={"nativeScanResult " + (matchedItem ? "matched" : "missing")}>
