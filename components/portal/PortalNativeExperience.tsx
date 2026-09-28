@@ -9,6 +9,7 @@ import { Network, type ConnectionType } from "@capacitor/network";
 import { Preferences } from "@capacitor/preferences";
 import { Keyboard } from "@capacitor/keyboard";
 import { StatusBar, Style } from "@capacitor/status-bar";
+import { Camera, CameraDirection } from "@capacitor/camera";
 import { portalNavigation } from "@/lib/portal/modules";
 
 type NativeExperienceProps = {
@@ -28,7 +29,8 @@ type IconName =
   | "profile"
   | "plus"
   | "refresh"
-  | "wifi";
+  | "wifi"
+  | "camera";
 
 function Icon({ name }: { name: IconName }) {
   const common = {
@@ -53,6 +55,7 @@ function Icon({ name }: { name: IconName }) {
   if (name === "profile") return <svg {...common}><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.1 3.4-6 8-6s7.2 1.9 8 6"/></svg>;
   if (name === "plus") return <svg {...common}><path d="M12 5v14M5 12h14"/></svg>;
   if (name === "refresh") return <svg {...common}><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.2 9A7 7 0 0 0 6.4 6.4L4 9M5.8 15A7 7 0 0 0 17.6 17.6L20 15"/></svg>;
+  if (name === "camera") return <svg {...common}><path d="M4 7h3l1.5-2h7L17 7h3v12H4z"/><circle cx="12" cy="13" r="4"/></svg>;
   return <svg {...common}><path d="M3 9c5-4 13-4 18 0"/><path d="M6 13c3.4-2.7 8.6-2.7 12 0"/><path d="M9.5 17c1.4-1.2 3.6-1.2 5 0"/><circle cx="12" cy="20" r=".7" fill="currentColor" stroke="none"/></svg>;
 }
 
@@ -92,6 +95,10 @@ export default function PortalNativeExperience({
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [exitHint, setExitHint] = useState(false);
+  const [capture, setCapture] = useState<{ blob: Blob; preview: string; filename: string } | null>(null);
+  const [captureTitle, setCaptureTitle] = useState("");
+  const [captureBusy, setCaptureBusy] = useState(false);
+  const [captureError, setCaptureError] = useState("");
   const pullStart = useRef<number | null>(null);
   const pullArmed = useRef(false);
   const lastBackAt = useRef(0);
@@ -113,6 +120,90 @@ export default function PortalNativeExperience({
     setMoreOpen(false);
     setQuickOpen(false);
     router.push(href);
+  };
+
+  const capturePhoto = async () => {
+    if (!Capacitor.isPluginAvailable("Camera")) {
+      navigate("/portal/library#upload");
+      return;
+    }
+
+    setQuickOpen(false);
+    setCaptureError("");
+    try {
+      const result = await Camera.takePhoto({
+        quality: 88,
+        editable: "no",
+        cameraDirection: CameraDirection.Rear,
+        targetWidth: 1800,
+        targetHeight: 1800,
+        correctOrientation: true,
+        includeMetadata: true,
+      });
+      if (!result.webPath) throw new Error("Kamera çıktısı alınamadı.");
+
+      const response = await fetch(result.webPath);
+      const blob = await response.blob();
+      if (!blob.size) throw new Error("Fotoğraf verisi boş.");
+      if (blob.size > 25 * 1024 * 1024) throw new Error("Fotoğraf 25 MB Vault sınırını aşıyor.");
+
+      const format = String(result.format || "jpeg").toLowerCase();
+      const extension = format === "jpeg" ? "jpg" : format.replace(/[^a-z0-9]/g, "") || "jpg";
+      const now = new Date();
+      setCapture({
+        blob,
+        preview: result.webPath,
+        filename: "core-field-" + now.toISOString().replace(/[:.]/g,"-") + "." + extension,
+      });
+      setCaptureTitle(
+        "Saha fotoğrafı · " +
+        now.toLocaleString("tr-TR", { dateStyle: "short", timeStyle: "short" })
+      );
+      await Haptics.impact({ style: ImpactStyle.Medium }).catch(() => undefined);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Kamera açılamadı.";
+      if (!/cancel/i.test(message)) setCaptureError(message);
+    }
+  };
+
+  const uploadCapture = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!capture || captureBusy) return;
+
+    setCaptureBusy(true);
+    setCaptureError("");
+    try {
+      const fields = new FormData(event.currentTarget);
+      fields.set("file", new File([capture.blob], capture.filename, {
+        type: capture.blob.type || "image/jpeg",
+      }));
+      fields.set("kind", "media");
+      fields.set("visibility", "members");
+      fields.set("description", "CORE mobil uygulamasından saha kamerası ile yüklendi.");
+      const tags = String(fields.get("tags") || "").trim();
+      fields.set("tags", ["native","camera","saha",tags].filter(Boolean).join(","));
+
+      const response = await fetch("/api/portal/vault/upload", {
+        method: "POST",
+        credentials: "same-origin",
+        body: fields,
+      });
+      const payload = await response.json().catch(() => ({})) as { uploaded?: boolean; href?: string; error?: string };
+      if (!response.ok || !payload.uploaded || !payload.href) {
+        throw new Error(payload.error || "Vault yüklemesi başarısız.");
+      }
+
+      await Haptics.notification({ type: NotificationType.Success }).catch(() => undefined);
+      setCapture(null);
+      setCaptureTitle("");
+      router.push(payload.href);
+      router.refresh();
+    } catch (error) {
+      setCaptureError(error instanceof Error ? error.message : "Vault yüklemesi başarısız.");
+      await Haptics.notification({ type: NotificationType.Error }).catch(() => undefined);
+    } finally {
+      setCaptureBusy(false);
+    }
   };
 
   const refresh = async () => {
@@ -377,6 +468,11 @@ export default function PortalNativeExperience({
               <button type="button" onClick={() => setQuickOpen(false)}>KAPAT</button>
             </header>
             <div className="nativeQuickGrid">
+              <button type="button" className="nativeCameraQuick" onClick={() => void capturePhoto()}>
+                <span><Icon name="camera" /></span>
+                <b>Saha fotoğrafı</b>
+                <small>Kameradan çek ve doğrudan CORE Vault'a kaydet</small>
+              </button>
               {quickActions.map(([label, href, description], index) => (
                 <button type="button" key={href} onClick={() => navigate(href)}>
                   <span>0{index + 1}</span>
@@ -385,6 +481,31 @@ export default function PortalNativeExperience({
                 </button>
               ))}
             </div>
+          </section>
+        </div>
+      ) : null}
+
+      {capture ? (
+        <div className="nativeSheetBackdrop" role="presentation" onClick={() => !captureBusy && setCapture(null)}>
+          <section className="nativeSheet nativeCaptureSheet" role="dialog" aria-modal="true" aria-label="Saha fotoğrafını Vault'a kaydet" onClick={(event) => event.stopPropagation()}>
+            <div className="nativeSheetHandle" />
+            <header>
+              <div><span>NATIVE CAMERA → CORE VAULT</span><h2>Saha kaydı</h2></div>
+              <button type="button" disabled={captureBusy} onClick={() => setCapture(null)}>VAZGEÇ</button>
+            </header>
+            <img src={capture.preview} alt="Çekilen saha fotoğrafı önizlemesi" className="nativeCapturePreview" />
+            <form className="nativeCaptureForm" onSubmit={uploadCapture}>
+              <label><span>Başlık</span><input name="title" value={captureTitle} onChange={(event) => setCaptureTitle(event.target.value)} required /></label>
+              <div>
+                <label><span>Takım</span><input name="teamCode" placeholder="MAR / EMB / SYS" /></label>
+                <label><span>Proje</span><input name="projectSlug" placeholder="proje-slug" /></label>
+              </div>
+              <label><span>Ek etiketler</span><input name="tags" placeholder="test, pcb, arıza, prototip" /></label>
+              {captureError ? <p className="nativeCaptureError">{captureError}</p> : null}
+              <button type="submit" className="nativeCaptureSubmit" disabled={captureBusy}>
+                {captureBusy ? "VAULT'A YÜKLENİYOR..." : "FOTOĞRAFI VAULT'A KAYDET →"}
+              </button>
+            </form>
           </section>
         </div>
       ) : null}
