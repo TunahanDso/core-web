@@ -10,17 +10,17 @@ export default async function PortalSecurityPage() {
 
   return (
     <>
-      <PortalPageHeader code="SEC / IDENTITY" title="Security & Devices" lead="Account sessions today; trusted devices, passkeys and a mobile approval companion can be layered on this identity model later." />
+      <PortalPageHeader code="SEC / IDENTITY" title="Güvenlik & Cihazlar" lead="Bugün hesap oturumları; ileride güvenilir cihazlar, passkey ve mobil onay uygulaması bu kimlik modeline eklenebilir." />
       <section className="portalSecurityGrid">
-        <article><span>ACCOUNT</span><h3>{member.email}</h3><p>Role: {member.role.toUpperCase()}</p><b>ACTIVE SESSION</b></article>
-        <article><span>SESSION MODEL</span><h3>Server-side revocable token</h3><p>Browser holds a secure HttpOnly cookie; D1 stores only the token hash.</p><b>7 DAY MAX</b></article>
-        <article><span>INVITATION</span><h3>One-time activation</h3><p>Student accounts are created internally and activated with an expiring code.</p><b>72 HOUR CODE</b></article>
-        <article><span>FUTURE MOBILE</span><h3>Trusted-device ready</h3><p>The schema already has a device trust registry for a later CORE security companion.</p><b>FOUNDATION READY</b></article>
+        <article><span>HESAP</span><h3>{member.email}</h3><p>Rol: {member.role.toUpperCase()}</p><b>AKTİF OTURUM</b></article>
+        <article><span>OTURUM MODELİ</span><h3>Sunucu taraflı iptal edilebilir token</h3><p>Tarayıcı güvenli HttpOnly cookie tutar; D1 yalnızca token hash'ini saklar.</p><b>EN FAZLA 7 GÜN</b></article>
+        <article><span>DAVET</span><h3>Tek kullanımlık aktivasyon</h3><p>Öğrenci hesapları içeriden oluşturulur ve süreli kodla aktifleştirilir.</p><b>72 SAATLİK KOD</b></article>
+        <article><span>GELECEK MOBİL</span><h3>Güvenilir cihaz altyapısı hazır</h3><p>Şema ilerideki CORE güvenlik uygulaması için cihaz güven kaydını şimdiden içeriyor.</p><b>ALTYAPI HAZIR</b></article>
       </section>
       <section className="portalOpsBoundary">
-        <span>TELEMETRY INGEST</span>
-        <b>{telemetryConfigured ? "SECRET CONFIGURED" : "ENV SECRET REQUIRED"}</b>
-        <strong>OBSERVABILITY ONLY · NO COMMAND AUTHORITY</strong>
+        <span>TELEMETRİ GİRİŞİ</span>
+        <b>{telemetryConfigured ? "SECRET TANIMLI" : "ENV SECRET GEREKLİ"}</b>
+        <strong>YALNIZCA GÖZLEMLEME · KOMUT OTORİTESİ YOK</strong>
       </section>
     </>
   );
