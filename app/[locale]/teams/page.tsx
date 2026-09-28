@@ -3,8 +3,10 @@ import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { domains, serviceUnits } from "@/lib/site-data";
 import { isLocale } from "@/lib/i18n";
+import { getPublicPage } from "@/lib/cms/db";
 import { siteSlug } from "@/lib/site-slug";
 
+export const dynamic = "force-dynamic";
 const copy = {
   tr: {
     eyebrow: "TAKIMLAR",
@@ -52,10 +54,16 @@ export default async function TeamsPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const c = copy[locale];
+  const cms = await getPublicPage("teams", locale);
 
   return (
     <PublicChrome locale={locale}>
-      <PublicPageHero code="01" eyebrow={c.eyebrow} title={c.title} lead={c.lead} />
+      <PublicPageHero
+        code={cms?.code || "01"}
+        eyebrow={cms?.eyebrow || c.eyebrow}
+        title={cms?.title || c.title}
+        lead={cms?.summary || c.lead}
+      />
 
       <section className="lightSection publicSection">
         <div className="sectionHeading" data-reveal>

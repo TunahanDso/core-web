@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminIdentity } from "@/lib/cms/auth";
-import { updateCompetition, updateProject } from "@/lib/cms/db";
+import { updateCompetition, updatePage, updateProject } from "@/lib/cms/db";
 import { applyShowcaseSeed } from "@/lib/cms/seed";
 
 function actorFrom(identity: Awaited<ReturnType<typeof requireAdminIdentity>>) {
@@ -30,6 +30,21 @@ export async function applyShowcaseSeedAction() {
   revalidatePath("/admin");
   revalidatePath("/admin/projects");
   revalidatePath("/admin/competitions");
+  revalidatePath("/admin/content");
+  revalidatePath("/tr");
+  revalidatePath("/en");
+  revalidatePath("/tr/teams");
+  revalidatePath("/en/teams");
+  revalidatePath("/tr/projects");
+  revalidatePath("/en/projects");
+  revalidatePath("/tr/research");
+  revalidatePath("/en/research");
+  revalidatePath("/tr/competitions");
+  revalidatePath("/en/competitions");
+  revalidatePath("/tr/about");
+  revalidatePath("/en/about");
+  revalidatePath("/tr/join");
+  revalidatePath("/en/join");
   redirect("/admin?seed=applied");
 }
 
@@ -132,4 +147,67 @@ export async function updateCompetitionAction(formData: FormData) {
   revalidatePath("/admin/competitions");
   revalidatePath(`/admin/competitions/${id}`);
   redirect(`/admin/competitions/${encodeURIComponent(id)}?saved=1`);
+}
+
+
+export async function updatePageAction(formData: FormData) {
+  const identity = await requireAdminIdentity();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const status = String(formData.get("status") ?? "draft").trim();
+  const code = String(formData.get("code") ?? "").trim();
+  const eyebrowTr = String(formData.get("eyebrowTr") ?? "").trim();
+  const eyebrowEn = String(formData.get("eyebrowEn") ?? "").trim();
+  const accentTr = String(formData.get("accentTr") ?? "").trim();
+  const accentEn = String(formData.get("accentEn") ?? "").trim();
+  const titleTr = String(formData.get("titleTr") ?? "").trim();
+  const titleEn = String(formData.get("titleEn") ?? "").trim();
+  const summaryTr = String(formData.get("summaryTr") ?? "").trim();
+  const summaryEn = String(formData.get("summaryEn") ?? "").trim();
+  const bodyTr = String(formData.get("bodyTr") ?? "").trim();
+  const bodyEn = String(formData.get("bodyEn") ?? "").trim();
+  const seoTitleTr = String(formData.get("seoTitleTr") ?? "").trim();
+  const seoTitleEn = String(formData.get("seoTitleEn") ?? "").trim();
+  const seoDescriptionTr = String(formData.get("seoDescriptionTr") ?? "").trim();
+  const seoDescriptionEn = String(formData.get("seoDescriptionEn") ?? "").trim();
+
+  if (!id) throw new Error("Page id is required.");
+  if (!titleTr) throw new Error("Turkish page title is required.");
+  if (!["draft", "published", "archived"].includes(status)) {
+    throw new Error("Invalid publication status.");
+  }
+
+  await updatePage(
+    {
+      id,
+      status: status as "draft" | "published" | "archived",
+      code,
+      eyebrowTr,
+      eyebrowEn,
+      accentTr,
+      accentEn,
+      titleTr,
+      titleEn,
+      summaryTr,
+      summaryEn,
+      bodyTr,
+      bodyEn,
+      seoTitleTr,
+      seoTitleEn,
+      seoDescriptionTr,
+      seoDescriptionEn,
+    },
+    actorFrom(identity)
+  );
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/content");
+  revalidatePath(`/admin/content/${id}`);
+
+  const pageSlug = id.replace(/^page-/, "");
+  const route = pageSlug === "home" ? "" : `/${pageSlug}`;
+  revalidatePath(`/tr${route}`);
+  revalidatePath(`/en${route}`);
+
+  redirect(`/admin/content/${encodeURIComponent(id)}?saved=1`);
 }

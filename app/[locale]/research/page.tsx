@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { isLocale } from "@/lib/i18n";
+import { getPublicPage } from "@/lib/cms/db";
 
+export const dynamic = "force-dynamic";
 const copy = {
   tr: {
     eyebrow: "ARAŞTIRMA",
@@ -38,10 +40,16 @@ export default async function ResearchPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const c = copy[locale];
+  const cms = await getPublicPage("research", locale);
 
   return (
     <PublicChrome locale={locale}>
-      <PublicPageHero code="03" eyebrow={c.eyebrow} title={c.title} lead={c.lead} />
+      <PublicPageHero
+        code={cms?.code || "03"}
+        eyebrow={cms?.eyebrow || c.eyebrow}
+        title={cms?.title || c.title}
+        lead={cms?.summary || c.lead}
+      />
       <section className="researchNotebook">
         <div className="notebookMargin" aria-hidden="true" />
         <div className="researchQuestion" data-reveal>

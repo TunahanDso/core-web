@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
 import { domains, projects, serviceUnits } from "@/lib/site-data";
 import { isLocale, locales } from "@/lib/i18n";
+import { getPublicPage } from "@/lib/cms/db";
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -125,6 +128,7 @@ export default async function Home({
   if (!isLocale(locale)) notFound();
 
   const c = copy[locale];
+  const cms = await getPublicPage("home", locale);
 
   return (
     <PublicChrome locale={locale}>
@@ -137,12 +141,12 @@ export default async function Home({
             <small>{locale === "tr" ? "ÖĞRENCİ TAKIMI" : "STUDENT TEAM"}</small>
           </div>
 
-          <p className="eyebrow">{c.kicker}</p>
+          <p className="eyebrow">{cms?.eyebrow || c.kicker}</p>
           <h1>
-            <span>{c.sloganA}</span>
-            <em>{c.sloganB}</em>
+            <span>{cms?.title || c.sloganA}</span>
+            <em>{cms?.accent || c.sloganB}</em>
           </h1>
-          <p className="studentHeroLead">{c.lead}</p>
+          <p className="studentHeroLead">{cms?.summary || c.lead}</p>
 
           <div className="actions">
             <a className="primaryButton" href={`/${locale}/teams`}>
@@ -210,7 +214,7 @@ export default async function Home({
 
       <section className="studentStatement">
         <div className="statementNumber">01 / WHO WE ARE</div>
-        <p>{c.statement}</p>
+        <p>{cms?.body || c.statement}</p>
         <a href={`/${locale}/about`}>{c.about} →</a>
       </section>
 

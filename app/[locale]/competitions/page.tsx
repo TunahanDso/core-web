@@ -3,7 +3,9 @@ import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { competitions } from "@/lib/site-data";
 import { isLocale } from "@/lib/i18n";
+import { getPublicPage } from "@/lib/cms/db";
 
+export const dynamic = "force-dynamic";
 const copy = {
   tr: {
     eyebrow: "YARIŞMALAR / SAHA HEDEFLERİ",
@@ -29,11 +31,17 @@ export default async function CompetitionsPage({ params }: { params: Promise<{ l
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const c = copy[locale];
+  const cms = await getPublicPage("competitions", locale);
   const status = (s: "confirmed" | "target" | "evaluation") => s === "confirmed" ? c.confirmed : s === "target" ? c.target : c.evaluation;
 
   return (
     <PublicChrome locale={locale}>
-      <PublicPageHero code="04" eyebrow={c.eyebrow} title={c.title} lead={c.lead} />
+      <PublicPageHero
+        code={cms?.code || "04"}
+        eyebrow={cms?.eyebrow || c.eyebrow}
+        title={cms?.title || c.title}
+        lead={cms?.summary || c.lead}
+      />
       <section className="darkSection publicSection competitionBoard">
         <div className="competitionList">
           {competitions.map((competition, index) => (
