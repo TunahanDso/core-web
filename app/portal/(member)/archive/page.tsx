@@ -7,7 +7,7 @@ export default async function PortalArchivePage() {
   const resources = await listPortalResources("archive");
   return (
     <>
-      <PortalPageHeader code="AR / ARCHIVE" title="Mühendislik Arşivi" lead="Emekli tasarımlar, tarihsel raporlar, test kanıtları ve mezun olan bir üyeyle birlikte kaybolmaması gereken kararlar." />
+      <PortalPageHeader code="AR / ARŞİV" title="Mühendislik Arşivi" lead="Emekli tasarımlar, tarihsel raporlar, test kanıtları ve mezun olan bir üyeyle birlikte kaybolmaması gereken kararlar." />
       {resources.length ? (
         <div className="portalArchiveStack">
           {resources.map((item, index) => (
