@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 
@@ -69,6 +70,7 @@ function safePortalTarget(url: string, config: MobileConfig) {
 }
 
 export default function PortalMobileRuntime({ config }: { config: MobileConfig }) {
+  const pathname = usePathname();
   const [handoffVisible,setHandoffVisible] = useState(false);
   const [native,setNative] = useState(false);
   const [storeUrl,setStoreUrl] = useState("");
@@ -76,7 +78,7 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
   const schemeUrl = useMemo(() => {
     if (typeof window === "undefined") return config.appScheme + "://portal";
     return deepLink(config);
-  }, [config]);
+  }, [config, pathname]);
 
   useEffect(() => {
     const isNative = Capacitor.isNativePlatform();
@@ -152,7 +154,7 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
     return () => {
       if (deepLinkHandle) void deepLinkHandle.remove();
     };
-  }, [config]);
+  }, [config, pathname]);
 
   if (native || !handoffVisible) return null;
 
