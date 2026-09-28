@@ -30,12 +30,6 @@ function responseJson(value, init = {}) {
   });
 }
 
-function authorized(request, env) {
-  const expected = String(env.CORE_RUNNER_TOKEN || "").trim();
-  if (!expected) return false;
-  return request.headers.get("authorization") === "Bearer " + expected;
-}
-
 function safePath(value) {
   const path = String(value || "").replace(/\\/g,"/").replace(/^\/+/,"");
   if (!path || path.includes("\0")) return null;
@@ -293,10 +287,13 @@ async function createJob(request, env) {
   if (!validJobBody(body)) return responseJson({ error:"invalid_job_contract" }, { status:400 });
 
   const row = await env.DB.prepare(
-    "SELECT r.id,r.member_id,r.status,r.language,r.command_label,e.service_repository_id,e.snapshot_ref " +
+    "SELECT r.id,r.member_id,r.status,r.language,r.command_label,e.service_repository_id,e.snapshot_ref,e.dispatch_token " +
     "FROM portal_code_runs r JOIN portal_code_run_execution e ON e.run_id=r.id WHERE r.id=? LIMIT 1"
   ).bind(String(body.jobId)).first();
   if (!row) return responseJson({ error:"job_not_registered" }, { status:404 });
+  if (!body.dispatchToken || String(row.dispatch_token) !== String(body.dispatchToken)) {
+    return responseJson({ error:"invalid_job_capability" }, { status:401 });
+  }
   if (String(row.status) !== "queued") return responseJson({ error:"job_not_queueable", status:row.status }, { status:409 });
   if (
     String(row.service_repository_id) !== String(body.repositoryRef) ||
@@ -326,11 +323,14 @@ async function createJob(request, env) {
   }
 }
 
-async function cancelJob(jobId, env) {
+async function cancelJob(jobId, request, env) {
   const row = await env.DB.prepare(
-    "SELECT id,status FROM portal_code_runs WHERE id=? LIMIT 1"
+    "SELECT r.id,r.status,e.dispatch_token FROM portal_code_runs r JOIN portal_code_run_execution e ON e.run_id=r.id WHERE r.id=? LIMIT 1"
   ).bind(jobId).first();
   if (!row) return responseJson({ error:"job_not_found" }, { status:404 });
+  if (request.headers.get("x-core-job-token") !== String(row.dispatch_token || "")) {
+    return responseJson({ error:"invalid_job_capability" }, { status:401 });
+  }
   if (["passed","failed","timed_out","cancelled"].includes(String(row.status))) {
     return responseJson({ cancelled:false,status:row.status }, { status:409 });
   }
@@ -353,12 +353,16 @@ async function cancelJob(jobId, env) {
   return responseJson({ cancelled:true,jobId });
 }
 
-async function jobStatus(jobId, env) {
+async function jobStatus(jobId, request, env) {
   const run = await env.DB.prepare(
-    "SELECT r.*,e.native_repository_id,e.service_repository_id,e.snapshot_sha,e.workflow_instance_id,e.attempt,e.retry_of_run_id " +
+    "SELECT r.*,e.native_repository_id,e.service_repository_id,e.snapshot_sha,e.workflow_instance_id,e.attempt,e.retry_of_run_id,e.dispatch_token " +
     "FROM portal_code_runs r LEFT JOIN portal_code_run_execution e ON e.run_id=r.id WHERE r.id=? LIMIT 1"
   ).bind(jobId).first();
   if (!run) return responseJson({ error:"job_not_found" }, { status:404 });
+  if (request.headers.get("x-core-job-token") !== String(run.dispatch_token || "")) {
+    return responseJson({ error:"invalid_job_capability" }, { status:401 });
+  }
+  delete run.dispatch_token;
   const events = await env.DB.prepare(
     "SELECT phase,level,message,metadata_json,created_at FROM portal_code_run_events WHERE run_id=? ORDER BY id"
   ).bind(jobId).all();
@@ -380,8 +384,6 @@ export default {
         network:"deny",
       });
     }
-    if (!authorized(request, env)) return responseJson({ error:"unauthorized" }, { status:401 });
-
     if (request.method === "POST" && url.pathname === "/v1/jobs") {
       return createJob(request, env);
     }
@@ -389,8 +391,8 @@ export default {
     const match = url.pathname.match(/^\/v1\/jobs\/([^/]+)(?:\/(cancel))?$/);
     if (match) {
       const jobId = decodeURIComponent(match[1]);
-      if (request.method === "POST" && match[2] === "cancel") return cancelJob(jobId, env);
-      if (request.method === "GET" && !match[2]) return jobStatus(jobId, env);
+      if (request.method === "POST" && match[2] === "cancel") return cancelJob(jobId, request, env);
+      if (request.method === "GET" && !match[2]) return jobStatus(jobId, request, env);
     }
 
     return responseJson({ error:"not_found" }, { status:404 });
