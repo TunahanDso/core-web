@@ -94,7 +94,7 @@ jobs:
             console.log("Invitation email service keeps provider secrets out of source control.");
 
             const serviceWorker = fs.readFileSync("public/portal-sw.js", "utf8");
-            if (!serviceWorker.includes('url.pathname.startsWith("/portal")') || !serviceWorker.includes('url.pathname.startsWith("/api/portal")')) {
+            if (!serviceWorker.includes("url.pathname.startsWith(\"/portal\")") || !serviceWorker.includes("url.pathname.startsWith(\"/api/portal\")")) {
               throw new Error("Portal service worker must explicitly exclude authenticated portal data.");
             }
             if (serviceWorker.includes("caches.put(")) {
