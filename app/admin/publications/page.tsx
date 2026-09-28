@@ -1,10 +1,11 @@
 import { createPublicationAction } from "@/app/admin/extended-actions";
-import { listYayınlar } from "@/lib/cms/extensions";
+import { listPublications } from "@/lib/cms/extensions";
+import { cmsStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminYayınlarPage() {
-  const publications = await listYayınlar();
+  const publications = await listPublications();
   return (
     <main className="admin adminLight">
       <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">ARAŞTIRMA ÇIKTILARI</p></div><span className="cmsHealth online"><i />CANLI D1</span></div>
@@ -36,7 +37,7 @@ export default async function AdminYayınlarPage() {
               <span>{String(metadata.kind || "YAYIN").toUpperCase()}</span>
               <div><h3>{String(item.title_tr || item.title_en || item.slug)}</h3><p>{String(item.summary_tr || item.summary_en || "")}</p></div>
               <small>{String(item.domain || "CORE Research")}</small>
-              <b>{String(item.status).toUpperCase()}</b>
+              <b>{cmsStatusLabel(String(item.status))}</b>
             </article>
           );
         })}
