@@ -1,5 +1,6 @@
 import { getAdminIdentity } from "@/lib/cms/auth";
 import { listPages } from "@/lib/cms/db";
+import { cmsStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,7 @@ export default async function AdminİçerikPage() {
               </div>
 
               <div className="adminİçerikMeta">
-                <span>{page.status.toUpperCase()}</span>
+                <span>{cmsStatusLabel(page.status)}</span>
                 <a className="adminEditLink" href={"/admin/content/" + encodeURIComponent(page.id)}>
                   DÜZENLE →
                 </a>
