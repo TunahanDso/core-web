@@ -17,7 +17,7 @@ export default async function PortalAnalyticsPage() {
 
   return (
     <>
-      <PortalPageHeader code="AN / ANALYTICS" title="CORE İstatistikleri" lead="İnsan, iş, bilgi, donanım ve iletişim için operasyon sinyalleri. Gösteriş metriğine ihtiyaç yok." />
+      <PortalPageHeader code="AN / İSTATİSTİK" title="CORE İstatistikleri" lead="İnsan, iş, bilgi, donanım ve iletişim için operasyon sinyalleri. Gösteriş metriğine ihtiyaç yok." />
       <section className="portalAnalyticsGrid">
         <article><span>ÜYELER</span><b>{String(analytics.members_active || 0)}</b><small>{String(analytics.members_total || 0)} toplam kayıt</small></article>
         <article><span>GÖREV TAMAMLAMA</span><b>{completion}%</b><small>{doneTasks} / {totalTasks} tamamlandı</small></article>
