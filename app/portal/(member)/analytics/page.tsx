@@ -1,5 +1,6 @@
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { getPortalAnalytics, listPortalInventory, listPortalTasks } from "@/lib/portal/db";
+import { portalTaskStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export default async function PortalAnalyticsPage() {
           {["backlog","todo","doing","review","blocked","done"].map((status) => {
             const count = tasks.filter((task) => String(task.status) === status).length;
             const width = totalTasks ? Math.max(3, Math.round(count / totalTasks * 100)) : 0;
-            return <div key={status}><span>{status.toUpperCase()}</span><i><b style={{ width: width + "%" }} /></i><strong>{count}</strong></div>;
+            return <div key={status}><span>{portalTaskStatusLabel(status)}</span><i><b style={{ width: width + "%" }} /></i><strong>{count}</strong></div>;
           })}
         </div>
       </section>
