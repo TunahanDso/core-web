@@ -122,7 +122,7 @@ jobs:
               throw new Error("Mobile browser handoff must prevent redirect loops.");
             }
             const capacitorConfig = fs.readFileSync("capacitor.config.ts", "utf8");
-            if (!capacitorConfig.includes('appId: "com.ytucore.portal"') || !capacitorConfig.includes("https://ytucore.com/portal?native=1")) {
+            if (!capacitorConfig.includes("appId: \"com.ytucore.portal\"") || !capacitorConfig.includes("https://ytucore.com/portal?native=1")) {
               throw new Error("Capacitor production portal shell identity is invalid.");
             }
             const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
