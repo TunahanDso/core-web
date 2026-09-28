@@ -22,14 +22,14 @@ export default function InviteMemberForm() {
         <label>
           <span>Portal rolü</span>
           <select name="role" defaultValue="member">
-            <option value="member">Üye</option>
-            <option value="lead">Takım lideri</option>
-            <option value="admin">Portal yöneticisi</option>
+            <option value="member">Mühendis / Üye</option>
+            <option value="lead">Program / Takım Lideri</option>
+            <option value="admin">Portal Yöneticisi</option>
             <option value="alumni">Mezun</option>
             <option value="viewer">Görüntüleyici</option>
           </select>
         </label>
-        <label><span>Takımlar</span><input name="teams" placeholder="MAR, SYS, EMB" /></label>
+        <label><span>Başlangıç takımları</span><input name="teams" placeholder="MAR, SYS, EMB" /><small>V6 sonrası ayrıntılı takım rolü Control Plane'den atanır.</small></label>
         <button type="submit" disabled={pending}>
           {pending ? "OLUŞTURULUYOR..." : "DAVET OLUŞTUR →"}
         </button>
