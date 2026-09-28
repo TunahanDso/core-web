@@ -35,7 +35,13 @@ jobs:
                 throw new Error(`Unsupported D1 seed control statement found: ${token}`);
               }
             }
-            console.log("D1 seed runner is free of unsupported transaction/foreign-key control statements.");
+            if (!source.includes("db.batch(")) {
+              throw new Error("Showcase seed must execute through D1 batch().");
+            }
+            if (source.includes("db.exec(")) {
+              throw new Error("Showcase seed must not execute through D1 exec().");
+            }
+            console.log("D1 seed runner uses atomic batch() and no unsupported control statements.");
           '
 
       - name: Typecheck
