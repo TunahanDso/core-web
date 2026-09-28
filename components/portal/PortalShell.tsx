@@ -2,6 +2,7 @@ import type { PortalMember } from "@/lib/portal/auth";
 import { portalNavigation } from "@/lib/portal/modules";
 import { logoutPortalAction } from "@/app/portal/actions";
 import { getSiteSetting } from "@/lib/cms/extensions";
+import { portalRoleLabel } from "@/lib/portal/labels";
 
 export default async function PortalShell({
   member,
@@ -60,7 +61,7 @@ export default async function PortalShell({
               <span>{initials}</span>
               <div>
                 <b>{member.fullName || member.email}</b>
-                <small>{member.role.toUpperCase()} · {member.teams.length ? member.teams.join(" / ") : "CORE"}</small>
+                <small>{portalRoleLabel(member.role)} · {member.teams.length ? member.teams.join(" / ") : "CORE"}</small>
               </div>
             </div>
           </div>
