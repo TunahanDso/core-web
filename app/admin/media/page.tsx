@@ -1,32 +1,32 @@
-import { uploadMediaAction } from "@/app/admin/extended-actions";
-import { listMediaAssets } from "@/lib/cms/extensions";
+import { uploadMedyaAction } from "@/app/admin/extended-actions";
+import { listMedyaAssets } from "@/lib/cms/extensions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminMediaPage() {
-  const assets = await listMediaAssets();
+export default async function AdminMedyaPage() {
+  const assets = await listMedyaAssets();
   return (
     <main className="admin adminLight">
-      <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">R2 MEDIA LIBRARY</p></div><span className="cmsHealth online"><i />MEDIA BOUND</span></div>
-      <h1>Media</h1>
-      <p>Upload public images, PDFs, text/CSV or ZIP assets into the CORE R2 bucket. Files are indexed in D1 and served through the site.</p>
+      <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">R2 MEDYA KÜTÜPHANESİ</p></div><span className="cmsHealth online"><i />MEDYA BAĞLI</span></div>
+      <h1>Medya</h1>
+      <p>Public görselleri, PDF, metin/CSV veya ZIP dosyalarını CORE R2 bucket'ına yükle. Dosyalar D1'de indekslenir ve site üzerinden servis edilir.</p>
 
       <section className="adminEditor adminLightEditor">
-        <form className="editorGrid" action={uploadMediaAction}>
-          <label className="editorWide"><span>File · max 25 MB</span><input name="file" type="file" required /></label>
-          <label><span>Alt text · TR</span><input name="altTr" /></label>
-          <label><span>Alt text · EN</span><input name="altEn" /></label>
-          <div className="editorActions editorWide"><button className="adminPrimaryButton" type="submit">UPLOAD TO R2 →</button></div>
+        <form className="editorGrid" action={uploadMedyaAction}>
+          <label className="editorWide"><span>Dosya · en fazla 25 MB</span><input name="file" type="file" required /></label>
+          <label><span>Alternatif metin · TR</span><input name="altTr" /></label>
+          <label><span>Alternatif metin · EN</span><input name="altEn" /></label>
+          <div className="editorActions editorWide"><button className="adminPrimaryButton" type="submit">R2'YE YÜKLE →</button></div>
         </form>
       </section>
 
-      <div className="adminMediaGrid">
+      <div className="adminMedyaGrid">
         {assets.map((asset) => (
           <article key={String(asset.id)}>
             <span>{String(asset.mime_type)}</span>
             <h3>{String(asset.object_key).split("/").pop()}</h3>
             <p>{Math.round(Number(asset.size_bytes || 0) / 1024)} KB</p>
-            <a href={"/api/media/" + encodeURIComponent(String(asset.id))} target="_blank">OPEN ↗</a>
+            <a href={"/api/media/" + encodeURIComponent(String(asset.id))} target="_blank">AÇ ↗</a>
           </article>
         ))}
       </div>
