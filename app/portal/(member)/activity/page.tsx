@@ -7,7 +7,7 @@ export default async function PortalActivityPage() {
   const activity = await listPortalActivity(150);
   return (
     <>
-      <PortalPageHeader code="AC / ACTIVITY" title="Activity Trail" lead="A human-readable operational trail for account, task, resource, inventory and coordination events." />
+      <PortalPageHeader code="AC / ACTIVITY" title="Etkinlik Geçmişi" lead="Hesap, görev, kaynak, envanter ve koordinasyon olaylarının okunabilir operasyon geçmişi." />
       {activity.length ? (
         <div className="portalActivityTable">
           {activity.map((item) => (
@@ -17,7 +17,7 @@ export default async function PortalActivityPage() {
             </article>
           ))}
         </div>
-      ) : <PortalEmpty title="No portal activity yet." text="Operational events will accumulate here as members work." />}
+      ) : <PortalEmpty title="Henüz portal etkinliği yok." text="Üyeler çalıştıkça operasyon olayları burada birikecek." />}
     </>
   );
 }
