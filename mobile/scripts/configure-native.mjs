@@ -99,6 +99,28 @@ function configureIos() {
     write(plist, info);
   }
 
+  const appDelegate = "ios/App/App/AppDelegate.swift";
+  if (fs.existsSync(appDelegate)) {
+    let delegate = read(appDelegate);
+    if (!delegate.includes("CORE_PUSH_BRIDGE")) {
+      const pushMethods = `
+
+    // CORE_PUSH_BRIDGE
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+    }
+`;
+      const finalBrace = delegate.lastIndexOf("}");
+      if (finalBrace < 0) throw new Error("AppDelegate class closing brace was not found.");
+      delegate = delegate.slice(0, finalBrace) + pushMethods + delegate.slice(finalBrace);
+      write(appDelegate, delegate);
+    }
+  }
+
   const entitlements = "ios/App/App/App.entitlements";
   const entitlementBody = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
