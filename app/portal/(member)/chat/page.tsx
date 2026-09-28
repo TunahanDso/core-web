@@ -1,6 +1,7 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { sendChatMessageAction } from "@/app/portal/actions";
-import { listPortalKanals, listPortalMessages } from "@/lib/portal/db";
+import { listPortalChannels, listPortalMessages } from "@/lib/portal/db";
+import { portalRoleLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export default async function PortalChatPage({
   searchParams?: Promise<{ channel?: string }>;
 }) {
   const query = searchParams ? await searchParams : {};
-  const channels = await listPortalKanals();
+  const channels = await listPortalChannels();
   const selectedId = query.channel || String(channels[0]?.id || "");
   const messages = selectedId ? await listPortalMessages(selectedId) : [];
   const selected = channels.find((channel) => String(channel.id) === selectedId);
@@ -36,7 +37,7 @@ export default async function PortalChatPage({
                 <div><b>{String(message.full_name || message.email)}</b><span>{portalRoleLabel(String(message.role))}</span><small>{String(message.created_at)}</small></div>
                 <p>{String(message.body)}</p>
               </article>
-            )) : <PortalEmpty title="Kanal is quiet." text="İlk mesajı aşağıdan gönder." />}
+            )) : <PortalEmpty title="Kanal sessiz." text="İlk mesajı aşağıdan gönder." />}
           </div>
           {selectedId ? (
             <form className="portalChatComposer" action={sendChatMessageAction}>
