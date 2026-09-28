@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "limits": {
+    "timeoutSeconds": 120,
+    "memoryMb": 512,
+    "cpu": 1,
+    "maxOutputBytes": 1000000,
+    "maxSnapshotBytes": 16777216,
+    "maxFiles": 1200,
+    "maxArtifactBytes": 5242880,
+    "network": "deny"
+  },
+  "tasks": [
+    {
+      "id": "python-test",
+      "language": "python",
+      "label": "Python test",
+      "steps": [
+        [
+          "python3",
+          "-m",
+          "pytest",
+          "-q"
+        ]
+      ]
+    },
+    {
+      "id": "python-script",
+      "language": "python",
+      "label": "Python entry",
+      "steps": [
+        [
+          "python3",
+          "main.py"
+        ]
+      ]
+    },
+    {
+      "id": "js-test",
+      "language": "javascript",
+      "label": "JavaScript test",
+      "steps": [
+        [
+          "vitest",
+          "run"
+        ]
+      ]
+    },
+    {
+      "id": "js-script",
+      "language": "javascript",
+      "label": "Node entry",
+      "steps": [
+        [
+          "node",
+          "index.js"
+        ]
+      ]
+    },
+    {
+      "id": "ts-typecheck",
+      "language": "typescript",
+      "label": "TypeScript check",
+      "steps": [
+        [
+          "tsc",
+          "--noEmit"
+        ]
+      ]
+    },
+    {
+      "id": "ts-test",
+      "language": "typescript",
+      "label": "TypeScript test",
+      "steps": [
+        [
+          "vitest",
+          "run"
+        ]
+      ]
+    },
+    {
+      "id": "c-build",
+      "language": "c",
+      "label": "C build",
+      "steps": [
+        [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build",
+          "-G",
+          "Ninja"
+        ],
+        [
+          "cmake",
+          "--build",
+          "build",
+          "--parallel",
+          "2"
+        ]
+      ]
+    },
+    {
+      "id": "c-test",
+      "language": "c",
+      "label": "C tests",
+      "steps": [
+        [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build",
+          "-G",
+          "Ninja"
+        ],
+        [
+          "cmake",
+          "--build",
+          "build",
+          "--parallel",
+          "2"
+        ],
+        [
+          "ctest",
+          "--test-dir",
+          "build",
+          "--output-on-failure"
+        ]
+      ]
+    },
+    {
+      "id": "cpp-build",
+      "language": "cpp",
+      "label": "C++ build",
+      "steps": [
+        [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build",
+          "-G",
+          "Ninja"
+        ],
+        [
+          "cmake",
+          "--build",
+          "build",
+          "--parallel",
+          "2"
+        ]
+      ]
+    },
+    {
+      "id": "cpp-test",
+      "language": "cpp",
+      "label": "C++ tests",
+      "steps": [
+        [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build",
+          "-G",
+          "Ninja"
+        ],
+        [
+          "cmake",
+          "--build",
+          "build",
+          "--parallel",
+          "2"
+        ],
+        [
+          "ctest",
+          "--test-dir",
+          "build",
+          "--output-on-failure"
+        ]
+      ]
+    }
+  ]
+}

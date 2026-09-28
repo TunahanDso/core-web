@@ -83,15 +83,18 @@ jobs:
               "portal_repo_reviews",
               "portal_repo_review_threads",
               "portal_repo_review_comments",
-              "portal_repo_review_submissions"
+              "portal_repo_review_submissions",
+              "portal_code_run_execution",
+              "portal_code_run_events",
+              "portal_code_run_artifacts"
             ];
             for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL")) {
-              throw new Error("Portal engineering/mobile/control-plane/review migrations must be part of the idempotent bootstrap path.");
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL")) {
+              throw new Error("Portal engineering/mobile/control-plane/review/code-lab migrations must be part of the idempotent bootstrap path.");
             }
             const nativeRepoEngine = fs.readFileSync("lib/portal/native-repo-engine.ts", "utf8");
             for (const required of [
@@ -113,6 +116,42 @@ jobs:
               throw new Error("Repository workspace must support the embedded R2 engine without requiring an external URL.");
             }
             console.log("Portal bootstrap includes RP-02 review tables and the embedded R2 repository engine boundary.");
+
+
+            const codeLab = fs.readFileSync("lib/portal/code-lab.ts", "utf8");
+            const codeLabPage = fs.readFileSync("app/portal/(member)/code-lab/page.tsx", "utf8");
+            const runnerWorker = fs.readFileSync("services/core-runner/src/index.js", "utf8");
+            const runnerSandbox = fs.readFileSync("services/core-runner/sandbox_server.py", "utf8");
+            const runnerConfig = JSON.parse(fs.readFileSync("services/core-runner/wrangler.jsonc", "utf8"));
+            const rootConfig = JSON.parse(fs.readFileSync("wrangler.jsonc", "utf8"));
+            for (const required of [
+              "portal_code_run_execution",
+              "portal_code_run_events",
+              "portal_code_run_artifacts",
+              "dispatch_token",
+              "ensurePortalCodeLabSchema"
+            ]) {
+              if (!portalBootstrap.includes(required)) throw new Error(`CL-01 bootstrap missing: ${required}`);
+            }
+            if (!codeLabPage.includes("listAccessibleNativeRepositories") || codeLabPage.includes("listNativeRepositories()")) {
+              throw new Error("Code Lab repository selector must enforce member-scoped repository access.");
+            }
+            for (const required of ["createPortalCodeRun", "cancelPortalCodeRun", "retryPortalCodeRun", "dispatchToken"]) {
+              if (!codeLab.includes(required)) throw new Error(`Code Lab lifecycle missing: ${required}`);
+            }
+            if (!runnerWorker.includes("extends Container") || !runnerWorker.includes("extends WorkflowEntrypoint")) {
+              throw new Error("CORE Runner must use Cloudflare Container + Workflow isolation.");
+            }
+            if (!runnerWorker.includes("enableInternet = false") || !runnerSandbox.includes("TASKS = {")) {
+              throw new Error("Sandbox must deny runtime internet and resolve commands from a fixed allowlist.");
+            }
+            if (!(runnerConfig.containers ?? []).length || !(runnerConfig.workflows ?? []).length) {
+              throw new Error("CORE Runner Wrangler config must declare both Containers and Workflows.");
+            }
+            if (rootConfig.vars?.CORE_RUNNER_URL !== "https://core-runner.oyuncunun61.workers.dev") {
+              throw new Error("Portal CORE_RUNNER_URL is not pointed at the production runner service.");
+            }
+            console.log("CL-01 Code Lab access, lifecycle, Workflow and Container isolation validated.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
             if (!mailSource.includes("not_configured")) {
