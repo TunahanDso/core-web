@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import type { PortalMember } from "@/lib/portal/auth";
 import type { NativeRepositoryRecord, RepoDiff } from "@/lib/portal/repositories";
+import { ensurePortalRepoReviewSchema } from "@/lib/portal/bootstrap";
 
 function database() {
   if (!env.DB) throw new Error("Portal database binding is not available.");
@@ -68,6 +69,7 @@ export type PortalRepoReviewSubmission = {
 
 
 export async function listPortalRepoReviewsForRepository(repositoryId: string, limit = 12) {
+  await ensurePortalRepoReviewSchema();
   try {
     const response = await database().prepare(
       "SELECT r.*,m.full_name AS creator_name," +
@@ -88,6 +90,7 @@ export async function findPortalRepoReview(
   baseSha: string,
   headSha: string
 ) {
+  await ensurePortalRepoReviewSchema();
   try {
     return await database().prepare(
       "SELECT * FROM portal_repo_reviews WHERE repository_id=? AND base_sha=? AND head_sha=? LIMIT 1"
@@ -102,6 +105,7 @@ export async function ensurePortalRepoReview(input: {
   diff: RepoDiff;
   member: PortalMember;
 }) {
+  await ensurePortalRepoReviewSchema();
   const existing = await findPortalRepoReview(input.repo.id, input.diff.baseSha, input.diff.headSha);
   if (existing) return existing;
 
@@ -153,6 +157,7 @@ export async function ensurePortalRepoReview(input: {
 }
 
 export async function listPortalRepoReviewThreads(reviewId: string) {
+  await ensurePortalRepoReviewSchema();
   let threads: Omit<PortalRepoReviewThread, "comments">[] = [];
   try {
     const response = await database().prepare(
@@ -191,6 +196,7 @@ export async function listPortalRepoReviewThreads(reviewId: string) {
 }
 
 export async function listPortalRepoReviewSubmissions(reviewId: string) {
+  await ensurePortalRepoReviewSchema();
   try {
     const response = await database().prepare(
       "SELECT s.*,m.full_name AS reviewer_name,m.email AS reviewer_email " +
@@ -244,6 +250,7 @@ export async function createPortalRepoReviewThread(input: {
   lineSha: string | null;
   body: string;
 }) {
+  await ensurePortalRepoReviewSchema();
   const body = cleanBody(input.body);
   if (!body) throw new Error("Review yorumu boş olamaz.");
   if (!input.filePath || input.filePath.includes("..")) throw new Error("Geçersiz dosya yolu.");
@@ -292,6 +299,7 @@ export async function replyPortalRepoReviewThread(input: {
   member: PortalMember;
   body: string;
 }) {
+  await ensurePortalRepoReviewSchema();
   const body = cleanBody(input.body);
   if (!body) throw new Error("Yanıt boş olamaz.");
 
@@ -324,6 +332,7 @@ export async function setPortalRepoReviewThreadResolved(input: {
   canModerate: boolean;
   resolved: boolean;
 }) {
+  await ensurePortalRepoReviewSchema();
   const thread = await database().prepare(
     "SELECT id,created_by_member_id FROM portal_repo_review_threads WHERE id=? AND review_id=? LIMIT 1"
   ).bind(input.threadId, input.reviewId).first<{ id: string; created_by_member_id: string }>();
@@ -363,6 +372,7 @@ export async function submitPortalRepoReview(input: {
   outcome: "comment" | "approve" | "request_changes";
   body: string;
 }) {
+  await ensurePortalRepoReviewSchema();
   const body = cleanBody(input.body);
   if (input.outcome !== "approve" && !body) {
     throw new Error("COMMENT ve REQUEST CHANGES için açıklama gerekli.");

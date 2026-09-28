@@ -2,6 +2,15 @@
 
 This document defines the read contract consumed by the YTÜ CORE Portal repository workspace.
 
+## Runtime modes
+
+The portal can operate in two modes behind the same contract:
+
+1. **Embedded R2 engine** — the default production fallback. Repository objects, snapshots, refs and releases live under the portal's R2 object store. D1 continues to hold only catalog / ownership / permission / audit metadata.
+2. **External CORE Repo Service** — when `CORE_REPO_SERVICE_URL` and its service credential are configured, the portal uses the external service instead.
+
+The embedded engine makes native repositories usable without GitHub or another provider. A later Git transport gateway can expose CLI clone/push over the same repository object boundary.
+
 ## Boundary
 
 - **D1 is not a Git object database.** Portal D1 stores repository identity, ownership, visibility, project/team relations and audit metadata.
@@ -272,3 +281,88 @@ The portal validates a new line-thread target against the current immutable diff
 - Clone/fetch/push credentials should be scoped per user/repository and short-lived once write protocol support is introduced.
 - Repository service should log mutating operations with actor identity and immutable commit/ref metadata.
 - Ref updates should support protected branch policy and optimistic concurrency.
+
+
+## RP-03 write contract
+
+The portal uses the following write routes when an external CORE Repo Service is configured. The embedded R2 engine implements the same operations directly.
+
+### Create repository
+
+`POST /v1/repositories`
+
+```json
+{
+  "name": "Navigation Runtime",
+  "slug": "navigation-runtime",
+  "projectSlug": "core-land",
+  "teamCode": "SYS",
+  "visibility": "private",
+  "defaultBranch": "main"
+}
+```
+
+Response includes `id`, `defaultBranch` and optionally `headSha`.
+
+### Create branch
+
+`POST /v1/repositories/:repositoryId/branches`
+
+```json
+{
+  "name": "feature/navigation",
+  "fromRef": "main"
+}
+```
+
+The operation must fail if the branch/ref already exists.
+
+### Commit text file changes
+
+`POST /v1/repositories/:repositoryId/commits`
+
+```json
+{
+  "branch": "feature/navigation",
+  "expectedHead": "immutable-head-sha",
+  "message": "feat: add navigation runtime",
+  "authorName": "CORE Engineer",
+  "authorEmail": "engineer@example.invalid",
+  "changes": [
+    {
+      "path": "src/navigation/runtime.ts",
+      "content": "export const ready = true;\n"
+    }
+  ]
+}
+```
+
+Use `content: null` to delete a file. `expectedHead` is an optimistic-concurrency guard: if the branch moved since the editor was opened, the service must reject the write rather than silently overwrite newer work.
+
+### Create release / tag
+
+`POST /v1/repositories/:repositoryId/releases`
+
+```json
+{
+  "ref": "main",
+  "tag": "v0.1.0",
+  "name": "CORE Runtime 0.1",
+  "notes": "First internal release."
+}
+```
+
+`GET /v1/repositories/:repositoryId/releases` returns release records with `tag`, `name`, `commitSha`, creator and timestamp.
+
+## Embedded R2 object model
+
+The embedded engine stores repository data under `core-repo/v1/<repositoryId>/`:
+
+- `meta.json` — default branch, refs and release metadata
+- `commits/<sha>.json` — immutable commit objects
+- `snapshots/<sha>.json` — immutable file-tree snapshots
+- `blobs/<sha>` — content-addressed file blobs
+
+D1 never stores blob contents, trees or commit snapshots. Portal D1 only links the repository identity to project/team permissions and audit history.
+
+The current embedded engine is the portal-native source of truth. Standard CLI Git transport (Smart HTTP / SSH push) remains a separate transport concern and must not be represented as active until a transport gateway is actually deployed.

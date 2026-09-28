@@ -79,17 +79,40 @@ jobs:
               "portal_member_capabilities",
               "portal_project_registry",
               "portal_project_map_edges",
-              "portal_vehicle_profiles"
+              "portal_vehicle_profiles",
+              "portal_repo_reviews",
+              "portal_repo_review_threads",
+              "portal_repo_review_comments",
+              "portal_repo_review_submissions"
             ];
             for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL")) {
-              throw new Error("Portal engineering/mobile/control-plane migrations must be part of the idempotent bootstrap path.");
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL")) {
+              throw new Error("Portal engineering/mobile/control-plane/review migrations must be part of the idempotent bootstrap path.");
             }
-            console.log("Portal bootstrap uses prepared D1 batch() and includes V6 governance/control-plane tables.");
+            const nativeRepoEngine = fs.readFileSync("lib/portal/native-repo-engine.ts", "utf8");
+            for (const required of [
+              "provisionEmbeddedRepository",
+              "commitEmbeddedRepoChanges",
+              "createEmbeddedRepoBranch",
+              "compareEmbeddedRepo",
+              "diffEmbeddedRepo",
+              "listEmbeddedRepoManifests",
+              "createEmbeddedRepoRelease",
+              "env.MEDIA"
+            ]) {
+              if (!nativeRepoEngine.includes(required)) {
+                throw new Error(`Native R2 repository engine missing: ${required}`);
+              }
+            }
+            const repoService = fs.readFileSync("lib/portal/repositories.ts", "utf8");
+            if (!repoService.includes("embeddedRepoServiceRead") || repoService.includes("!serviceStatus.url || !repo.service_repository_id")) {
+              throw new Error("Repository workspace must support the embedded R2 engine without requiring an external URL.");
+            }
+            console.log("Portal bootstrap includes RP-02 review tables and the embedded R2 repository engine boundary.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
             if (!mailSource.includes("not_configured")) {

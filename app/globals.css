@@ -9944,3 +9944,194 @@ html[data-core-native="native-v2"] .portalDeviceActions{
   .repoRecentReviews a>small{grid-column:1}
   .repoRecentReviews a>strong{grid-column:2;grid-row:2/4}
 }
+
+
+/* =========================================================
+   CORE Repositories RP-03 — native R2 write workspace
+   ========================================================= */
+
+.repoBranchCreate{
+  display:grid;
+  gap:9px;
+  padding:12px 14px;
+  border-top:1px solid #1d2229;
+  background:#080a0e;
+}
+.repoBranchCreate label,
+.repoEditorCard label,
+.repoNewFile label,
+.repoReleaseForm label{
+  display:grid;
+  gap:6px;
+}
+.repoBranchCreate label span,
+.repoEditorCard label span,
+.repoNewFile label span,
+.repoReleaseForm label span{
+  color:#6e7782;
+  font:850 8px/1 ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.repoBranchCreate input,
+.repoBranchCreate select,
+.repoEditorCard input,
+.repoNewFile input,
+.repoReleaseForm input,
+.repoReleaseForm select,
+.repoReleaseForm textarea{
+  width:100%;
+  min-height:40px;
+  padding:8px 10px;
+  color:#eef0f2;
+  border:1px solid #2a3038;
+  background:#07090c;
+}
+.repoBranchCreate button{
+  min-height:38px;
+  cursor:pointer;
+  color:var(--orange);
+  border:1px solid #353b43;
+  background:#0b0e12;
+  font:850 8px/1 ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.repoBranchCreate button:hover{
+  border-color:var(--orange);
+}
+
+.repoWriteWorkspace{
+  display:grid;
+  gap:12px;
+  margin:14px;
+}
+.repoEditorCard,
+.repoNewFile{
+  border:1px solid #292f37;
+  background:#080a0e;
+}
+.repoEditorCard>header{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:end;
+  padding:13px 14px;
+  border-bottom:1px solid #252b33;
+}
+.repoEditorCard>header>div{display:grid;gap:5px;min-width:0}
+.repoEditorCard>header span,
+.repoNewFile>summary{
+  color:var(--orange);
+  font:850 8px/1 ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.repoEditorCard>header b{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:750 11px/1.4 ui-monospace,monospace;
+}
+.repoEditorCard>header small{color:#6b7480;font-size:8px;white-space:nowrap}
+.repoEditorCard>form:first-of-type{
+  display:grid;
+  gap:10px;
+  padding:12px;
+}
+.repoEditorCard textarea,
+.repoNewFile textarea{
+  width:100%;
+  resize:vertical;
+  padding:12px;
+  color:#d8dde3;
+  border:1px solid #252b33;
+  background:#040506;
+  font:500 10px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
+  tab-size:2;
+}
+.repoEditorCard>form:first-of-type>div{
+  display:flex;
+  justify-content:flex-end;
+}
+.repoDeleteFileForm{
+  display:flex;
+  justify-content:flex-end;
+  padding:9px 12px 12px;
+  border-top:1px solid #1d2229;
+}
+.repoDeleteFileForm button{
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#b9685f;
+  cursor:pointer;
+  font:850 8px/1 ui-monospace,monospace;
+}
+.repoDeleteFileForm button:hover{color:#ef8174}
+
+.repoNewFile>summary{
+  cursor:pointer;
+  list-style:none;
+  padding:13px 14px;
+}
+.repoNewFile>summary::-webkit-details-marker{display:none}
+.repoNewFile[open]>summary{border-bottom:1px solid #252b33}
+.repoNewFile form{
+  display:grid;
+  gap:10px;
+  padding:12px;
+}
+
+.repoReleasePanel{margin-top:14px}
+.repoReleaseList{display:grid}
+.repoReleaseList article{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  padding:14px;
+  border-bottom:1px solid #1b2027;
+}
+.repoReleaseList article>div{display:grid;gap:6px}
+.repoReleaseList article span{
+  color:var(--orange);
+  font:850 8px/1 ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.repoReleaseList article b{font-size:13px}
+.repoReleaseList article p{
+  margin:0;
+  color:#7a838f;
+  font-size:10px;
+  line-height:1.5;
+  white-space:pre-wrap;
+}
+.repoReleaseList article aside{
+  display:grid;
+  gap:6px;
+  text-align:right;
+}
+.repoReleaseList article code{color:#cfd5dc;font-size:9px}
+.repoReleaseList article small{color:#68717c;font-size:8px;white-space:nowrap}
+.repoReleaseForm{
+  display:grid;
+  grid-template-columns:180px 160px minmax(180px,1fr) 2fr auto;
+  gap:10px;
+  align-items:end;
+  padding:14px;
+  border-top:1px solid #20252c;
+}
+.repoReleaseForm .repoReleaseNotes textarea{
+  min-height:72px;
+  resize:vertical;
+}
+.repoReleaseForm button{align-self:end}
+
+@media(max-width:1180px){
+  .repoReleaseForm{grid-template-columns:1fr 1fr}
+  .repoReleaseForm .repoReleaseNotes{grid-column:1/-1}
+}
+@media(max-width:720px){
+  .repoReleaseList article{grid-template-columns:1fr}
+  .repoReleaseList article aside{text-align:left}
+  .repoReleaseForm{grid-template-columns:1fr}
+  .repoReleaseForm .repoReleaseNotes{grid-column:auto}
+  .repoEditorCard>header{align-items:flex-start;flex-direction:column}
+}
