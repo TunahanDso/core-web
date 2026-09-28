@@ -71,7 +71,7 @@ const quickActions = [
   ["Mail yaz", "/portal/mail?compose=1", "CORE iç yazışmasını başlat"],
   ["Vault'a yükle", "/portal/library#upload", "Dosya ve teknik veri ekle"],
   ["Takvime git", "/portal/calendar", "Toplantı, test ve saha planı"],
-  ["Stok işlemi", "/portal/inventory", "Parça ve ekipman hareketi"],
+  ["Barkod tara", "/portal/inventory?scanNow=1", "QR / barkod ile ürünü bul ve stok hareketini hazırla"],
 ] as const;
 
 function isInteractiveTarget(target: EventTarget | null) {
