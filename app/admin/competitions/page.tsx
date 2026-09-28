@@ -58,7 +58,7 @@ export default async function AdminYarışmalarPage() {
 
               <div className="adminCompetitionMeta">
                 <span>{competition.locationTr || "Konum bekleniyor"}</span>
-                <span>{competition.status.toUpperCase()}</span>
+                <span>{cmsStatusLabel(competition.status)}</span>
                 <a
                   className="adminEditLink"
                   href={`/admin/competitions/${encodeURIComponent(competition.id)}`}
