@@ -158,6 +158,8 @@ function LineCommentForm({
         <input type="hidden" name="repoSlug" value={repoSlug} />
         <input type="hidden" name="base" value={base} />
         <input type="hidden" name="head" value={head} />
+        <input type="hidden" name="baseRef" value={baseRef} />
+        <input type="hidden" name="headRef" value={headRef} />
         <input type="hidden" name="view" value={view} />
         <input type="hidden" name="filePath" value={file} />
         <input type="hidden" name="side" value={side} />
