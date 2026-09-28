@@ -4,6 +4,7 @@ import { requirePortalMember } from "@/lib/portal/auth";
 import {
   canManageNativeRepository,
   getAccessibleNativeRepository,
+  loadNativeRepositoryCompare,
   loadNativeRepositoryDiff,
   type RepoDiffLine,
 } from "@/lib/portal/repositories";
@@ -254,7 +255,10 @@ export default async function PortalRepositoryReviewPage({
   const view: ReviewView = query.view === "unified" ? "unified" : "split";
   const requestedFile = String(query.file || "");
 
-  const loaded = await loadNativeRepositoryDiff(repo, base, head, requestedFile || null);
+  const compareLoaded = await loadNativeRepositoryCompare(repo, base, head);
+  const compareFiles = compareLoaded.compare?.files ?? [];
+  const selectedPath = requestedFile || compareFiles[0]?.path || "";
+  const loaded = await loadNativeRepositoryDiff(repo, base, head, selectedPath || null);
   const diff = loaded.diff;
   const canManage = await canManageNativeRepository(member, repo);
 
@@ -292,10 +296,10 @@ export default async function PortalRepositoryReviewPage({
     threadMap.set(key, bucket);
   }
 
-  const files = diff.files;
-  const selectedFile = requestedFile
-    ? files.find((item) => item.path === requestedFile || item.previousPath === requestedFile) || files[0]
-    : files[0];
+  const changedFiles = compareFiles.length ? compareFiles : diff.files;
+  const selectedFile = diff.files.find(
+    (item) => item.path === selectedPath || item.previousPath === selectedPath
+  ) || diff.files[0];
   const unresolvedCount = threads.filter((thread) => !thread.resolved_at).length;
   const approveCount = submissions.filter((item) => item.outcome === "approve").length;
   const changeCount = submissions.filter((item) => item.outcome === "request_changes").length;
@@ -341,7 +345,7 @@ export default async function PortalRepositoryReviewPage({
           >UNIFIED</a>
         </div>
         <div className="repoReviewStats">
-          <span>{files.length} FILE</span>
+          <span>{changedFiles.length} FILE</span>
           <span>{unresolvedCount} OPEN THREAD</span>
           <span>{approveCount} APPROVAL</span>
           <span>{changeCount} CHANGE REQUEST</span>
@@ -350,9 +354,9 @@ export default async function PortalRepositoryReviewPage({
 
       <div className="repoReviewLayout">
         <aside className="portalPanel repoReviewFiles">
-          <div className="portalPanelHead"><span>CHANGED FILES</span><small>{files.length}</small></div>
+          <div className="portalPanelHead"><span>CHANGED FILES</span><small>{changedFiles.length}</small></div>
           <div>
-            {files.map((file) => (
+            {changedFiles.map((file) => (
               <a
                 key={file.path}
                 className={selectedFile?.path === file.path ? "active" : ""}
