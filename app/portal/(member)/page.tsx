@@ -23,32 +23,32 @@ export default async function PortalDashboard() {
       <section className="portalHero">
         <div>
           <span>CORE / HOME</span>
-          <h1>Good engineering<br />needs a memory.</h1>
+          <h1>İyi mühendislik<br />hafıza ister.</h1>
           <p>
             One operating surface for the work students usually scatter across
             drives, chats, spreadsheets, repositories and notebooks.
           </p>
         </div>
         <div className="portalHeroStatus">
-          <span>SYSTEM STATUS</span>
-          <b>PORTAL ONLINE</b>
-          <small>PUBLIC CMS SEPARATE · VEHICLE COMMAND ISOLATED</small>
+          <span>SİSTEM DURUMU</span>
+          <b>PORTAL ÇEVRİMİÇİ</b>
+          <small>PUBLIC CMS AYRI · ARAÇ KOMUT OTORİTESİ İZOLE</small>
         </div>
       </section>
 
       <section className="portalMetrics">
-        <article><span>ACTIVE MEMBERS</span><b>{metrics.members}</b><small>student network</small></article>
-        <article><span>OPEN TASKS</span><b>{metrics.openTasks}</b><small>needs attention</small></article>
-        <article><span>KNOWLEDGE ITEMS</span><b>{metrics.resources}</b><small>library + archive</small></article>
-        <article><span>LOW STOCK</span><b>{metrics.lowStock}</b><small>inventory alerts</small></article>
-        <article><span>NOTIFICATIONS</span><b>{metrics.unread}</b><small>unread</small></article>
-        <article><span>VEHICLES LIVE</span><b>{metrics.vehiclesOnline}</b><small>read-only telemetry</small></article>
+        <article><span>AKTİF ÜYELER</span><b>{metrics.members}</b><small>öğrenci ağı</small></article>
+        <article><span>AÇIK GÖREVLER</span><b>{metrics.openTasks}</b><small>ilgilenilmesi gerekiyor</small></article>
+        <article><span>BİLGİ KAYITLARI</span><b>{metrics.resources}</b><small>kütüphane + arşiv</small></article>
+        <article><span>DÜŞÜK STOK</span><b>{metrics.lowStock}</b><small>envanter uyarıları</small></article>
+        <article><span>BİLDİRİMLER</span><b>{metrics.okunmamış}</b><small>okunmamış</small></article>
+        <article><span>CANLI ARAÇLAR</span><b>{metrics.vehiclesOnline}</b><small>salt okunur telemetri</small></article>
       </section>
 
       <section className="portalSection">
         <div className="portalSectionHead">
-          <div><span>MODULE MAP</span><h2>Everything CORE needs to keep moving.</h2></div>
-          <p>Each module owns one kind of operational memory. Cross-links keep projects, hardware, people and evidence connected.</p>
+          <div><span>MODÜL HARİTASI</span><h2>CORE'un çalışmaya devam etmesi için gereken her şey.</h2></div>
+          <p>Her modül belirli bir operasyonel hafızayı taşır. Bağlantılar projeleri, donanımı, insanları ve kanıtları birbirine bağlar.</p>
         </div>
         <div className="portalModuleGrid">
           {portalModuleCards.map(([title, text, href, code]) => (
@@ -64,7 +64,7 @@ export default async function PortalDashboard() {
 
       <section className="portalSplit">
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>WORK QUEUE</span><a href="/portal/tasks">All tasks →</a></div>
+          <div className="portalPanelHead"><span>İŞ KUYRUĞU</span><a href="/portal/tasks">Tüm görevler →</a></div>
           <div className="portalCompactList">
             {tasks.length ? tasks.map((task) => (
               <div key={String(task.id)}>
@@ -72,12 +72,12 @@ export default async function PortalDashboard() {
                 <div><b>{String(task.title)}</b><small>{String(task.project_slug || task.team_code || "CORE")}</small></div>
                 <em>{String(task.status).toUpperCase()}</em>
               </div>
-            )) : <p className="portalMuted">No tasks yet. Create the first engineering work item.</p>}
+            )) : <p className="portalMuted">Henüz görev yok. İlk mühendislik işini oluştur.</p>}
           </div>
         </div>
 
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>VEHICLE LAYER</span><a href="/portal/ops">Live view →</a></div>
+          <div className="portalPanelHead"><span>ARAÇ KATMANI</span><a href="/portal/ops">Canlı görünüm →</a></div>
           <div className="portalCompactList">
             {vehicles.map((vehicle) => (
               <div key={String(vehicle.id)}>
@@ -91,7 +91,7 @@ export default async function PortalDashboard() {
       </section>
 
       <section className="portalPanel portalActivityPanel">
-        <div className="portalPanelHead"><span>RECENT ACTIVITY</span><a href="/portal/activity">Full trail →</a></div>
+        <div className="portalPanelHead"><span>SON ETKİNLİKLER</span><a href="/portal/activity">Tüm geçmiş →</a></div>
         <div className="portalActivityList">
           {activity.length ? activity.map((item) => (
             <div key={String(item.id)}>
@@ -99,7 +99,7 @@ export default async function PortalDashboard() {
               <b>{String(item.actor)}</b>
               <small>{String(item.created_at)}</small>
             </div>
-          )) : <p className="portalMuted">Activity will appear as the team starts using the portal.</p>}
+          )) : <p className="portalMuted">Takım portalı kullandıkça etkinlikler burada birikecek.</p>}
         </div>
       </section>
     </>
