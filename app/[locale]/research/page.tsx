@@ -3,6 +3,7 @@ import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { isLocale } from "@/lib/i18n";
 import { getPublicPage } from "@/lib/cms/db";
+import { listPublishedPublications } from "@/lib/cms/extensions";
 
 export const dynamic = "force-dynamic";
 const copy = {
@@ -40,7 +41,7 @@ export default async function ResearchPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const c = copy[locale];
-  const cms = await getPublicPage("research", locale);
+  const [cms, publications] = await Promise.all([getPublicPage("research", locale), listPublishedPublications(locale)]);
 
   return (
     <PublicChrome locale={locale}>
@@ -64,6 +65,32 @@ export default async function ResearchPage({ params }: { params: Promise<{ local
         </div>
       </section>
       <section className="researchPipeline" data-reveal><span>CORE METHOD</span><b>{c.pipeline}</b></section>
+
+      {publications.length ? (
+        <section className="publicSection lightSection researchPublications">
+          <div className="sectionHeading" data-reveal>
+            <div><p className="eyebrow">{locale === "tr" ? "YAYINLAR / ÇIKTILAR" : "PUBLICATIONS / OUTPUTS"}</p><h2>{locale === "tr" ? "Doğrulanan bilgi, takım hafızasından dışarı çıkar." : "Validated knowledge becomes a durable output."}</h2></div>
+            <p>{locale === "tr" ? "Teknik raporlar, yayınlar ve doğrulama notları CMS üzerinden burada yayınlanır." : "Technical reports, papers and validation notes published through the CORE CMS."}</p>
+          </div>
+          <div className="publicationGrid">
+            {publications.map((item) => {
+              let metadata: Record<string, unknown> = {};
+              try { metadata = JSON.parse(String(item.metadata_json || "{}")); } catch { metadata = {}; }
+              return (
+                <article data-reveal key={String(item.id)}>
+                  <span>{String(metadata.kind || "PUBLICATION").toUpperCase()}</span>
+                  <h3>{String(item.title)}</h3>
+                  <p>{String(item.summary || "")}</p>
+                  <footer>
+                    <small>{String(item.domain || "CORE Research")}</small>
+                    {metadata.external_url ? <a href={String(metadata.external_url)} target="_blank" rel="noreferrer">OPEN ↗</a> : null}
+                  </footer>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
     </PublicChrome>
   );
 }
