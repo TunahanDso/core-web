@@ -8,9 +8,21 @@ export async function applyShowcaseSeed(actor: string) {
     throw new Error("DB binding is not available.");
   }
 
-  const result = await db.exec(SHOWCASE_SEED_SQL);
+  const statements = SHOWCASE_SEED_SQL
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("--"))
+    .join("\n")
+    .split(";")
+    .map((statement) => statement.trim())
+    .filter(Boolean);
 
-  await db
+  if (statements.length === 0) {
+    throw new Error("Showcase seed contains no executable statements.");
+  }
+
+  const seedStatements = statements.map((statement) => db.prepare(statement));
+
+  const auditStatement = db
     .prepare(`
       INSERT INTO audit_log (actor, action, entity_type, entity_id, details_json)
       VALUES (?, 'seed.apply', 'site', 'showcase', ?)
@@ -19,10 +31,13 @@ export async function applyShowcaseSeed(actor: string) {
       actor,
       JSON.stringify({
         version: "2026.09-v1",
-        executedQueries: result.count,
+        statementCount: statements.length,
       })
-    )
-    .run();
+    );
 
-  return result;
+  const results = await db.batch([...seedStatements, auditStatement]);
+
+  return {
+    count: results.length,
+  };
 }
