@@ -69,6 +69,8 @@ declare module "cloudflare:workers" {
     PORTAL_MAIL_FROM?: string;
     RESEND_API_KEY?: string;
     EMAIL?: EmailBinding;
+    CORE_RUNNER_URL?: string;
+    CORE_RUNNER_TOKEN?: string;
     [key: string]: unknown;
   };
 }
