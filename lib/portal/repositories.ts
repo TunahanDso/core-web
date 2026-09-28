@@ -265,6 +265,45 @@ export async function loadNativeRepositoryCompare(
   return { compare, error: null };
 }
 
+
+export type ExternalRepositoryRecord = {
+  id: string;
+  name: string;
+  provider: string;
+  repo_url: string;
+  project_slug: string | null;
+  team_code: string | null;
+  visibility: "private" | "internal" | "public";
+  default_branch: string;
+  health: string;
+  last_sync_at: string | null;
+  created_at: string;
+};
+
+export async function listAccessibleExternalRepositories(member: PortalMember) {
+  let rows: ExternalRepositoryRecord[] = [];
+  try {
+    const response = await database().prepare(
+      "SELECT * FROM portal_repositories ORDER BY name LIMIT 300"
+    ).all<ExternalRepositoryRecord>();
+    rows = response.results ?? [];
+  } catch {
+    return [];
+  }
+
+  if (member.role === "admin") return rows;
+  const memberships = await listPortalMemberTeamMemberships(member.id);
+  const teamCodes = new Set([
+    ...member.teams.map((item) => String(item).trim().toUpperCase()),
+    ...memberships.map((item) => String(item.team_code || "").trim().toUpperCase()).filter(Boolean),
+  ]);
+
+  return rows.filter((repo) => {
+    if (repo.visibility === "public" || repo.visibility === "internal") return true;
+    return Boolean(repo.team_code && teamCodes.has(String(repo.team_code).trim().toUpperCase()));
+  });
+}
+
 export async function listAccessibleNativeRepositories(member: PortalMember) {
   let rows: NativeRepositoryRecord[] = [];
   try {
