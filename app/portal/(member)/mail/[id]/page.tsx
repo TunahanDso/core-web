@@ -17,7 +17,7 @@ export default async function PortalMailThreadPage({
 
   return (
     <>
-      <PortalPageHeader code="ML / THREAD" title={String(data.thread.subject)} lead="Kalıcı iç karar ve devir teslim geçmişi." />
+      <PortalPageHeader code="ML / YAZIŞMA" title={String(data.thread.subject)} lead="Kalıcı iç karar ve devir teslim geçmişi." />
       <div className="portalThread">
         {data.messages.map((message) => (
           <article key={String(message.id)}>
