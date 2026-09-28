@@ -187,10 +187,8 @@ export async function resetPortalProjectCatalogAction(formData: FormData) {
     throw new Error("Proje kataloğunu sıfırlamak için RESET PROJECTS yazmalısın.");
   }
 
-  const [internalCount,showcaseCount] = await Promise.all([
-    resetPortalProjectCatalog({ actorEmail: member.email }),
-    resetShowcaseProjects(member.email),
-  ]);
+  const internalCount = await resetPortalProjectCatalog({ actorEmail: member.email });
+  const showcaseCount = await resetShowcaseProjects(member.email);
 
   revalidatePath("/portal");
   revalidatePath("/portal/projects");
