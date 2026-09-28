@@ -52,7 +52,7 @@ export default async function PortalSecurityPage() {
                     <form action={setPortalMobileDeviceTrustAction}>
                       <input type="hidden" name="deviceId" value={String(device.id)} />
                       <input type="hidden" name="state" value={String(device.trusted_state) === "trusted" ? "pending" : "trusted"} />
-                      <button type="submit">{String(device.trusted_state) === "trusted" ? "PENDING" : "TRUST"}</button>
+                      <button className={String(device.trusted_state) === "trusted" ? "" : "trust"} type="submit">{String(device.trusted_state) === "trusted" ? "PENDING" : "TRUST"}</button>
                     </form>
                     <form action={revokePortalMobileDeviceAction}>
                       <input type="hidden" name="deviceId" value={String(device.id)} />
