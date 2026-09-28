@@ -2,6 +2,7 @@ import InviteMemberForm from "@/components/admin/InviteMemberForm";
 import { portalBootstrapStatus } from "@/lib/portal/bootstrap";
 import { listPortalMembers } from "@/lib/portal/db";
 import { setPortalMemberStatusAdminAction } from "@/app/admin/portal-actions";
+import { portalMemberStatusLabel, portalRoleLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -33,9 +34,9 @@ export default async function AdminMembersPage() {
               return (
                 <article key={String(member.id)}>
                   <div><b>{String(member.full_name || "Davetli üye")}</b><small>{String(member.email)}</small></div>
-                  <span>{String(member.role).toUpperCase()}</span>
+                  <span>{portalRoleLabel(String(member.role))}</span>
                   <div className="adminTeamChips">{teams.length ? teams.map((team) => <small key={team}>{team}</small>) : <small>CORE</small>}</div>
-                  <b className={"memberState " + String(member.status)}>{String(member.status).toUpperCase()}</b>
+                  <b className={"memberState " + String(member.status)}>{portalMemberStatusLabel(String(member.status))}</b>
                   <form action={setPortalMemberStatusAdminAction}>
                     <input type="hidden" name="memberId" value={String(member.id)} />
                     <select name="status" defaultValue={String(member.status) === "invited" ? "active" : String(member.status)}>
