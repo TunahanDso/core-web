@@ -8824,3 +8824,42 @@ html[data-core-native="native-v2"] .pcbCanvas.advanced{height:62dvh}
 @media(max-width:900px){
   .portalMemberRoleGrid{grid-template-columns:1fr}
 }
+
+
+/* CORE PORTAL V9 — team-local control */
+.portalTeamLocalControl{
+  margin:0 0 12px;
+  padding:14px;
+  border:1px solid #d9ddd7;
+  border-radius:13px;
+  background:#f8f9f6;
+}
+.portalTeamLocalControl>.portalPanelHead{padding:0 0 12px}
+.portalTeamLocalControlGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.portalTeamLocalControlGrid>section{
+  min-height:100%;
+  padding:13px;
+  border:1px solid #e0e3dd;
+  border-radius:11px;
+  background:#fff;
+}
+.portalTeamLocalControlGrid h3{
+  margin:0 0 12px;
+  font-size:16px;
+}
+.portalTeamLocalControlGrid .portalFormGrid.compact{
+  grid-template-columns:1fr 1fr;
+}
+.portalTeamLocalControlGrid .portalFormWide{grid-column:1/-1}
+@media(max-width:1180px){
+  .portalTeamLocalControlGrid{grid-template-columns:1fr}
+}
+html[data-core-native="native-v2"] .portalTeamLocalControlGrid,
+html[data-core-native="native-v2"] .portalTeamLocalControlGrid .portalFormGrid.compact{
+  grid-template-columns:1fr;
+}
+html[data-core-native="native-v2"] .portalTeamLocalControlGrid .portalFormWide{grid-column:1}
