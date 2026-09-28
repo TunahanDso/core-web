@@ -35,7 +35,7 @@ export default async function AdminMembersPage() {
         </article>
         <article className={mail.configured ? "ok" : "warn"}>
           <span>DAVET E-POSTASI</span>
-          <b>{mail.configured ? "HAZIR" : "YAPILANDIRILMADI"}</b>
+          <b>{mail.configured ? "BAĞLANTI HAZIR" : "YAPILANDIRILMADI"}</b>
           <small>{mail.provider}</small>
         </article>
         <article>
