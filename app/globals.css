@@ -8470,7 +8470,7 @@ html[data-core-native="native-v2"] .portalTaskFilterSummary span{margin:0}
 }
 .projectMapViewport:active{cursor:grabbing}
 .projectMapViewport svg{
-  width:1280px;
+  width:1540px;
   height:auto;
   min-height:780px;
   overflow:visible;
