@@ -1,14 +1,15 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createTaskAction, updateTaskStatusAction } from "@/app/portal/actions";
 import { listPortalTasks } from "@/lib/portal/db";
-import { listProjes } from "@/lib/cms/db";
+import { listProjects } from "@/lib/cms/db";
+import { portalPriorityLabel, portalTaskStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
 const statuses = ["backlog","todo","doing","review","blocked","done"];
 
 export default async function PortalTasksPage() {
-  const [tasks, projects] = await Promise.all([listPortalTasks(), listProjes()]);
+  const [tasks, projects] = await Promise.all([listPortalTasks(), listProjects()]);
 
   return (
     <>
