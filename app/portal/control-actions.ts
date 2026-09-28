@@ -12,12 +12,17 @@ import { requirePortalMember } from "@/lib/portal/auth";
 import { deleteShowcaseProjectBySlug, resetShowcaseProjects, syncShowcaseProject } from "@/lib/cms/project-control";
 import {
   createOrUpdatePortalProject,
+  createOrUpdatePortalTeam,
   createPortalMapEdge,
   createPortalVehicleControl,
   deletePortalProject,
+  deletePortalTeam,
   grantPortalMemberCapability,
+  removePortalTeamMembership,
   resetPortalProjectCatalog,
   revokePortalMemberCapability,
+  updatePortalMemberGlobalRole,
+  updatePortalRoleProfile,
   upsertPortalTeamMembership,
 } from "@/lib/portal/control";
 
@@ -280,4 +285,98 @@ export async function createPortalMapEdgeAction(formData: FormData) {
   revalidatePath("/portal/project-map");
   revalidatePath("/portal/control");
   redirect("/portal/project-map?edge=1");
+}
+
+
+export async function createPortalTeamAction(formData: FormData) {
+  const member = await requirePortalCapability("teams.manage");
+  const teamCode = await createOrUpdatePortalTeam({
+    code:text(formData,"code"),
+    name:text(formData,"name"),
+    domain:text(formData,"domain"),
+    description:text(formData,"description"),
+    visibility:text(formData,"visibility") || "restricted",
+    actorEmail:member.email,
+  });
+  revalidatePath("/portal/teams");
+  revalidatePath("/portal/control");
+  redirect("/portal/teams/" + encodeURIComponent(teamCode) + "?created=1");
+}
+
+export async function updatePortalTeamAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const teamCode = text(formData,"code");
+  if (!teamCode || !(await canManagePortalTeam(member,teamCode))) {
+    throw new Error("Bu takımın ayarlarını düzenleme yetkin yok.");
+  }
+  await createOrUpdatePortalTeam({
+    code:teamCode,
+    name:text(formData,"name"),
+    domain:text(formData,"domain"),
+    description:text(formData,"description"),
+    visibility:text(formData,"visibility") || "restricted",
+    actorEmail:member.email,
+  });
+  revalidatePath("/portal/teams");
+  revalidatePath("/portal/teams/" + teamCode);
+  redirect("/portal/teams/" + encodeURIComponent(teamCode) + "?updated=1");
+}
+
+export async function deletePortalTeamAction(formData: FormData) {
+  const member = await requirePortalCapability("teams.manage");
+  const teamCode = text(formData,"teamCode").toUpperCase();
+  if (!teamCode || text(formData,"confirmation").toUpperCase() !== teamCode) {
+    throw new Error("Kalıcı silme için takım kodunu aynen yazmalısın.");
+  }
+  await deletePortalTeam({ teamCode,actorEmail:member.email });
+  revalidatePath("/portal/teams");
+  revalidatePath("/portal/members");
+  revalidatePath("/portal/projects");
+  revalidatePath("/portal/project-map");
+  revalidatePath("/portal/repositories");
+  revalidatePath("/portal/control");
+  redirect("/portal/teams?deleted=" + encodeURIComponent(teamCode));
+}
+
+export async function removePortalTeamMembershipScopedAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const teamCode = text(formData,"teamCode");
+  if (!teamCode || !(await canManagePortalTeam(member,teamCode))) {
+    throw new Error("Bu takımın üyeliklerini yönetme yetkin yok.");
+  }
+  const memberId = text(formData,"memberId");
+  if (!memberId) throw new Error("Üye seçmelisin.");
+  await removePortalTeamMembership({ teamCode,memberId,actorEmail:member.email });
+  revalidatePath("/portal/teams/" + teamCode);
+  revalidatePath("/portal/members");
+  revalidatePath("/portal/members/" + memberId);
+  redirect("/portal/teams/" + encodeURIComponent(teamCode) + "?membership=removed");
+}
+
+export async function updatePortalRoleProfileAction(formData: FormData) {
+  const member = await requirePortalCapability("roles.manage");
+  await updatePortalRoleProfile({
+    roleKey:text(formData,"roleKey"),
+    description:text(formData,"description"),
+    capabilities:formData.getAll("capability").map((item) => String(item)),
+    actorEmail:member.email,
+  });
+  revalidatePath("/portal/members");
+  revalidatePath("/portal/control");
+  redirect("/portal/members?roleProfile=updated");
+}
+
+export async function updatePortalMemberGlobalRoleAction(formData: FormData) {
+  const member = await requirePortalCapability("roles.manage");
+  const memberId = text(formData,"memberId");
+  await updatePortalMemberGlobalRole({
+    memberId,
+    role:text(formData,"role"),
+    actorMemberId:member.id,
+    actorEmail:member.email,
+  });
+  revalidatePath("/portal/members");
+  revalidatePath("/portal/members/" + memberId);
+  revalidatePath("/portal/control");
+  redirect("/portal/members/" + encodeURIComponent(memberId) + "?role=updated");
 }

@@ -83,19 +83,42 @@ export default async function PortalRepositoriesPage({
       ) : null}
 
       {nativeRepositories.length ? (
-        <div className="nativeRepoGrid">
+        <section className="portalEntityGrid portalRepositoryDirectory">
           {nativeRepositories.map((item) => (
-            <a className="nativeRepoCard" href={"/portal/repositories/" + encodeURIComponent(String(item.slug))} key={String(item.id)}>
-              <header><span>CORE GIT</span><em>{String(item.status).toUpperCase()}</em></header>
-              <h3>{String(item.name)}</h3>
-              <p>{String(item.project_slug || item.team_code || "CORE")}</p>
-              <footer>
-                <div><code>{String(item.slug)}</code><small>{String(item.visibility).toUpperCase()} · {String(item.default_branch)}</small></div>
+            <a className="portalEntityCard portalRepositoryEntityCard" href={"/portal/repositories/" + encodeURIComponent(String(item.slug))} key={String(item.id)}>
+              <header className="portalEntityHeader">
+                <div className="portalEntityMark repo">RP</div>
+                <div className="portalEntityIdentity">
+                  <span className="portalEntityEyebrow">CORE NATIVE REPOSITORY</span>
+                  <b>R2 SOURCE OF TRUTH</b>
+                </div>
+                <span className={"portalEntityState " + (String(item.status) === "ready" ? "active" : "")}>{String(item.status).toUpperCase()}</span>
+              </header>
+
+              <div className="portalEntityBody">
+                <h2>{String(item.name)}</h2>
+                <p className="portalEntityMono">{String(item.slug)}</p>
+              </div>
+
+              <div className="portalEntityTags">
+                <span>{String(item.visibility).toUpperCase()}</span>
+                <span>{String(item.default_branch)}</span>
+                {item.team_code ? <span>{String(item.team_code)}</span> : null}
+                {item.project_slug ? <span>{String(item.project_slug)}</span> : null}
+              </div>
+
+              <div className="portalEntityInfoRow">
+                <div><span>ENGINE</span><b>R2 Native</b></div>
+                <div><span>OWNERSHIP</span><b>{String(item.team_code || item.project_slug || "CORE")}</b></div>
+              </div>
+
+              <footer className="portalEntityFooter">
+                <small>refs · commits · diffs · releases</small>
                 <strong>WORKSPACE →</strong>
               </footer>
             </a>
           ))}
-        </div>
+        </section>
       ) : <PortalEmpty title="Native repository henüz yok." text="İlk native repository oluşturulduğunda R2 object store üzerinde main branch + initial commit hazırlanır; GitHub yalnızca opsiyonel mirror olur." />}
 
       {canWrite ? (

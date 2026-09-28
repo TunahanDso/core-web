@@ -1,4 +1,6 @@
 import { PortalPageHeader } from "@/components/portal/PortalPage";
+import { updatePortalMemberGlobalRoleAction } from "@/app/portal/control-actions";
+import { requirePortalMember } from "@/lib/portal/auth";
 import { getPortalMemberProfile, listMyPortalTasks } from "@/lib/portal/db";
 import {
   portalPriorityLabel,
@@ -9,6 +11,7 @@ import { notFound } from "next/navigation";
 import {
   listPortalMemberCapabilities,
   listPortalMemberTeamMemberships,
+  memberHasPortalCapability,
   portalRoleLabelDetailed,
 } from "@/lib/portal/governance";
 
@@ -16,17 +19,22 @@ export const dynamic = "force-dynamic";
 
 export default async function PortalMemberDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ role?: string }>;
 }) {
+  const viewer = await requirePortalMember();
   const { id } = await params;
   const memberId = decodeURIComponent(id);
-  const [data, tasks, memberships, capabilities] = await Promise.all([
+  const [data, tasks, memberships, capabilities, canManageRoles] = await Promise.all([
     getPortalMemberProfile(memberId),
     listMyPortalTasks(memberId, 12),
     listPortalMemberTeamMemberships(memberId),
     listPortalMemberCapabilities(memberId),
+    memberHasPortalCapability(viewer,"roles.manage"),
   ]);
+  const query: { role?: string } = searchParams ? await searchParams : {};
   if (!data) notFound();
 
   const member = data.member;
@@ -51,6 +59,8 @@ export default async function PortalMemberDetailPage({
         action={<a className="portalOutlineButton" href="/portal/members">← ÜYE DİZİNİ</a>}
       />
 
+      {query.role === "updated" ? <div className="portalSuccess">Üyenin global portal rolü güncellendi.</div> : null}
+
       <section className="portalMemberProfileHero">
         <div className="portalMemberProfileMain">
           <span>HAKKINDA</span>
@@ -70,10 +80,23 @@ export default async function PortalMemberDetailPage({
       </section>
 
       <section className="portalMemberRoleGrid">
-        <article>
+        <article className="portalGlobalRoleCard">
           <span>GLOBAL ROLE</span>
           <b>{portalRoleLabelDetailed(String(member.role))}</b>
           <p>Portalın genel yetki katmanı. Takım içi rol bundan bağımsız olarak scope bazında atanabilir.</p>
+          {canManageRoles ? (
+            <form className="portalInlineRoleEditor" action={updatePortalMemberGlobalRoleAction}>
+              <input type="hidden" name="memberId" value={String(member.id)} />
+              <select name="role" defaultValue={String(member.role)}>
+                <option value="admin">Portal Yöneticisi</option>
+                <option value="lead">Program / Takım Lideri</option>
+                <option value="member">Mühendis / Üye</option>
+                <option value="alumni">Mezun</option>
+                <option value="viewer">Görüntüleyici</option>
+              </select>
+              <button className="portalOutlineButton" type="submit">GLOBAL ROLÜ UYGULA</button>
+            </form>
+          ) : null}
         </article>
         <article>
           <span>TEAM ROLES</span>
