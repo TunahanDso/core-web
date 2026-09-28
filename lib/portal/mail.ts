@@ -194,7 +194,7 @@ function invitationTemplate(input: {
   const safeCode = escapeHtml(input.code);
   const safeExpiry = escapeHtml(formatExpiry(input.expiresAt));
   const safeActivationUrl = escapeHtml(activationUrl);
-  const subject = "YTÜ CORE Portal · Davetin hazır";
+  const subject = "YTÜ CORE Portal üyelik daveti";
 
   const text = [
     "Merhaba " + (input.fullName || input.to) + ",",
@@ -215,7 +215,7 @@ function invitationTemplate(input: {
 
   const html = `<!doctype html>
 <html lang="tr">
-<body style="margin:0;padding:0;background:#f0f2ed;color:#17191d;font-family:Inter,Arial,Helvetica,sans-serif">
+<body style="margin:0;padding:0;background:#f0f2ed;color:#17191d;font-family:Inter,Arial,Helvetica,sans-serif">\n  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">YTÜ CORE Portal hesabını 72 saat içinde tek kullanımlık davet kodunla aktifleştir.</div>
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f0f2ed;padding:28px 12px">
     <tr><td align="center">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #dde0da;border-radius:18px;overflow:hidden">
@@ -245,7 +245,7 @@ function invitationTemplate(input: {
         </tr>
         <tr>
           <td style="padding:4px 28px 18px">
-            <a href="${safeActivationUrl}" style="display:block;text-align:center;background:#ff6500;color:#111111;text-decoration:none;font-weight:900;font-size:13px;letter-spacing:.03em;padding:16px 18px;border-radius:9px">CORE HESABIMI AKTİFLEŞTİR →</a>
+            <a href="${safeActivationUrl}" style="display:block;text-align:center;background:#ff6500;color:#111111;text-decoration:none;font-weight:900;font-size:13px;letter-spacing:.03em;padding:16px 18px;border-radius:9px">CORE hesabımı aktifleştir →</a>\n            <p style="margin:14px 0 0;color:#8a9197;font-size:11px;line-height:1.6">Buton açılmazsa bu bağlantıyı tarayıcıya yapıştır:<br /><a href="${safeActivationUrl}" style="color:#c84c00;word-break:break-all">${safeActivationUrl}</a></p>
           </td>
         </tr>
         <tr>
@@ -258,7 +258,7 @@ function invitationTemplate(input: {
         <tr>
           <td style="padding:18px 28px;border-top:1px solid #eceee9;color:#8a9197;font-size:11px;line-height:1.6">
             <strong style="color:#17191d">YTÜ CORE</strong> · İnsan İçin Teknoloji.<br />
-            Bu e-posta CORE Portal üyelik sistemi tarafından otomatik gönderildi.
+            Bu ileti yalnızca davet edildiğin CORE Portal hesabının aktivasyonu için gönderildi; reklam veya toplu pazarlama iletisi değildir.
           </td>
         </tr>
       </table>
