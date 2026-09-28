@@ -1,0 +1,190 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import {
+  activatePortalMember,
+  clearPortalSession,
+  loginPortalMember,
+  requirePortalMember,
+  requirePortalRole,
+} from "@/lib/portal/auth";
+import {
+  createPortalRepository,
+  createPortalResource,
+  createPortalTask,
+  sendPortalMessage,
+  updatePortalTaskStatus,
+  upsertPortalInventoryItem,
+} from "@/lib/portal/db";
+
+export type PortalAuthState = {
+  error?: string;
+};
+
+function textValue(formData: FormData, key: string) {
+  return String(formData.get(key) ?? "").trim();
+}
+
+export async function loginPortalAction(
+  _state: PortalAuthState,
+  formData: FormData
+): Promise<PortalAuthState> {
+  try {
+    const email = textValue(formData, "email");
+    const password = textValue(formData, "password");
+    if (!email || !password) return { error: "Email and password are required." };
+    await loginPortalMember(email, password);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Login failed." };
+  }
+  redirect("/portal");
+}
+
+export async function activatePortalAction(
+  _state: PortalAuthState,
+  formData: FormData
+): Promise<PortalAuthState> {
+  try {
+    const email = textValue(formData, "email");
+    const code = textValue(formData, "code");
+    const password = textValue(formData, "password");
+    const confirm = textValue(formData, "confirm");
+    if (!email || !code || !password) return { error: "Email, invite code and password are required." };
+    if (password !== confirm) return { error: "Passwords do not match." };
+    await activatePortalMember(email, code, password);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Activation failed." };
+  }
+  redirect("/portal");
+}
+
+export async function logoutPortalAction() {
+  await clearPortalSession();
+  redirect("/portal/login");
+}
+
+export async function createTaskAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const title = textValue(formData, "title");
+  if (!title) throw new Error("Task title is required.");
+
+  const priorityRaw = textValue(formData, "priority") || "medium";
+  const priority = ["low","medium","high","critical"].includes(priorityRaw)
+    ? priorityRaw as "low" | "medium" | "high" | "critical"
+    : "medium";
+
+  await createPortalTask({
+    title,
+    description: textValue(formData, "description"),
+    projectSlug: textValue(formData, "projectSlug") || null,
+    teamCode: textValue(formData, "teamCode") || null,
+    priority,
+    dueAt: textValue(formData, "dueAt") || null,
+    actorId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal");
+  revalidatePath("/portal/tasks");
+  redirect("/portal/tasks?created=1");
+}
+
+export async function updateTaskStatusAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const id = textValue(formData, "id");
+  const status = textValue(formData, "status");
+  if (!id) throw new Error("Task id is required.");
+  await updatePortalTaskStatus(id, status, member.email);
+  revalidatePath("/portal");
+  revalidatePath("/portal/tasks");
+}
+
+export async function createResourceAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const title = textValue(formData, "title");
+  const kind = textValue(formData, "kind");
+  if (!title || !kind) throw new Error("Resource title and type are required.");
+
+  const tags = textValue(formData, "tags")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 20);
+
+  await createPortalResource({
+    kind,
+    title,
+    description: textValue(formData, "description"),
+    teamCode: textValue(formData, "teamCode") || null,
+    projectSlug: textValue(formData, "projectSlug") || null,
+    externalUrl: textValue(formData, "externalUrl") || null,
+    tags,
+    actorId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/library");
+  revalidatePath("/portal/archive");
+  revalidatePath("/portal/documents");
+  revalidatePath("/portal/electronics");
+  redirect("/portal/library?created=1");
+}
+
+export async function createRepositoryAction(formData: FormData) {
+  const member = await requirePortalRole(["admin","lead"]);
+  const name = textValue(formData, "name");
+  const repoUrl = textValue(formData, "repoUrl");
+  if (!name || !repoUrl) throw new Error("Repository name and URL are required.");
+
+  await createPortalRepository({
+    name,
+    repoUrl,
+    projectSlug: textValue(formData, "projectSlug") || null,
+    teamCode: textValue(formData, "teamCode") || null,
+    visibility: textValue(formData, "visibility") || "private",
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/repositories");
+  redirect("/portal/repositories?created=1");
+}
+
+export async function upsertInventoryAction(formData: FormData) {
+  const member = await requirePortalRole(["admin","lead"]);
+  const sku = textValue(formData, "sku").toUpperCase();
+  const name = textValue(formData, "name");
+  if (!sku || !name) throw new Error("SKU and item name are required.");
+
+  const quantity = Number(formData.get("quantity") ?? 0);
+  const minimumQuantity = Number(formData.get("minimumQuantity") ?? 0);
+  if (!Number.isFinite(quantity) || !Number.isFinite(minimumQuantity)) {
+    throw new Error("Inventory quantities must be numeric.");
+  }
+
+  await upsertPortalInventoryItem({
+    sku,
+    name,
+    category: textValue(formData, "category") || "general",
+    location: textValue(formData, "location"),
+    unit: textValue(formData, "unit") || "pcs",
+    quantity,
+    minimumQuantity,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/inventory");
+  redirect("/portal/inventory?saved=1");
+}
+
+export async function sendChatMessageAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const channelId = textValue(formData, "channelId");
+  const body = textValue(formData, "body");
+  if (!channelId || !body) throw new Error("Channel and message are required.");
+  if (body.length > 4000) throw new Error("Message is too long.");
+
+  await sendPortalMessage(channelId, member.id, body);
+  revalidatePath("/portal/chat");
+  redirect("/portal/chat?channel=" + encodeURIComponent(channelId));
+}
