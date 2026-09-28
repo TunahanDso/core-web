@@ -10,6 +10,7 @@ import { Preferences } from "@capacitor/preferences";
 import { Keyboard } from "@capacitor/keyboard";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { Camera, CameraDirection } from "@capacitor/camera";
+import { Share } from "@capacitor/share";
 import { portalNavigation } from "@/lib/portal/modules";
 
 type NativeExperienceProps = {
@@ -157,6 +158,7 @@ export default function PortalNativeExperience({
   const [captureTitle, setCaptureTitle] = useState("");
   const [captureBusy, setCaptureBusy] = useState(false);
   const [captureError, setCaptureError] = useState("");
+  const [pushState,setPushState] = useState<"idle"|"registering"|"registered"|"denied"|"error"|"received">("idle");
   const pullStart = useRef<number | null>(null);
   const pullArmed = useRef(false);
   const lastBackAt = useRef(0);
@@ -278,6 +280,28 @@ export default function PortalNativeExperience({
       await Haptics.notification({ type: NotificationType.Error }).catch(() => undefined);
     } finally {
       setCaptureBusy(false);
+    }
+  };
+
+  const enablePush = async () => {
+    if (!Capacitor.isNativePlatform()) return;
+    setPushState("registering");
+    hapticTap();
+    window.dispatchEvent(new Event("core:push-opt-in"));
+  };
+
+  const shareCurrent = async () => {
+    if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable("Share")) return;
+    hapticTap();
+    try {
+      await Share.share({
+        title: "YTÜ CORE · " + nativeRouteTitle(pathname),
+        text: "CORE Portal çalışma alanı",
+        url: window.location.origin + pathname,
+        dialogTitle: "CORE ekranını paylaş",
+      });
+    } catch {
+      // Native share can be dismissed without turning that into an app error.
     }
   };
 
@@ -411,6 +435,24 @@ export default function PortalNativeExperience({
     if (!native) return;
     void Preferences.set({ key: "core_last_portal_route", value: pathname }).catch(() => undefined);
   }, [native, pathname]);
+
+  useEffect(() => {
+    if (!native) return;
+    const listener = (event: Event) => {
+      const detail = (event as CustomEvent<{ state?: string }>).detail;
+      const next = String(detail?.state || "idle");
+      if (["idle","registering","registered","denied","error","received"].includes(next)) {
+        setPushState(next as "idle"|"registering"|"registered"|"denied"|"error"|"received");
+      }
+    };
+    window.addEventListener("core:push-status",listener);
+    void Preferences.get({key:"core_push_opt_in"}).then((value)=>{
+      if(value.value==="1") setPushState((current)=>current==="registered"?current:"registering");
+    }).catch(()=>undefined);
+    return () => window.removeEventListener("core:push-status",listener);
+  },[native]);
+
+
 
   if (!native) return null;
 
@@ -559,7 +601,7 @@ export default function PortalNativeExperience({
 
             <div className="nativeMemberCard">
               <span className="nativeMemberAvatar">{memberInitials}</span>
-              <div><b>{memberName}</b><small>{memberRole}</small></div>
+              <div><b>{memberName}</b><small>{memberRole} · PUSH {pushState.toUpperCase()}</small></div>
               <button type="button" onClick={() => navigate("/portal/profile")}>PROFİL →</button>
             </div>
 
@@ -638,6 +680,17 @@ export default function PortalNativeExperience({
                 <b>Saha fotoğrafı</b>
                 <small>Kameradan çek ve doğrudan CORE Vault'a kaydet</small>
               </button>
+              <button type="button" className="nativePushQuick" onClick={() => void enablePush()}>
+                <span>NT</span>
+                <b>{pushState === "registered" ? "Push aktif" : pushState === "denied" ? "Push izni kapalı" : "Push bildirimlerini aç"}</b>
+                <small>APNs / FCM tokenını bu cihazın CORE kaydına bağla</small>
+              </button>
+              <button type="button" className="nativeShareQuick" onClick={() => void shareCurrent()}>
+                <span>SH</span>
+                <b>Bu ekranı paylaş</b>
+                <small>iOS / Android native Share Sheet'i aç</small>
+              </button>
+
               {quickActions.map(([label, href, description], index) => (
                 <button type="button" key={href} onClick={() => navigate(href)}>
                   <span>0{index + 1}</span>
