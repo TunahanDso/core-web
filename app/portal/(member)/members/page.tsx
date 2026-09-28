@@ -7,7 +7,7 @@ export default async function PortalMembersPage() {
   const members = await listPortalMembers();
   return (
     <>
-      <PortalPageHeader code="MB / MEMBERS" title="CORE Members" lead="The internal people map: role, account state, team membership and recent access." />
+      <PortalPageHeader code="MB / MEMBERS" title="CORE Üyeleri" lead="Rol, hesap durumu, takım üyeliği ve son erişimi gösteren iç ekip haritası." />
       {members.length ? (
         <div className="portalMemberGrid">
           {members.map((member) => {
@@ -17,15 +17,15 @@ export default async function PortalMembersPage() {
               <article key={String(member.id)}>
                 <div className="portalMemberAvatar">{String(member.full_name || member.email).slice(0,2).toUpperCase()}</div>
                 <span>{String(member.role).toUpperCase()}</span>
-                <h3>{String(member.full_name || "Invited member")}</h3>
+                <h3>{String(member.full_name || "Davetli üye")}</h3>
                 <p>{String(member.email)}</p>
                 <div>{teams.map((team) => <small key={team}>{team}</small>)}</div>
-                <footer><b>{String(member.status).toUpperCase()}</b><small>{member.last_login_at ? "Last " + String(member.last_login_at) : "No login yet"}</small></footer>
+                <footer><b>{String(member.status).toUpperCase()}</b><small>{member.last_login_at ? "Last " + String(member.last_login_at) : "Henüz giriş yok"}</small></footer>
               </article>
             );
           })}
         </div>
-      ) : <PortalEmpty title="No member records." text="Administrators can issue the first student invitation from Admin → Members." />}
+      ) : <PortalEmpty title="Üye kaydı yok." text="Yöneticiler ilk öğrenci davetini Admin → Üyeler ekranından oluşturabilir." />}
     </>
   );
 }
