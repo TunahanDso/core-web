@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { isLocale } from "@/lib/i18n";
+import { getPublicPage } from "@/lib/cms/db";
 
+export const dynamic = "force-dynamic";
 const copy = {
   tr: {
     eyebrow: "KATIL / STUDENT PATH",
@@ -90,6 +92,7 @@ export default async function JoinPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const c = copy[locale];
+  const cms = await getPublicPage("join", locale);
 
   return (
     <PublicChrome locale={locale}>
@@ -162,7 +165,7 @@ export default async function JoinPage({
         </div>
         <div data-reveal>
           <p className="eyebrow">{c.status}</p>
-          <h2>{c.statusTitle}</h2>
+          <h2>{cms?.body || c.statusTitle}</h2>
           <p>{c.statusText}</p>
           <a className="primaryButton" href={`/${locale}/teams`}>
             {c.teamsCta} →
