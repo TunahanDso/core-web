@@ -19,7 +19,7 @@ import {
   createPortalTeamVehicleAction,
   upsertPortalTeamMembershipScopedAction,
 } from "@/app/portal/control-actions";
-import { listPortalRepositories, listPortalTasks } from "@/lib/portal/db";
+import { listPortalMembers, listPortalRepositories, listPortalTasks } from "@/lib/portal/db";
 import { listPortalVaultFiles } from "@/lib/portal/vault";
 import { portalPriorityLabel, portalTaskStatusLabel } from "@/lib/portal/labels";
 
@@ -36,8 +36,9 @@ export default async function PortalTeamDetailPage({
   const team = await getPortalTeam(teamCode);
   if (!team || !(await canAccessPortalTeam(member,teamCode))) notFound();
 
-  const [members, projects, vehicles, tasks, repositories, vaultFiles, canManageMembers, canManageProjects, canManageVehicles] = await Promise.all([
+  const [members, allPortalMembers, projects, vehicles, tasks, repositories, vaultFiles, canManageMembers, canManageProjects, canManageVehicles] = await Promise.all([
     listPortalTeamMembers(teamCode),
+    listPortalMembers(),
     listPortalProjectRegistry(),
     listPortalVehicleProfiles(),
     listPortalTasks(500),
@@ -52,7 +53,8 @@ export default async function PortalTeamDetailPage({
     canManageTeamVehicles(member,teamCode),
   ]);
 
-  const teamProjects = projects.filter((item) => String(item.team_code || "") === teamCode && String(item.status) !== "archived");
+  const activePortalMembers = allPortalMembers.filter((item) => String(item.status) === "active");
+    const teamProjects = projects.filter((item) => String(item.team_code || "") === teamCode && String(item.status) !== "archived");
   const teamVehicles = vehicles.filter((item) => String(item.team_code || "") === teamCode);
   const teamTasks = tasks.filter((item) => String(item.team_code || "") === teamCode || teamProjects.some((p) => String(p.slug) === String(item.project_slug || "")));
   const teamRepos = repositories.filter((item) => String(item.team_code || "") === teamCode || teamProjects.some((p) => String(p.slug) === String(item.project_slug || "")));
@@ -209,7 +211,7 @@ export default async function PortalTeamDetailPage({
                 <h3>Üyelik / takım rolü</h3>
                 <form className="portalFormGrid compact" action={upsertPortalTeamMembershipScopedAction}>
                   <input type="hidden" name="teamCode" value={teamCode} />
-                  <label className="portalFormWide"><span>Portal üyesi</span><select name="memberId" required>{members.map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.full_name || item.email)}</option>)}</select></label>
+                  <label className="portalFormWide"><span>Portal üyesi</span><select name="memberId" required>{activePortalMembers.map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.full_name || item.email)}</option>)}</select></label>
                   <label className="portalFormWide"><span>Takım rolü</span><select name="teamRole" defaultValue="engineer"><option value="owner">Takım Sahibi</option><option value="captain">Kaptan</option><option value="lead">Takım Lideri</option><option value="engineer">Mühendis</option><option value="contributor">Katkıcı</option><option value="observer">Gözlemci</option></select></label>
                   <button className="portalPrimaryButton" type="submit">TAKIM ROLÜNÜ UYGULA →</button>
                 </form>
