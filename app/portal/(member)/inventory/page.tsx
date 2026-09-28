@@ -11,7 +11,7 @@ export default async function PortalInventoryPage() {
 
   return (
     <>
-      <PortalPageHeader code="ST / INVENTORY" title="Stok & Araçlar" lead="Parçalar, araçlar ve sarf malzemeleri; konum, kullanılabilir miktar, rezerv ve minimum stok uyarılarıyla izlenir." />
+      <PortalPageHeader code="ST / ENVANTER" title="Stok & Araçlar" lead="Parçalar, araçlar ve sarf malzemeleri; konum, kullanılabilir miktar, rezerv ve minimum stok uyarılarıyla izlenir." />
 
       {canWrite ? (
         <section classAd="portalPanel portalCreatePanel">
