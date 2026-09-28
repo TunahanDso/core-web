@@ -1,34 +1,34 @@
 import { getAdminIdentity } from "@/lib/cms/auth";
-import { listCompetitions } from "@/lib/cms/db";
+import { listYarışmalar } from "@/lib/cms/db";
 
 export const dynamic = "force-dynamic";
 
 const labels = {
-  confirmed: "CONFIRMED",
-  target: "TARGET",
-  evaluation: "EVALUATION",
+  confirmed: "KESİNLEŞTİ",
+  target: "HEDEF",
+  evaluation: "DEĞERLENDİRME",
 } as const;
 
-export default async function AdminCompetitionsPage() {
+export default async function AdminYarışmalarPage() {
   const [competitions, identity] = await Promise.all([
-    listCompetitions(),
+    listYarışmalar(),
     getAdminIdentity(),
   ]);
 
   return (
-    <main className="admin">
+    <main className="admin adminLight">
       <div className="adminTopline">
         <div>
           <a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a>
-          <p className="eyebrow">COMPETITIONS · LIVE D1</p>
+          <p className="eyebrow">YARIŞMALAR · CANLI D1</p>
         </div>
         <span className="cmsHealth online">
           <i />
-          {identity.authenticated ? "WRITE ENABLED" : "READ ONLY"}
+          {identity.authenticated ? "YAZMA AÇIK" : "SALT OKUNUR"}
         </span>
       </div>
 
-      <h1>Competitions</h1>
+      <h1>Yarışmalar</h1>
       <p>
         Competition and field-target records are read directly from production
         D1. Dates, locations, planning state and publication status can be
@@ -37,33 +37,33 @@ export default async function AdminCompetitionsPage() {
 
       {competitions.length === 0 ? (
         <section className="emptyState">
-          <span>DATABASE ONLINE</span>
-          <h2>No competition records yet.</h2>
-          <p>Return to the admin dashboard and load the showcase seed.</p>
+          <span>VERİTABANI ÇEVRİMİÇİ</span>
+          <h2>Henüz yarışma kaydı yok.</h2>
+          <p>Admin ana ekranına dön ve vitrin seed'ini yükle.</p>
         </section>
       ) : (
         <div className="adminCompetitionList">
           {competitions.map((competition) => (
             <article className="adminCompetitionRow" key={competition.id}>
               <div className="adminCompetitionIdentity">
-                <span>{competition.domain ?? "UNASSIGNED"}</span>
+                <span>{competition.domain ?? "ATANMAMIŞ"}</span>
                 <h2>{competition.titleTr || competition.titleEn || competition.slug}</h2>
                 <small>{competition.slug}</small>
               </div>
 
               <div className="adminCompetitionTarget">
                 <strong>{labels[competition.targetStatus]}</strong>
-                <span>{competition.dateTr || "DATE TBA"}</span>
+                <span>{competition.dateTr || "TARİH BEKLENİYOR"}</span>
               </div>
 
               <div className="adminCompetitionMeta">
-                <span>{competition.locationTr || "Location pending"}</span>
+                <span>{competition.locationTr || "Konum bekleniyor"}</span>
                 <span>{competition.status.toUpperCase()}</span>
                 <a
                   className="adminEditLink"
                   href={`/admin/competitions/${encodeURIComponent(competition.id)}`}
                 >
-                  EDIT →
+                  DÜZENLE →
                 </a>
               </div>
             </article>
@@ -72,9 +72,9 @@ export default async function AdminCompetitionsPage() {
       )}
 
       <div className="terminal">
-        <span>WRITE AUTHORITY</span>
-        <b>{identity.authenticated ? "Cloudflare Access JWT verified" : "Disabled"}</b>
-        <small>EVERY COMPETITION UPDATE IS RECORDED IN AUDIT_LOG</small>
+        <span>YAZMA YETKİSİ</span>
+        <b>{identity.authenticated ? "Cloudflare Access JWT doğrulandı" : "Devre dışı"}</b>
+        <small>HER YARIŞMA GÜNCELLEMESİ AUDIT_LOG'A KAYDEDİLİR</small>
       </div>
     </main>
   );
