@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { portalNavigation } from "@/lib/portal/modules";
 
-export default function PortalNav({ role }: { role: string }) {
+export default function PortalNav({ canControl }: { canControl: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -12,7 +12,7 @@ export default function PortalNav({ role }: { role: string }) {
         <section key={group.label}>
           <p>{group.label}</p>
           {group.items
-            .filter(([, href]) => href !== "/portal/control" || role === "admin" || role === "lead")
+            .filter(([, href]) => href !== "/portal/control" || canControl)
             .map(([label, href, code]) => {
             const active =
               href === "/portal"
