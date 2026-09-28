@@ -11,8 +11,10 @@ const initialState: PortalAuthState = {};
 
 export default function PortalAuthForm({
   mode,
+  defaultEmail = "",
 }: {
   mode: "login" | "activate";
+  defaultEmail?: string;
 }) {
   const action = mode === "login" ? loginPortalAction : activatePortalAction;
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -26,6 +28,8 @@ export default function PortalAuthForm({
           type="email"
           autoComplete="email"
           placeholder="name@std.yildiz.edu.tr"
+          defaultValue={defaultEmail}
+          readOnly={mode === "activate" && Boolean(defaultEmail)}
           required
         />
       </label>
