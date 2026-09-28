@@ -53,7 +53,7 @@ export default async function AdminProjelerPage() {
 
               <div className="adminProjectMeta">
                 <span>{project.owner ?? "Sahip bilgisi yok"}</span>
-                <span>{project.status.toUpperCase()}</span>
+                <span>{cmsStatusLabel(project.status)}</span>
                 <a className="adminEditLink" href={`/admin/projects/${encodeURIComponent(project.id)}`}>
                   DÜZENLE →
                 </a>
