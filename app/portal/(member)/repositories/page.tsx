@@ -3,10 +3,8 @@ import { createRepositoryAction } from "@/app/portal/actions";
 import { createNativeRepositoryAction } from "@/app/portal/engineering-actions";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalRepositories } from "@/lib/portal/db";
-import {
-  getEngineeringServiceStatus,
-  listNativeRepositories,
-} from "@/lib/portal/engineering-services";
+import { getEngineeringServiceStatus } from "@/lib/portal/engineering-services";
+import { listAccessibleNativeRepositories } from "@/lib/portal/repositories";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +16,10 @@ export default async function PortalRepositoriesPage({
   const [member, externalRepositories, nativeRepositories, services] = await Promise.all([
     requirePortalMember(),
     listPortalRepositories(),
-    listNativeRepositories(),
+    Promise.resolve(null),
     Promise.resolve(getEngineeringServiceStatus()),
   ]);
+  const nativeRepositories = await listAccessibleNativeRepositories(member);
   const query: { created?: string } = searchParams ? await searchParams : {};
   const canWrite = member.role === "admin" || member.role === "lead";
 
@@ -74,12 +73,15 @@ export default async function PortalRepositoriesPage({
       {nativeRepositories.length ? (
         <div className="nativeRepoGrid">
           {nativeRepositories.map((item) => (
-            <article key={String(item.id)}>
+            <a className="nativeRepoCard" href={"/portal/repositories/" + encodeURIComponent(String(item.slug))} key={String(item.id)}>
               <header><span>CORE GIT</span><em>{String(item.status).toUpperCase()}</em></header>
               <h3>{String(item.name)}</h3>
               <p>{String(item.project_slug || item.team_code || "CORE")}</p>
-              <footer><code>{String(item.slug)}</code><small>{String(item.visibility).toUpperCase()} · {String(item.default_branch)}</small></footer>
-            </article>
+              <footer>
+                <div><code>{String(item.slug)}</code><small>{String(item.visibility).toUpperCase()} · {String(item.default_branch)}</small></div>
+                <strong>WORKSPACE →</strong>
+              </footer>
+            </a>
           ))}
         </div>
       ) : <PortalEmpty title="Native repository henüz yok." text="Repo Service bağlandıktan sonra repository burada oluşturulur; GitHub yalnızca opsiyonel mirror olur." />}
