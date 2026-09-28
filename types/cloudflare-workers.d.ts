@@ -35,6 +35,8 @@ declare module "cloudflare:workers" {
     MEDIA?: R2Bucket;
     POLICY_AUD?: string;
     TEAM_DOMAIN?: string;
+    PORTAL_ALLOWED_EMAIL_DOMAINS?: string;
+    PORTAL_TELEMETRY_INGEST_KEY?: string;
     [key: string]: unknown;
   };
 }
