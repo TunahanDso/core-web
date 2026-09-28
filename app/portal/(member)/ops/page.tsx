@@ -8,7 +8,7 @@ export default async function PortalOpsPage() {
   const vehicles = await listPortalVehicles();
   return (
     <>
-      <PortalPageHeader code="OP / VEHICLE LIVE" title="Canlı Araç" lead="Salt okunur operasyon farkındalığı. Telemetri bu yüzeye girebilir; komut otoritesi asla girmez." />
+      <PortalPageHeader code="OP / CANLI ARAÇ" title="Canlı Araç" lead="Salt okunur operasyon farkındalığı. Telemetri bu yüzeye girebilir; komut otoritesi asla girmez." />
       <section className="portalOpsBoundary">
         <span>GÜVENLİK SINIRI</span>
         <b>TELEMETRİ GİRİŞİ → GÖZLE / KAYDET / ANALİZ ET</b>
