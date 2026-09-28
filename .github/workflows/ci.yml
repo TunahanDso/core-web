@@ -20,6 +20,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Validate D1 seed runner
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const source = fs.readFileSync("lib/cms/seed.ts", "utf8");
+            const forbidden = [
+              "PRAGMA foreign_keys = ON",
+              "BEGIN TRANSACTION",
+              "COMMIT;"
+            ];
+            for (const token of forbidden) {
+              if (source.includes(token)) {
+                throw new Error(`Unsupported D1 seed control statement found: ${token}`);
+              }
+            }
+            console.log("D1 seed runner is free of unsupported transaction/foreign-key control statements.");
+          '
+
       - name: Typecheck
         run: npm run typecheck
 

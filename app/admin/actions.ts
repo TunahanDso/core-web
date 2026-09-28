@@ -15,7 +15,13 @@ function actorFrom(identity: Awaited<ReturnType<typeof requireAdminIdentity>>) {
 
 export async function applyShowcaseSeedAction() {
   const identity = await requireAdminIdentity();
-  await applyShowcaseSeed(actorFrom(identity));
+
+  try {
+    await applyShowcaseSeed(actorFrom(identity));
+  } catch (error) {
+    console.error("Showcase seed failed", error);
+    redirect("/admin?seed=failed");
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/projects");
