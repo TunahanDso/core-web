@@ -1,0 +1,128 @@
+name: Native Mobile Builds
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "package.json"
+      - "capacitor.config.ts"
+      - "mobile/**"
+      - "components/portal/PortalMobileRuntime.tsx"
+      - "app/portal/**"
+      - "app/api/portal/mobile/**"
+      - "app/.well-known/**"
+      - ".github/workflows/mobile-native.yml"
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "capacitor.config.ts"
+      - "mobile/**"
+      - "components/portal/PortalMobileRuntime.tsx"
+      - "app/portal/**"
+      - "app/api/portal/mobile/**"
+      - "app/.well-known/**"
+      - ".github/workflows/mobile-native.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug:
+    name: Android Debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 36
+        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate Android project
+        run: |
+          npx cap add android
+          npm run mobile:configure:android
+          npm run mobile:configure:android
+          npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
+
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios-simulator:
+    name: iOS Simulator App
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate iOS project
+        run: |
+          npx cap add ios
+          npm run mobile:configure:ios
+          npm run mobile:configure:ios
+          npx cap sync ios
+
+      - name: Build iOS Simulator app
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath ios/build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package iOS Simulator app
+        run: |
+          test -d ios/build/Build/Products/Debug-iphonesimulator/App.app
+          ditto -c -k --sequesterRsrc --keepParent \
+            ios/build/Build/Products/Debug-iphonesimulator/App.app \
+            ios/core-ios-simulator.zip
+
+      - name: Upload iOS Simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-ios-simulator
+          path: ios/core-ios-simulator.zip
+          if-no-files-found: error
+          retention-days: 14
