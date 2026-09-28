@@ -7120,3 +7120,114 @@ html[data-core-native="native-v2"] .portalAuthCard h2{
 @media(max-width:440px){
   .nativeCaptureForm>div{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE MOBILE V7 — INVENTORY SCANNER
+   ========================================================= */
+
+.nativeInventoryScanner{display:none}
+html[data-core-native="native-v2"] .nativeInventoryScanner{
+  display:block;
+  margin:0 0 10px;
+}
+.nativeInventoryScanner>button{
+  width:100%;
+  min-height:76px;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  text-align:left;
+  border:1px solid #202328;
+  border-radius:15px;
+  background:#17191d;
+  color:#fff;
+  padding:12px 14px;
+  box-shadow:0 8px 24px rgba(20,22,25,.08);
+}
+.nativeInventoryScanner>button:disabled{opacity:.64}
+.nativeInventoryScanner>button>div{display:grid;gap:4px}
+.nativeInventoryScanner>button b{font-size:12px}
+.nativeInventoryScanner>button small{color:#9ca3aa;font-size:9px;line-height:1.4}
+.nativeInventoryScanner>button strong{color:#ff6500;font-size:23px}
+.nativeScannerIcon{
+  position:relative;
+  width:45px;height:45px;
+  display:block;
+  border-radius:12px;
+  background:#ff6500;
+}
+.nativeScannerIcon i{
+  position:absolute;
+  width:12px;height:12px;
+  border-color:#17191d;
+  border-style:solid;
+}
+.nativeScannerIcon i:nth-child(1){left:9px;top:9px;border-width:2px 0 0 2px}
+.nativeScannerIcon i:nth-child(2){right:9px;top:9px;border-width:2px 2px 0 0}
+.nativeScannerIcon i:nth-child(3){left:9px;bottom:9px;border-width:0 0 2px 2px}
+.nativeScannerIcon i:nth-child(4){right:9px;bottom:9px;border-width:0 2px 2px 0}
+.nativeInventoryScanner>p{
+  margin:7px 2px 0;
+  padding:9px 11px;
+  border:1px solid #efb18c;
+  border-radius:9px;
+  background:#fff4ed;
+  color:#ad3f00;
+  font-size:9px;
+}
+.nativeScanResult{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:11px;
+  align-items:center;
+  margin:0 0 10px;
+  padding:12px 14px;
+  border:1px solid #dfe2dc;
+  border-radius:13px;
+  background:#fff;
+}
+.nativeScanResult>span{
+  color:#9a9fa4;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.nativeScanResult>div{display:grid;gap:3px;min-width:0}
+.nativeScanResult>div b{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:900 11px ui-monospace,monospace;
+}
+.nativeScanResult>div small{color:#838a90;font-size:9px}
+.nativeScanResult>strong{color:#c84c00;font-size:13px}
+.nativeScanResult.matched{
+  border-color:#a9d4b8;
+  background:#f6fbf7;
+}
+.nativeScanResult.matched>span{color:#278451}
+.nativeScanResult.missing{
+  border-color:#efb18c;
+  background:#fff8f3;
+}
+.nativeScanResult.missing>span{color:#bd490e}
+html[data-core-native="native-v2"] .portalInventoryTable article.scanned{
+  position:relative;
+  border:1px solid #ff9c5d!important;
+  border-radius:12px;
+  background:#fff8f1;
+  box-shadow:0 0 0 3px rgba(255,101,0,.08);
+}
+html[data-core-native="native-v2"] .portalInventoryTable article.scanned::before{
+  content:"TARANDI";
+  position:absolute;
+  right:8px;
+  top:8px;
+  color:#c84c00;
+  font:900 6px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+
+@media(max-width:500px){
+  .nativeScanResult{grid-template-columns:1fr}
+  .nativeScanResult>strong{justify-self:start}
+}
