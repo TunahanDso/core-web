@@ -3,6 +3,7 @@ import PortalNav from "@/components/portal/PortalNav";
 import { logoutPortalAction } from "@/app/portal/actions";
 import { getSiteSetting } from "@/lib/cms/extensions";
 import { portalRoleLabel } from "@/lib/portal/labels";
+import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
 
 export default async function PortalShell({
   member,
@@ -46,9 +47,10 @@ export default async function PortalShell({
           <form className="portalGlobalSearch" action="/portal/search" method="get">
             <span>⌕</span>
             <input name="q" placeholder="Görev, Vault, repo, stok veya üye ara..." aria-label="Portal genel arama" />
-            <kbd>ENTER</kbd>
+            <kbd>⌘K</kbd>
           </form>
           <div className="portalTopActions">
+            <PortalCommandCenter />
             <a href="/portal/notifications" className="portalTopChip">Bildirimler</a>
             <a href="/portal/profile" className="portalIdentity">
               <span>{initials}</span>
