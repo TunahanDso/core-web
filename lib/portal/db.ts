@@ -45,14 +45,22 @@ export async function getPortalMetrics(memberId: string) {
 }
 
 export async function listPortalMembers() {
-  const response = await database().prepare(
-    "SELECT m.id,m.email,m.full_name,m.role,m.status,m.teams_json,m.activated_at,m.last_login_at,m.created_at," +
-    "(SELECT d.status FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_status," +
-    "(SELECT d.provider FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_provider," +
-    "(SELECT d.attempted_at FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_at " +
-    "FROM portal_members m ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,m.full_name,m.email"
-  ).all<Record<string, unknown>>();
-  return response.results ?? [];
+  const db = database();
+  try {
+    const response = await db.prepare(
+      "SELECT m.id,m.email,m.full_name,m.role,m.status,m.teams_json,m.activated_at,m.last_login_at,m.created_at," +
+      "(SELECT d.status FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_status," +
+      "(SELECT d.provider FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_provider," +
+      "(SELECT d.attempted_at FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_at " +
+      "FROM portal_members m ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,m.full_name,m.email"
+    ).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    const fallback = await db.prepare(
+      "SELECT id,email,full_name,role,status,teams_json,activated_at,last_login_at,created_at FROM portal_members ORDER BY CASE status WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,full_name,email"
+    ).all<Record<string, unknown>>();
+    return fallback.results ?? [];
+  }
 }
 
 export async function createPortalInvite(input: {
@@ -567,9 +575,14 @@ export async function getPortalMemberProfile(memberId: string) {
     "SELECT id,email,full_name,role,status,teams_json,activated_at,last_login_at FROM portal_members WHERE id=? LIMIT 1"
   ).bind(memberId).first<Record<string, unknown>>();
   if (!member) return null;
-  const profile = await database().prepare(
-    "SELECT * FROM portal_member_profiles WHERE member_id=? LIMIT 1"
-  ).bind(memberId).first<Record<string, unknown>>();
+  let profile: Record<string, unknown> | null = null;
+  try {
+    profile = await database().prepare(
+      "SELECT * FROM portal_member_profiles WHERE member_id=? LIMIT 1"
+    ).bind(memberId).first<Record<string, unknown>>();
+  } catch {
+    profile = null;
+  }
   return { member, profile };
 }
 
@@ -636,13 +649,21 @@ export async function markPortalChannelRead(channelId: string, memberId: string)
 }
 
 export async function listPortalChannelsForMember(memberId: string) {
-  const response = await database().prepare(
-    "SELECT ch.*," +
-    "(SELECT COUNT(*) FROM portal_messages msg WHERE msg.channel_id=ch.id AND datetime(msg.created_at)>datetime(COALESCE((SELECT cr.last_read_at FROM portal_channel_reads cr WHERE cr.channel_id=ch.id AND cr.member_id=?),'1970-01-01'))) AS unread_count," +
-    "(SELECT msg.body FROM portal_messages msg WHERE msg.channel_id=ch.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message " +
-    "FROM portal_channels ch ORDER BY CASE ch.slug WHEN 'announcements' THEN 0 WHEN 'general' THEN 1 ELSE 2 END,ch.name"
-  ).bind(memberId).all<Record<string, unknown>>();
-  return response.results ?? [];
+  const db = database();
+  try {
+    const response = await db.prepare(
+      "SELECT ch.*," +
+      "(SELECT COUNT(*) FROM portal_messages msg WHERE msg.channel_id=ch.id AND datetime(msg.created_at)>datetime(COALESCE((SELECT cr.last_read_at FROM portal_channel_reads cr WHERE cr.channel_id=ch.id AND cr.member_id=?),'1970-01-01'))) AS unread_count," +
+      "(SELECT msg.body FROM portal_messages msg WHERE msg.channel_id=ch.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message " +
+      "FROM portal_channels ch ORDER BY CASE ch.slug WHEN 'announcements' THEN 0 WHEN 'general' THEN 1 ELSE 2 END,ch.name"
+    ).bind(memberId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    const fallback = await db.prepare(
+      "SELECT ch.*,0 AS unread_count,(SELECT msg.body FROM portal_messages msg WHERE msg.channel_id=ch.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message FROM portal_channels ch ORDER BY CASE ch.slug WHEN 'announcements' THEN 0 WHEN 'general' THEN 1 ELSE 2 END,ch.name"
+    ).all<Record<string, unknown>>();
+    return fallback.results ?? [];
+  }
 }
 
 
