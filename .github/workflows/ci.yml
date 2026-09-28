@@ -202,7 +202,7 @@ jobs:
               throw new Error("Native shell must receive live mail/chat/task/notification counters.");
             }
             const taskPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
-            if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes('id="create-task"')) {
+            if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("id=\"create-task\"")) {
               throw new Error("Tasks must expose the native mobile list and addressable create action.");
             }
             const nativeCss = fs.readFileSync("app/globals.css", "utf8");
