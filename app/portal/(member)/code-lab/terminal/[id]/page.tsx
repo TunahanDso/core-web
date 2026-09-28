@@ -31,11 +31,11 @@ export default async function PortalCodeTerminalPage({
   const member = await requirePortalMember();
   const { id } = await params;
   const terminalId = decodeURIComponent(id);
-  const [detail,runner,query] = await Promise.all([
+  const [detail,runner] = await Promise.all([
     getPortalCodeTerminal(member,terminalId),
     probeCodeRunner(),
-    searchParams ? searchParams : Promise.resolve({}),
   ]);
+  const query: { created?: string; closed?: string } = searchParams ? await searchParams : {};
   if (!detail) notFound();
 
   const terminal = detail.terminal;
