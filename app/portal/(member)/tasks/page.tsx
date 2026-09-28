@@ -13,7 +13,7 @@ export default async function PortalTasksPage() {
   return (
     <>
       <PortalPageHeader
-        code="PM / PROJECTS"
+        code="PM / PROJELER"
         title="Projeler & Görevler"
         lead="Teknik niyeti sahipliği belli işe dönüştür. Görevler proje, takım, öncelik ve inceleme durumuyla bağlı kalır."
       />
