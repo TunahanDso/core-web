@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import PortalShell from "@/components/portal/PortalShell";
 import PortalPwaClient from "@/components/portal/PortalPwaClient";
+import PortalMobileRuntime from "@/components/portal/PortalMobileRuntime";
+import { portalMobilePublicConfig } from "@/lib/portal/mobile";
 import { requirePortalMember } from "@/lib/portal/auth";
 
 export const dynamic = "force-dynamic";
@@ -25,10 +27,12 @@ export default async function PortalMemberLayout({
   children: React.ReactNode;
 }) {
   const member = await requirePortalMember();
+  const mobileConfig = portalMobilePublicConfig();
   return (
     <PortalShell member={member}>
       {children}
       <PortalPwaClient />
+      <PortalMobileRuntime config={mobileConfig} />
     </PortalShell>
   );
 }
