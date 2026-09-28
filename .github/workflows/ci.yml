@@ -108,7 +108,7 @@ jobs:
             console.log("PWA cache boundary and isolated engineering-service boundary validated.");
 
             const authSource = fs.readFileSync("lib/portal/auth.ts", "utf8");
-            if (!authSource.includes('path: "/"')) {
+            if (!authSource.includes("path: \"/\"")) {
               throw new Error("Portal session cookie must be root-scoped so authenticated /api/portal routes work.");
             }
             if (!authSource.includes("promoteLegacyPortalSessionCookie")) {
