@@ -6,9 +6,12 @@ import { requireAdminIdentity } from "@/lib/cms/auth";
 import { applyPortalFoundation } from "@/lib/portal/bootstrap";
 import {
   createPortalInvite,
+  recordPortalInviteDelivery,
+  reissuePortalInvite,
   setPortalMemberStatus,
 } from "@/lib/portal/db";
 import type { PortalRole } from "@/lib/portal/auth";
+import { sendPortalInvitationEmail } from "@/lib/portal/mail";
 
 function actorFrom(identity: Awaited<ReturnType<typeof requireAdminIdentity>>) {
   if (identity.email) return identity.email;
@@ -20,6 +23,9 @@ export type InviteAdminState = {
   code?: string;
   email?: string;
   expiresAt?: string;
+  deliveryStatus?: "sent" | "failed" | "not_configured";
+  deliveryProvider?: string;
+  deliveryError?: string;
 };
 
 export async function initializePortalAction() {
@@ -63,8 +69,31 @@ export async function createPortalInviteAdminAction(
       createdBy: actorFrom(identity),
     });
 
+    const delivery = await sendPortalInvitationEmail({
+      to: result.email,
+      fullName: result.fullName,
+      code: result.code,
+      expiresAt: result.expiresAt,
+    });
+
+    await recordPortalInviteDelivery({
+      inviteId: result.inviteId,
+      recipient: result.email,
+      provider: delivery.provider,
+      status: delivery.status,
+      messageId: delivery.messageId,
+      error: delivery.error,
+    });
+
     revalidatePath("/admin/members");
-    return result;
+    return {
+      code: result.code,
+      email: result.email,
+      expiresAt: result.expiresAt,
+      deliveryStatus: delivery.status,
+      deliveryProvider: delivery.provider,
+      deliveryError: delivery.error,
+    };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Davet oluşturulamadı." };
   }
@@ -86,4 +115,45 @@ export async function setPortalMemberStatusAdminAction(formData: FormData) {
 
   revalidatePath("/admin/members");
   revalidatePath("/portal/members");
+}
+
+
+export async function reissuePortalInviteAdminAction(
+  _state: InviteAdminState,
+  formData: FormData
+): Promise<InviteAdminState> {
+  try {
+    const identity = await requireAdminIdentity();
+    const memberId = String(formData.get("memberId") ?? "").trim();
+    if (!memberId) return { error: "Üye kimliği gerekli." };
+
+    const result = await reissuePortalInvite(memberId, actorFrom(identity));
+    const delivery = await sendPortalInvitationEmail({
+      to: result.email,
+      fullName: result.fullName,
+      code: result.code,
+      expiresAt: result.expiresAt,
+    });
+
+    await recordPortalInviteDelivery({
+      inviteId: result.inviteId,
+      recipient: result.email,
+      provider: delivery.provider,
+      status: delivery.status,
+      messageId: delivery.messageId,
+      error: delivery.error,
+    });
+
+    revalidatePath("/admin/members");
+    return {
+      code: result.code,
+      email: result.email,
+      expiresAt: result.expiresAt,
+      deliveryStatus: delivery.status,
+      deliveryProvider: delivery.provider,
+      deliveryError: delivery.error,
+    };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Davet yeniden oluşturulamadı." };
+  }
 }
