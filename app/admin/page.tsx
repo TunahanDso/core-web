@@ -54,7 +54,7 @@ export default async function Admin({
     <main className="admin adminLight adminControlCenter">
       <div className="adminTopline">
         <div>
-          <p className="eyebrow">YTÜ CORE · CONTROL CENTER</p>
+          <p className="eyebrow">YTÜ CORE · KONTROL MERKEZİ</p>
           <span className="adminSubtle">Vitrin sitesi + iç öğrenci operasyonları</span>
         </div>
         <div className="adminQuickActions">
@@ -66,7 +66,7 @@ export default async function Admin({
 
       <section className="adminWelcome">
         <div>
-          <span>CONTROL / 01</span>
+          <span>KONTROL / 01</span>
           <h1>CORE'un yürüttüğü her şey,<br />tek ve berrak bir yerde.</h1>
           <p>
             Manage the public showcase and the private student engineering
