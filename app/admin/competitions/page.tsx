@@ -1,5 +1,6 @@
 import { getAdminIdentity } from "@/lib/cms/auth";
-import { listYarışmalar } from "@/lib/cms/db";
+import { listCompetitions } from "@/lib/cms/db";
+import { cmsStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ const labels = {
 
 export default async function AdminYarışmalarPage() {
   const [competitions, identity] = await Promise.all([
-    listYarışmalar(),
+    listCompetitions(),
     getAdminIdentity(),
   ]);
 
