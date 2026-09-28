@@ -176,6 +176,46 @@ const PORTAL_V7_SQL = "-- YTÜ CORE Portal RP-02 repository code review\n-- Addi
 
 const PORTAL_V8_SQL = "-- YTÜ CORE Portal CL-01 Code Lab execution metadata\n-- Additive only. User code executes in CORE Runner sandbox containers, never in the CMS Worker.\n\nCREATE TABLE IF NOT EXISTS portal_code_run_execution (\n  run_id TEXT PRIMARY KEY,\n  native_repository_id TEXT NOT NULL,\n  service_repository_id TEXT NOT NULL,\n  snapshot_ref TEXT NOT NULL,\n  snapshot_sha TEXT,\n  workflow_instance_id TEXT,\n  dispatch_token TEXT NOT NULL,\n  attempt INTEGER NOT NULL DEFAULT 1,\n  retry_of_run_id TEXT,\n  cancel_requested_at TEXT,\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  FOREIGN KEY (run_id) REFERENCES portal_code_runs(id) ON DELETE CASCADE,\n  FOREIGN KEY (native_repository_id) REFERENCES portal_native_repositories(id) ON DELETE CASCADE,\n  FOREIGN KEY (retry_of_run_id) REFERENCES portal_code_runs(id) ON DELETE SET NULL\n);\n\nCREATE TABLE IF NOT EXISTS portal_code_run_events (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  run_id TEXT NOT NULL,\n  phase TEXT NOT NULL,\n  level TEXT NOT NULL DEFAULT 'info'\n    CHECK (level IN ('info','success','warning','error')),\n  message TEXT NOT NULL DEFAULT '',\n  metadata_json TEXT NOT NULL DEFAULT '{}',\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  FOREIGN KEY (run_id) REFERENCES portal_code_runs(id) ON DELETE CASCADE\n);\n\nCREATE TABLE IF NOT EXISTS portal_code_run_artifacts (\n  id TEXT PRIMARY KEY,\n  run_id TEXT NOT NULL,\n  name TEXT NOT NULL,\n  kind TEXT NOT NULL DEFAULT 'artifact',\n  mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',\n  object_key TEXT NOT NULL UNIQUE,\n  size_bytes INTEGER NOT NULL DEFAULT 0,\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  FOREIGN KEY (run_id) REFERENCES portal_code_runs(id) ON DELETE CASCADE\n);\n\nCREATE INDEX IF NOT EXISTS idx_code_run_execution_repo\n  ON portal_code_run_execution(native_repository_id, created_at DESC);\nCREATE INDEX IF NOT EXISTS idx_code_run_events_run\n  ON portal_code_run_events(run_id, created_at);\nCREATE INDEX IF NOT EXISTS idx_code_run_artifacts_run\n  ON portal_code_run_artifacts(run_id, created_at);\n\nINSERT INTO site_settings (setting_key,value_json,updated_at)\nVALUES (\n  'portal_code_lab_schema',\n  '{\"version\":\"2026.09-cl01\",\"features\":[\"runner-workflow\",\"sandbox-container\",\"immutable-snapshot\",\"events\",\"logs\",\"artifacts\",\"cancel\",\"retry\"]}',\n  CURRENT_TIMESTAMP\n)\nON CONFLICT(setting_key) DO UPDATE SET\n  value_json=excluded.value_json,\n  updated_at=CURRENT_TIMESTAMP;\n";
 
+
+const PORTAL_V9_SQL = `-- YTÜ CORE Portal CL-02 Live Terminal sessions
+-- Ephemeral interactive shells execute only inside CORE Runner containers.
+
+CREATE TABLE IF NOT EXISTS portal_code_terminal_sessions (
+  id TEXT PRIMARY KEY,
+  member_id TEXT NOT NULL,
+  native_repository_id TEXT NOT NULL,
+  service_repository_id TEXT NOT NULL,
+  repository_slug TEXT NOT NULL,
+  snapshot_ref TEXT NOT NULL,
+  snapshot_sha TEXT,
+  connect_token TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'preparing'
+    CHECK (status IN ('preparing','ready','connected','closed','expired','failed')),
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  connected_at TEXT,
+  ended_at TEXT,
+  last_activity_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (member_id) REFERENCES portal_members(id) ON DELETE CASCADE,
+  FOREIGN KEY (native_repository_id) REFERENCES portal_native_repositories(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_code_terminal_member
+  ON portal_code_terminal_sessions(member_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_code_terminal_expiry
+  ON portal_code_terminal_sessions(status, expires_at);
+
+INSERT INTO site_settings (setting_key,value_json,updated_at)
+VALUES (
+  'portal_code_terminal_schema',
+  '{"version":"2026.09-cl02","features":["live-terminal","websocket-stdin","streaming-stdout","ephemeral-workspace","terminal-signal","terminal-expiry"]}',
+  CURRENT_TIMESTAMP
+)
+ON CONFLICT(setting_key) DO UPDATE SET
+  value_json=excluded.value_json,
+  updated_at=CURRENT_TIMESTAMP;
+`;
+
 function splitPortalSql(sql: string) {
   const source = sql
     .split("\n")
@@ -281,6 +321,7 @@ const REQUIRED_PORTAL_TABLES = [
   "portal_code_run_execution",
   "portal_code_run_events",
   "portal_code_run_artifacts",
+  "portal_code_terminal_sessions",
 ] as const;
 
 let repoReviewSchemaPromise: Promise<void> | null = null;
@@ -307,7 +348,7 @@ export async function ensurePortalCodeLabSchema() {
   codeLabSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitPortalSql(PORTAL_V8_SQL);
+    const statements = splitPortalSql(PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL);
     if (!statements.length) throw new Error("Code Lab migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -390,7 +431,7 @@ export async function applyPortalFoundation(actor: string) {
   const db = env.DB;
   if (!db) throw new Error("DB binding is not available.");
 
-  const statements = splitPortalSql(PORTAL_SCHEMA_SQL + "\n" + PORTAL_V2_SQL + "\n" + PORTAL_V4_SQL + "\n" + PORTAL_V5_SQL + "\n" + PORTAL_V6_SQL + "\n" + PORTAL_V7_SQL + "\n" + PORTAL_V8_SQL);
+  const statements = splitPortalSql(PORTAL_SCHEMA_SQL + "\n" + PORTAL_V2_SQL + "\n" + PORTAL_V4_SQL + "\n" + PORTAL_V5_SQL + "\n" + PORTAL_V6_SQL + "\n" + PORTAL_V7_SQL + "\n" + PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL);
   if (!statements.length) throw new Error("Portal migration is empty.");
 
   await db.batch(statements.map((statement) => db.prepare(statement)));
@@ -401,11 +442,11 @@ export async function applyPortalFoundation(actor: string) {
   `).bind(
     actor,
     JSON.stringify({
-      version: "2026.09-cl01",
+      version: "2026.09-cl02",
       statementCount: statements.length,
       modules: [
         "members","auth","tasks","resources","repositories","inventory",
-        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts"
+        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal"
       ],
     })
   ).run();
