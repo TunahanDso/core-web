@@ -40,7 +40,8 @@
     "@capacitor/keyboard": "8.0.5",
     "@capacitor/status-bar": "8.0.3",
     "@capacitor/camera": "8.2.4",
-    "@capacitor/barcode-scanner": "3.1.2"
+    "@capacitor/barcode-scanner": "3.1.2",
+    "@capacitor/push-notifications": "8.1.2"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.60.2",
