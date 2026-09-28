@@ -1,5 +1,6 @@
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { listPortalVehicles } from "@/lib/portal/db";
+import { portalVehicleStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function PortalOpsPage() {
       <div className="portalVehicleGrid">
         {vehicles.map((vehicle) => (
           <article key={String(vehicle.id)}>
-            <header><span>{String(vehicle.code)}</span><b className={String(vehicle.status)}>{String(vehicle.status).toUpperCase()}</b></header>
+            <header><span>{String(vehicle.code)}</span><b className={String(vehicle.status)}>{portalVehicleStatusLabel(String(vehicle.status))}</b></header>
             <h2>{String(vehicle.name)}</h2>
             <p>{String(vehicle.domain)}</p>
             <div className="portalTelemetryGrid">
