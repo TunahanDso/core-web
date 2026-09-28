@@ -278,7 +278,7 @@ export async function listPortalMailThreads(
     view === "archive" ? "AND s.archived_at IS NOT NULL" :
     "AND s.archived_at IS NULL";
 
-  const values = view === "sent" ? [memberId,memberId] : [memberId];
+  const values = view === "sent" ? [memberId,memberId,memberId] : [memberId,memberId];
   const response = await db.prepare(
     "SELECT t.id,t.subject,t.created_by,t.updated_at,s.read_at,s.starred_at,s.archived_at," +
     "(SELECT body FROM portal_mail_messages mm WHERE mm.thread_id=t.id ORDER BY mm.created_at DESC LIMIT 1) AS preview," +
