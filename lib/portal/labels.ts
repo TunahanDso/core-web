@@ -54,3 +54,28 @@ export function cmsStatusLabel(value: string) {
     archived: "Arşiv",
   } as Record<string,string>)[value] ?? value;
 }
+
+
+export function portalResourceKindLabel(value: string) {
+  return ({
+    document: "Doküman",
+    archive: "Arşiv",
+    library: "Kütüphane",
+    drawing: "Çizim",
+    pcb: "PCB",
+    bom: "BOM",
+    code: "Kod",
+    procedure: "Prosedür",
+    dataset: "Veri Seti",
+    media: "Medya",
+  } as Record<string,string>)[value] ?? value;
+}
+
+export function portalNotificationKindLabel(value: string) {
+  return ({
+    info: "Bilgi",
+    warning: "Uyarı",
+    action: "İşlem",
+    success: "Başarılı",
+  } as Record<string,string>)[value] ?? value;
+}
