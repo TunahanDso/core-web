@@ -8,7 +8,7 @@ export default async function PortalMembersPage() {
   const members = await listPortalMembers();
   return (
     <>
-      <PortalPageHeader code="MB / MEMBERS" title="CORE Üyeleri" lead="Rol, hesap durumu, takım üyeliği ve son erişimi gösteren iç ekip haritası." />
+      <PortalPageHeader code="MB / ÜYELER" title="CORE Üyeleri" lead="Rol, hesap durumu, takım üyeliği ve son erişimi gösteren iç ekip haritası." />
       {members.length ? (
         <div className="portalMemberGrid">
           {members.map((member) => {
