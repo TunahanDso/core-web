@@ -20,7 +20,9 @@
     "mobile:sync": "cap sync",
     "mobile:doctor": "cap doctor",
     "mobile:open:android": "cap open android",
-    "mobile:open:ios": "cap open ios"
+    "mobile:open:ios": "cap open ios",
+    "mobile:configure:android": "node mobile/scripts/configure-native.mjs android",
+    "mobile:configure:ios": "node mobile/scripts/configure-native.mjs ios"
   },
   "dependencies": {
     "@vinext/cloudflare": "1.0.0-beta.11",
