@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
@@ -32,12 +32,16 @@ function shortSha(value: string) {
 function reviewQuery(input: {
   base: string;
   head: string;
+  baseRef: string;
+  headRef: string;
   view: ReviewView;
   file?: string;
 }) {
   const params = new URLSearchParams({
     base: input.base,
     head: input.head,
+    baseRef: input.baseRef,
+    headRef: input.headRef,
     view: input.view,
   });
   if (input.file) params.set("file", input.file);
@@ -238,6 +242,8 @@ export default async function PortalRepositoryReviewPage({
   searchParams?: Promise<{
     base?: string;
     head?: string;
+    baseRef?: string;
+    headRef?: string;
     view?: string;
     file?: string;
   }>;
@@ -252,11 +258,26 @@ export default async function PortalRepositoryReviewPage({
 
   const base = String(query.base || repo.default_branch || "main");
   const head = String(query.head || repo.default_branch || "main");
+  const baseRef = String(query.baseRef || base);
+  const headRef = String(query.headRef || head);
   const view: ReviewView = query.view === "unified" ? "unified" : "split";
   const requestedFile = String(query.file || "");
 
   const compareLoaded = await loadNativeRepositoryCompare(repo, base, head);
-  const compareFiles = compareLoaded.compare?.files ?? [];
+  const compare = compareLoaded.compare;
+  if (compare?.baseSha && compare.headSha && (base !== compare.baseSha || head !== compare.headSha)) {
+    redirect(
+      reviewQuery({
+        base: compare.baseSha,
+        head: compare.headSha,
+        baseRef,
+        headRef,
+        view,
+        file: requestedFile || undefined,
+      })
+    );
+  }
+  const compareFiles = compare?.files ?? [];
   const requestedExists = requestedFile
     ? compareFiles.some((item) => item.path === requestedFile || item.previousPath === requestedFile)
     : false;
@@ -319,13 +340,13 @@ export default async function PortalRepositoryReviewPage({
       <section className="repoReviewSnapshot">
         <div>
           <span>BASE</span>
-          <b>{diff.base}</b>
+          <b>{baseRef}</b>
           <code>{shortSha(diff.baseSha)}</code>
         </div>
         <i>←</i>
         <div>
           <span>HEAD</span>
-          <b>{diff.head}</b>
+          <b>{headRef}</b>
           <code>{shortSha(diff.headSha)}</code>
         </div>
         <aside>
@@ -340,11 +361,11 @@ export default async function PortalRepositoryReviewPage({
         <div className="repoReviewViewToggle">
           <a
             className={view === "split" ? "active" : ""}
-            href={reviewQuery({ base: diff.base, head: diff.head, view: "split", file: selectedFile?.path })}
+            href={reviewQuery({ base: diff.baseSha, head: diff.headSha, baseRef, headRef, view: "split", file: selectedFile?.path })}
           >SIDE BY SIDE</a>
           <a
             className={view === "unified" ? "active" : ""}
-            href={reviewQuery({ base: diff.base, head: diff.head, view: "unified", file: selectedFile?.path })}
+            href={reviewQuery({ base: diff.baseSha, head: diff.headSha, baseRef, headRef, view: "unified", file: selectedFile?.path })}
           >UNIFIED</a>
         </div>
         <div className="repoReviewStats">
@@ -363,7 +384,7 @@ export default async function PortalRepositoryReviewPage({
               <a
                 key={file.path}
                 className={selectedFile?.path === file.path ? "active" : ""}
-                href={reviewQuery({ base: diff.base, head: diff.head, view, file: file.path })}
+                href={reviewQuery({ base: diff.baseSha, head: diff.headSha, baseRef, headRef, view, file: file.path })}
               >
                 <span>{String(file.status || "modified").toUpperCase()}</span>
                 <b>{file.path}</b>
