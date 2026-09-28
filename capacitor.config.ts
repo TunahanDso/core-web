@@ -9,9 +9,6 @@ const config: CapacitorConfig = {
     cleartext: false,
     allowNavigation: ["ytucore.com"],
   },
-  ios: {
-    scheme: "YTÜ CORE",
-  },
   android: {
     allowMixedContent: false,
   },
