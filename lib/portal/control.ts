@@ -97,6 +97,35 @@ export async function listPortalTeamMembers(teamCode: string) {
   return explicit;
 }
 
+export async function listPortalCapabilityGrants() {
+  try {
+    const response = await db().prepare(
+      "SELECT c.member_id,c.capability,c.granted_by,c.created_at,m.full_name,m.email,m.role " +
+      "FROM portal_member_capabilities c JOIN portal_members m ON m.id=c.member_id " +
+      "ORDER BY m.full_name,c.capability"
+    ).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function listPortalAllTeamMemberships() {
+  try {
+    const response = await db().prepare(
+      "SELECT tm.team_code,tm.member_id,tm.team_role,tm.status,tm.capabilities_json,tm.updated_at," +
+      "m.full_name,m.email,t.name AS team_name " +
+      "FROM portal_team_memberships tm " +
+      "JOIN portal_members m ON m.id=tm.member_id " +
+      "JOIN portal_teams t ON t.code=tm.team_code " +
+      "WHERE tm.status='active' ORDER BY t.name,m.full_name"
+    ).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function listPortalRoleProfiles() {
   try {
     const response = await db().prepare(
