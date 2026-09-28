@@ -207,7 +207,7 @@ async function storeBlob(repoId: string, path: string, bytes: Uint8Array) {
   const key = blobKey(repoId,sha);
   const existing = await bucket().head(key);
   if (!existing) {
-    await bucket().put(key,bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),{
+    await bucket().put(key,bytes,{
       httpMetadata:{ contentType:mimeForPath(path) },
     });
   }
