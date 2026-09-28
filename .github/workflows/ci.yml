@@ -60,6 +60,20 @@ jobs:
               throw new Error("Portal bootstrap must execute prepared statements through D1 batch().");
             }
             console.log("Portal bootstrap uses prepared D1 batch() with quote-aware SQL parsing.");
+
+            const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
+            const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
+            if (!pbkdf2Match) {
+              throw new Error("Portal auth must declare PBKDF2_ITERATIONS.");
+            }
+            const pbkdf2Iterations = Number(pbkdf2Match[1]);
+            if (pbkdf2Iterations > 100000) {
+              throw new Error("Cloudflare Workers rejects PBKDF2 iteration counts above 100000.");
+            }
+            if (pbkdf2Iterations < 100000) {
+              throw new Error("Portal PBKDF2 iteration count must remain at least 100000.");
+            }
+            console.log("Portal PBKDF2 configuration matches the Cloudflare Workers limit.");
           '
 
       - name: Typecheck
