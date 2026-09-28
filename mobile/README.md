@@ -50,6 +50,8 @@ The member app currently includes:
 - single-column chat conversation UX,
 - mobile mailbox folder rail and thread cards,
 - mobile Vault/inventory/calendar layouts,
+- native QR/barcode inventory scanning with SKU preselection,
+- per-installation trusted / pending / revoked device preference controls,
 - native-shaped login and activation screens,
 - APNs / FCM permission + token registration into the authenticated device registry,
 - notification deep links back into safe `/portal` routes,
@@ -63,9 +65,8 @@ The generated Android/iOS projects remain reproducible from source and are valid
 The device registry now stores native push-provider/token state. The next signed-build wave is:
 - APNs server credentials + signed iOS Push Notifications capability,
 - Android Firebase `google-services.json` + FCM production sender,
-- biometric/trusted-device unlock,
-- QR/barcode inventory scanning,
+- biometric unlock backed by the existing trusted-device registry,
 - secure native file picker,
 - app-store signing, TestFlight and Play Internal Testing.
 
-CORE Mobile 0.3 remains a real Capacitor iOS/Android application, not a Safari/PWA launch shortcut. The UI is progressively native-first while authenticated engineering data continues to come from the same protected CORE APIs. Critical screens can be moved to SwiftUI/native API clients incrementally without changing the backend contract.
+Trusted state is a device preference and does not bypass password, session or role checks. CORE Mobile 0.3 remains a real Capacitor iOS/Android application, not a Safari/PWA launch shortcut. The UI is progressively native-first while authenticated engineering data continues to come from the same protected CORE APIs. Critical screens can be moved to SwiftUI/native API clients incrementally without changing the backend contract.
