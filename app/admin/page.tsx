@@ -23,6 +23,8 @@ const portalModules = [
   ["Bilgi Merkezi", "Kütüphane, dokümanlar ve arşiv.", "/portal/library", true, "KB"],
   ["Stok & Envanter", "Bileşenler, araçlar ve düşük stok durumu.", "/portal/inventory", true, "IV"],
   ["Canlı Araç", "Salt okunur telemetri ve operasyon farkındalığı.", "/portal/ops", true, "OP"],
+  ["Project Map", "Takım, proje, araç ve repo topology görünümü.", "/portal/project-map", true, "MAP"],
+  ["Ağır Kontrol", "Internal proje, araç, takım üyeliği ve capability yönetimi.", "/portal/control", true, "CTL"],
 ] as const;
 
 export default async function Admin({
@@ -95,7 +97,7 @@ export default async function Admin({
         <span><b>DB</b> core-web-cms · {databaseOnline ? "bağlı" : "kullanılamıyor"}</span>
         <span><b>MEDYA</b> {stats.mediaBinding ? "core-web-media · bağlı" : "kullanılamıyor"}</span>
         <span><b>ACCESS</b> {identity.authenticated ? "JWT DOĞRULANDI" : "DOĞRULANMADI"}</span>
-        <span><b>PORTAL</b> {portal.ready ? "ENGINEERING OS + MOBILE V5 HAZIR" : (portal.tableCount ?? 0) > 0 ? "V5 NATIVE MOBILE YÜKSELTME GEREKLİ" : "KURULUM GEREKLİ"}</span>
+        <span><b>PORTAL</b> {portal.ready ? "CONTROL PLANE V6 HAZIR" : (portal.tableCount ?? 0) > 0 ? "V6 CONTROL PLANE YÜKSELTME GEREKLİ" : "KURULUM GEREKLİ"}</span>
         <span><b>KOMUT KATMANI</b> İZOLE</span>
       </section>
 
@@ -107,16 +109,16 @@ export default async function Admin({
       {writeEnabled && !portal.ready ? (
         <section className="adminSetupPanel">
           <div>
-            <span>{(portal.tableCount ?? 0) > 0 ? "V5 NATIVE MOBILE YÜKSELTMESİ" : "TEK SEFERLİK ALTYAPI"}</span>
-            <h2>{(portal.tableCount ?? 0) > 0 ? "CORE Portalı native mühendislik + mobil uygulama katmanına yükselt" : "İç CORE Portalını Kur"}</h2>
+            <span>{(portal.tableCount ?? 0) > 0 ? "V6 CONTROL PLANE YÜKSELTMESİ" : "TEK SEFERLİK ALTYAPI"}</span>
+            <h2>{(portal.tableCount ?? 0) > 0 ? "CORE Portalı governance + project map + ağır kontrol katmanına yükselt" : "İç CORE Portalını Kur"}</h2>
             <p>
               {(portal.tableCount ?? 0) > 0
-                ? "Mevcut üyeleri, oturumları ve mühendislik verisini silmeden mobil cihaz registry'si ile native Android/iOS handoff altyapısını ekler."
+                ? "Mevcut üyeleri, oturumları, Vault verisini ve mobil cihaz kayıtlarını silmeden takım üyelikleri, role/capability profilleri, internal proje registry, project map ve araç profillerini ekler."
                 : "Davet tabanlı üye erişimi, oturumlar, görevler, bilgi merkezi, repo kayıtları, envanter, sohbet, iç yazışma, takvim, bildirimler, araç telemetrisi ve güvenlik cihazı altyapısını oluşturur."}
             </p>
           </div>
           <form action={initializePortalAction}>
-            <button className="adminModernPrimary" type="submit">{(portal.tableCount ?? 0) > 0 ? "V5'E YÜKSELT →" : "PORTALI KUR →"}</button>
+            <button className="adminModernPrimary" type="submit">{(portal.tableCount ?? 0) > 0 ? "V6'YA YÜKSELT →" : "PORTALI KUR →"}</button>
           </form>
         </section>
       ) : null}
