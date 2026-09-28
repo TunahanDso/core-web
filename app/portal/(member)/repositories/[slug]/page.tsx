@@ -89,11 +89,17 @@ export default async function PortalRepositoryWorkspacePage({
     head?: string;
   }>;
 }) {
-  const [{ slug }, query, member] = await Promise.all([
+  const [{ slug }, member] = await Promise.all([
     params,
-    searchParams ? searchParams : Promise.resolve({}),
     requirePortalMember(),
   ]);
+  const query: {
+    ref?: string;
+    path?: string;
+    file?: string;
+    base?: string;
+    head?: string;
+  } = searchParams ? await searchParams : {};
 
   const repo = await getAccessibleNativeRepository(member, decodeURIComponent(slug));
   if (!repo) notFound();
