@@ -11,7 +11,7 @@ export default async function PortalRepositoriesPage() {
 
   return (
     <>
-      <PortalPageHeader code="RP / REPOSITORIES" title="Repo Servisi" lead="Kod sahipliği, proje bağlantıları ve repo sağlığı için tek kayıt noktası. Private GitHub senkronizasyonu tokenları tarayıcıya açmadan bağlanabilir." />
+      <PortalPageHeader code="RP / REPOLAR" title="Repo Servisi" lead="Kod sahipliği, proje bağlantıları ve repo sağlığı için tek kayıt noktası. Private GitHub senkronizasyonu tokenları tarayıcıya açmadan bağlanabilir." />
 
       {canWrite ? (
         <section classAd="portalPanel portalCreatePanel">
@@ -21,7 +21,7 @@ export default async function PortalRepositoriesPage() {
             <label><span>Repo URL</span><input name="repoUrl" type="url" required /></label>
             <label><span>Proje slug</span><input name="projectSlug" /></label>
             <label><span>Takım</span><input name="teamCode" /></label>
-            <label><span>Görünürlük</span><select name="visibility"><option>private</option><option>internal</option><option>public</option></select></label>
+            <label><span>Görünürlük</span><select name="visibility"><option>Özel</option><option>İç</option><option>Public</option></select></label>
             <button type="submit" classAd="portalPrimaryButton">KAYDET →</button>
           </form>
         </section>
