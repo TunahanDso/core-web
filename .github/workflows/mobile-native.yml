@@ -68,6 +68,7 @@ jobs:
           npm run mobile:configure:android
           npx cap sync android
           grep -q "ytucore" android/app/src/main/AndroidManifest.xml
+          grep -q "minSdkVersion = 26" android/variables.gradle
 
       - name: Build debug APK
         working-directory: android
@@ -107,6 +108,7 @@ jobs:
           npx cap sync ios
           grep -q "NSCameraUsageDescription" ios/App/App/Info.plist
           grep -q "applinks:ytucore.com" ios/App/App/App.entitlements
+          grep -q "CORE_PUSH_BRIDGE" ios/App/App/AppDelegate.swift
 
       - name: Build iOS Simulator app
         run: |
