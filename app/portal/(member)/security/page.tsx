@@ -3,7 +3,7 @@ import { requirePortalMember } from "@/lib/portal/auth";
 import { env } from "cloudflare:workers";
 import { portalRoleLabel } from "@/lib/portal/labels";
 import { listPortalMobileDevices, portalMobilePublicConfig } from "@/lib/portal/mobile";
-import { revokePortalMobileDeviceAction } from "@/app/portal/mobile-actions";
+import { revokePortalMobileDeviceAction, setPortalMobileDeviceTrustAction } from "@/app/portal/mobile-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,7 @@ export default async function PortalSecurityPage() {
         <article><span>HESAP</span><h3>{member.email}</h3><p>Rol: {portalRoleLabel(member.role)}</p><b>AKTİF OTURUM</b></article>
         <article><span>OTURUM MODELİ</span><h3>Sunucu taraflı iptal edilebilir token</h3><p>HttpOnly cookie + D1 token hash; portal API'leri aynı oturum sınırını kullanır.</p><b>EN FAZLA 7 GÜN</b></article>
         <article><span>MOBİL APP</span><h3>Capacitor shell · v{mobileConfig.appVersion}</h3><p>{mobileConfig.androidPackage} / {mobileConfig.iosBundleId}</p><b>{mobileConfig.handoffEnabled ? "HANDOFF AÇIK" : "HANDOFF KONTROLLÜ"}</b></article>
-        <article><span>GÜVEN MODELİ</span><h3>Device registry aktif</h3><p>APNs / FCM token registry aktif; biyometrik trusted-device katmanı sonraki native güvenlik fazı.</p><b>PUSH + REVOKE</b></article>
+        <article><span>GÜVEN MODELİ</span><h3>Device registry + trust state</h3><p>APNs / FCM token registry aktif. Trusted işareti cihaz tercihidir; parola, oturum veya rol kontrolünü asla atlamaz.</p><b>PUSH + TRUST + REVOKE</b></article>
       </section>
 
       <section className="portalPanel portalMobileDevicePanel">
@@ -48,10 +48,17 @@ export default async function PortalSecurityPage() {
                 </div>
                 <em className={"state " + String(device.trusted_state || "pending")}>{String(device.trusted_state || "pending").toUpperCase()}</em>
                 {String(device.trusted_state) !== "revoked" ? (
-                  <form action={revokePortalMobileDeviceAction}>
-                    <input type="hidden" name="deviceId" value={String(device.id)} />
-                    <button type="submit">REVOKE</button>
-                  </form>
+                  <div className="portalDeviceActions">
+                    <form action={setPortalMobileDeviceTrustAction}>
+                      <input type="hidden" name="deviceId" value={String(device.id)} />
+                      <input type="hidden" name="state" value={String(device.trusted_state) === "trusted" ? "pending" : "trusted"} />
+                      <button type="submit">{String(device.trusted_state) === "trusted" ? "PENDING" : "TRUST"}</button>
+                    </form>
+                    <form action={revokePortalMobileDeviceAction}>
+                      <input type="hidden" name="deviceId" value={String(device.id)} />
+                      <button type="submit">REVOKE</button>
+                    </form>
+                  </div>
                 ) : <small>İPTAL EDİLDİ</small>}
               </article>
             ))}
