@@ -370,8 +370,10 @@ export default async function PortalRepositoryWorkspacePage({
                 key={String(review.id)}
                 href={
                   "/portal/repositories/" + encodeURIComponent(repo.slug) +
-                  "/review?base=" + encodeURIComponent(String(review.base_ref)) +
-                  "&head=" + encodeURIComponent(String(review.head_ref)) +
+                  "/review?base=" + encodeURIComponent(String(review.base_sha)) +
+                  "&head=" + encodeURIComponent(String(review.head_sha)) +
+                  "&baseRef=" + encodeURIComponent(String(review.base_ref)) +
+                  "&headRef=" + encodeURIComponent(String(review.head_ref)) +
                   "&view=split"
                 }
               >
