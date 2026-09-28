@@ -112,7 +112,7 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
     }).catch(() => null);
 
     if (isNative || isStandalone) {
-      document.documentElement.dataset.coreNative = isNative ? "native" : "pwa";
+      document.documentElement.dataset.coreNative = isNative ? "native-v2" : "pwa";
       void promote.then(async () => {
         const platform = isNative
           ? Capacitor.getPlatform()
