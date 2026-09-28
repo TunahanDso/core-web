@@ -42,7 +42,7 @@ export default async function PortalDashboard() {
         <article><span>AÇIK GÖREVLER</span><b>{metrics.openTasks}</b><small>ilgilenilmesi gerekiyor</small></article>
         <article><span>BİLGİ KAYITLARI</span><b>{metrics.resources}</b><small>kütüphane + arşiv</small></article>
         <article><span>DÜŞÜK STOK</span><b>{metrics.lowStock}</b><small>envanter uyarıları</small></article>
-        <article><span>BİLDİRİMLER</span><b>{metrics.okunmamış}</b><small>okunmamış</small></article>
+        <article><span>BİLDİRİMLER</span><b>{metrics.unread}</b><small>okunmamış</small></article>
         <article><span>CANLI ARAÇLAR</span><b>{metrics.vehiclesOnline}</b><small>salt okunur telemetri</small></article>
       </section>
 
@@ -57,7 +57,7 @@ export default async function PortalDashboard() {
               <span>{code}</span>
               <h3>{title}</h3>
               <p>{text}</p>
-              <small>OPEN →</small>
+              <small>AÇ →</small>
             </a>
           ))}
         </div>
