@@ -48,7 +48,7 @@ export default async function PortalSearchPage({
       </div></section> : null}
 
       {results.members.length ? <section className="portalSearchSection"><h2>Üyeler</h2><div className="portalSearchResults">
-        {results.members.map((item) => <a href="/portal/members" key={String(item.id)}><span>ÜYE</span><div><b>{String(item.full_name || item.email)}</b><small>{String(item.email)}</small></div><em>{portalRoleLabel(String(item.role))}</em></a>)}
+        {results.members.map((item) => <a href={"/portal/members/" + encodeURIComponent(String(item.id))} key={String(item.id)}><span>ÜYE</span><div><b>{String(item.full_name || item.email)}</b><small>{String(item.email)}</small></div><em>{portalRoleLabel(String(item.role))}</em></a>)}
       </div></section> : null}
     </>
   );
