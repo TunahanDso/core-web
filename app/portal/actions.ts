@@ -10,9 +10,13 @@ import {
   requirePortalRole,
 } from "@/lib/portal/auth";
 import {
+  createPortalCalendarEvent,
+  createPortalMailThread,
+  createPortalNotification,
   createPortalRepository,
   createPortalResource,
   createPortalTask,
+  markPortalNotificationRead,
   sendPortalMessage,
   updatePortalTaskStatus,
   upsertPortalInventoryItem,
@@ -187,4 +191,71 @@ export async function sendChatMessageAction(formData: FormData) {
   await sendPortalMessage(channelId, member.id, body);
   revalidatePath("/portal/chat");
   redirect("/portal/chat?channel=" + encodeURIComponent(channelId));
+}
+
+
+export async function createMailThreadAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const subject = textValue(formData, "subject");
+  const body = textValue(formData, "body");
+  const participants = formData.getAll("participantId").map((item) => String(item)).filter(Boolean);
+  if (!subject || !body) throw new Error("Subject and message are required.");
+
+  await createPortalMailThread({
+    subject,
+    body,
+    senderId: member.id,
+    participantIds: participants,
+  });
+
+  revalidatePath("/portal/mail");
+  redirect("/portal/mail?created=1");
+}
+
+export async function createCalendarEventAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const title = textValue(formData, "title");
+  const startsAt = textValue(formData, "startsAt");
+  if (!title || !startsAt) throw new Error("Event title and start time are required.");
+
+  await createPortalCalendarEvent({
+    title,
+    description: textValue(formData, "description"),
+    startsAt,
+    endsAt: textValue(formData, "endsAt") || null,
+    location: textValue(formData, "location"),
+    teamCode: textValue(formData, "teamCode") || null,
+    projectSlug: textValue(formData, "projectSlug") || null,
+    actorId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/calendar");
+  redirect("/portal/calendar?created=1");
+}
+
+export async function createNotificationAction(formData: FormData) {
+  const member = await requirePortalRole(["admin","lead"]);
+  const title = textValue(formData, "title");
+  if (!title) throw new Error("Notification title is required.");
+
+  await createPortalNotification({
+    memberId: textValue(formData, "memberId") || null,
+    kind: textValue(formData, "kind") || "info",
+    title,
+    body: textValue(formData, "body"),
+    href: textValue(formData, "href") || null,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/notifications");
+  redirect("/portal/notifications?created=1");
+}
+
+export async function markNotificationReadAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const id = textValue(formData, "id");
+  if (!id) throw new Error("Notification id is required.");
+  await markPortalNotificationRead(id, member.id);
+  revalidatePath("/portal/notifications");
 }
