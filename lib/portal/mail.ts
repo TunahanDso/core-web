@@ -35,6 +35,15 @@ function mailFrom() {
     : "YTÜ CORE Portal <portal@ytucore.com>";
 }
 
+function cloudflareFrom() {
+  const value = mailFrom().trim();
+  const match = value.match(/^(.+?)\s*<([^<>]+)>$/);
+  if (!match) return value;
+  const name = match[1].trim().replace(/^["']|["']$/g, "");
+  const email = match[2].trim();
+  return name ? { email, name } : email;
+}
+
 function mailReplyTo() {
   return typeof env.PORTAL_MAIL_REPLY_TO === "string" && env.PORTAL_MAIL_REPLY_TO
     ? env.PORTAL_MAIL_REPLY_TO
@@ -131,7 +140,7 @@ async function deliverPortalEmail(payload: MailPayload): Promise<PortalMailDeliv
   if (env.EMAIL && typeof env.EMAIL.send === "function") {
     try {
       const result = await env.EMAIL.send({
-        from: mailFrom(),
+        from: cloudflareFrom(),
         to: payload.to,
         subject: payload.subject,
         text: payload.text,
