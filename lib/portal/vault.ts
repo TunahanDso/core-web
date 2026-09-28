@@ -114,31 +114,47 @@ export async function listPortalVaultFiles(options: {
   const limit = Math.min(Math.max(options.limit ?? 200, 1), 500);
   bindings.push(limit);
 
-  const response = await database().prepare(
-    `SELECT * FROM portal_vault_files WHERE ${clauses.join(" AND ")} ORDER BY updated_at DESC LIMIT ?`
-  ).bind(...bindings).all<Record<string, unknown>>();
-
-  return response.results ?? [];
+  try {
+    const response = await database().prepare(
+      `SELECT * FROM portal_vault_files WHERE ${clauses.join(" AND ")} ORDER BY updated_at DESC LIMIT ?`
+    ).bind(...bindings).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    // Backward compatibility: production can deploy before the additive V4 migration is applied.
+    return [];
+  }
 }
 
 export async function getPortalVaultFile(fileId: string) {
-  return database().prepare(
-    "SELECT * FROM portal_vault_files WHERE id=? LIMIT 1"
-  ).bind(fileId).first<Record<string, unknown>>();
+  try {
+    return await database().prepare(
+      "SELECT * FROM portal_vault_files WHERE id=? LIMIT 1"
+    ).bind(fileId).first<Record<string, unknown>>();
+  } catch {
+    return null;
+  }
 }
 
 export async function listPortalVaultVersions(fileId: string) {
-  const response = await database().prepare(
-    "SELECT * FROM portal_vault_versions WHERE file_id=? ORDER BY revision DESC"
-  ).bind(fileId).all<Record<string, unknown>>();
-  return response.results ?? [];
+  try {
+    const response = await database().prepare(
+      "SELECT * FROM portal_vault_versions WHERE file_id=? ORDER BY revision DESC"
+    ).bind(fileId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function listPortalDesignDerivatives(fileId: string) {
-  const response = await database().prepare(
-    "SELECT * FROM portal_design_derivatives WHERE file_id=? ORDER BY source_revision DESC, created_at DESC"
-  ).bind(fileId).all<Record<string, unknown>>();
-  return response.results ?? [];
+  try {
+    const response = await database().prepare(
+      "SELECT * FROM portal_design_derivatives WHERE file_id=? ORDER BY source_revision DESC, created_at DESC"
+    ).bind(fileId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function createPortalVaultFile(input: {
