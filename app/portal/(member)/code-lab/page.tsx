@@ -16,12 +16,12 @@ export default async function PortalCodeLabPage({
   searchParams?: Promise<{ submitted?: string }>;
 }) {
   const member = await requirePortalMember();
-  const [services, repositories, runs, query] = await Promise.all([
+  const [services, repositories, runs] = await Promise.all([
     Promise.resolve(getEngineeringServiceStatus()),
     listNativeRepositories(),
     listPortalCodeRuns(member.id, 60),
-    searchParams ?? Promise.resolve({}),
   ]);
+  const query: { submitted?: string } = searchParams ? await searchParams : {};
 
   const tasks = Object.entries(RUNNER_TASKS).flatMap(([language, values]) =>
     values.map(([id,label,command]) => ({ language, id, label, command }))
