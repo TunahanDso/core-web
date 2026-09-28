@@ -1,0 +1,59 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "core-runner",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-29",
+  "compatibility_flags": ["nodejs_compat"],
+  "containers": [
+    {
+      "class_name": "RunnerContainer",
+      "image": "./Dockerfile",
+      "max_instances": 4,
+      "instance_type": "basic",
+      "constraints": {
+        "jurisdiction": "eu"
+      }
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RUNNER_SANDBOX",
+        "class_name": "RunnerContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "runner-v1",
+      "new_sqlite_classes": ["RunnerContainer"]
+    }
+  ],
+  "workflows": [
+    {
+      "name": "core-code-run",
+      "binding": "CODE_RUN_WORKFLOW",
+      "class_name": "CodeRunWorkflow",
+      "default_retention": {
+        "success_retention": "1 day",
+        "error_retention": "7 days"
+      }
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "core-web-cms",
+      "database_id": "7c3b6174-8deb-4934-ae53-1f3da5d944a3"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "core-web-media"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
