@@ -26,8 +26,21 @@ declare module "cloudflare:workers" {
     exec(query: string): Promise<D1ExecResult>;
   }
 
+  export interface R2ObjectBody {
+    body: ReadableStream;
+    size?: number;
+    httpMetadata?: { contentType?: string };
+  }
+
   export interface R2Bucket {
     head(key: string): Promise<unknown | null>;
+    get(key: string): Promise<R2ObjectBody | null>;
+    put(
+      key: string,
+      value: ArrayBuffer | ArrayBufferView | ReadableStream | string,
+      options?: { httpMetadata?: { contentType?: string } }
+    ): Promise<unknown>;
+    delete(key: string): Promise<void>;
   }
 
   export const env: {
