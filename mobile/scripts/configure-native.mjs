@@ -49,6 +49,7 @@ ${marker}
 }
 
 function configureIos() {
+  const apsEnvironment = process.env.CORE_APS_ENVIRONMENT === "production" ? "production" : "development";
   const plist = "ios/App/App/Info.plist";
   const project = "ios/App/App.xcodeproj/project.pbxproj";
   if (!fs.existsSync(plist) || !fs.existsSync(project)) {
@@ -100,7 +101,7 @@ function configureIos() {
 		<string>applinks:ytucore.com</string>
 	</array>
 	<key>aps-environment</key>
-	<string>development</string>
+	<string>${apsEnvironment}</string>
 </dict>
 </plist>
 `;
@@ -139,7 +140,7 @@ function configureIos() {
     write(appDelegate,appDelegateSource);
   }
 
-  console.log("iOS custom URL scheme, Universal Links and APNs bridge configured.");
+  console.log("iOS custom URL scheme, Universal Links and APNs bridge configured for " + apsEnvironment + ".");
 }
 
 if (platform === "android") configureAndroid();
