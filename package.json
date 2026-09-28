@@ -14,7 +14,13 @@
     "start": "vinext start",
     "deploy": "vinext-cloudflare deploy --config dist/server/wrangler.json --skip-build",
     "typecheck": "tsc --noEmit",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv worker-configuration.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv worker-configuration.d.ts",
+    "mobile:add:android": "cap add android",
+    "mobile:add:ios": "cap add ios",
+    "mobile:sync": "cap sync",
+    "mobile:doctor": "cap doctor",
+    "mobile:open:android": "cap open android",
+    "mobile:open:ios": "cap open ios"
   },
   "dependencies": {
     "@vinext/cloudflare": "1.0.0-beta.11",
@@ -23,7 +29,9 @@
     "react-dom": "19.3.0",
     "react-server-dom-webpack": "19.3.0",
     "vinext": "^1.0.0-beta.13",
-    "jose": "^6.1.0"
+    "jose": "^6.1.0",
+    "@capacitor/app": "8.1.1",
+    "@capacitor/core": "8.5.2"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.60.2",
@@ -34,6 +42,9 @@
     "@vitejs/plugin-rsc": "^0.5.35",
     "typescript": "^5.6.0",
     "vite": "^8.3.1",
-    "wrangler": "^4.141.0"
+    "wrangler": "^4.141.0",
+    "@capacitor/android": "8.5.2",
+    "@capacitor/cli": "8.5.2",
+    "@capacitor/ios": "8.5.2"
   }
 }

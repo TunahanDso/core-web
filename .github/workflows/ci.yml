@@ -71,17 +71,18 @@ jobs:
               "portal_mail_attachments",
               "portal_native_repositories",
               "portal_repo_gateways",
-              "portal_code_runs"
+              "portal_code_runs",
+              "portal_mobile_devices"
             ];
             for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL")) {
-              throw new Error("Portal engineering OS migration must be part of the idempotent bootstrap path.");
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL")) {
+              throw new Error("Portal engineering/mobile migrations must be part of the idempotent bootstrap path.");
             }
-            console.log("Portal bootstrap uses prepared D1 batch() and includes V4 engineering OS tables.");
+            console.log("Portal bootstrap uses prepared D1 batch() and includes V5 native mobile tables.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
             if (!mailSource.includes("not_configured")) {
@@ -105,6 +106,34 @@ jobs:
               throw new Error("CMS Worker must not execute arbitrary user code.");
             }
             console.log("PWA cache boundary and isolated engineering-service boundary validated.");
+
+            const authSource = fs.readFileSync("lib/portal/auth.ts", "utf8");
+            if (!authSource.includes("path: \"/\"")) {
+              throw new Error("Portal session cookie must be root-scoped so authenticated /api/portal routes work.");
+            }
+            if (!authSource.includes("promoteLegacyPortalSessionCookie")) {
+              throw new Error("Legacy /portal session cookies need a migration path.");
+            }
+            const mobileRuntime = fs.readFileSync("components/portal/PortalMobileRuntime.tsx", "utf8");
+            if (!mobileRuntime.includes("Capacitor.isNativePlatform()") || !mobileRuntime.includes("appUrlOpen")) {
+              throw new Error("Native mobile runtime/deep-link handling is missing.");
+            }
+            if (!mobileRuntime.includes("core_mobile_handoff_attempted")) {
+              throw new Error("Mobile browser handoff must prevent redirect loops.");
+            }
+            const capacitorConfig = fs.readFileSync("capacitor.config.ts", "utf8");
+            if (!capacitorConfig.includes("appId: \"com.ytucore.portal\"") || !capacitorConfig.includes("https://ytucore.com/portal?native=1")) {
+              throw new Error("Capacitor production portal shell identity is invalid.");
+            }
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            if (pkg.dependencies?.["@capacitor/core"] !== "8.5.2" || pkg.devDependencies?.["@capacitor/cli"] !== "8.5.2") {
+              throw new Error("Capacitor toolchain must stay pinned to the reviewed 8.5.2 release.");
+            }
+            const mobileVars = JSON.parse(fs.readFileSync("wrangler.jsonc", "utf8")).vars ?? {};
+            if (!mobileVars.PORTAL_MOBILE_APP_SCHEME || !mobileVars.PORTAL_ANDROID_PACKAGE || !mobileVars.PORTAL_IOS_BUNDLE_ID) {
+              throw new Error("Public mobile application identity is missing from runtime config.");
+            }
+            console.log("Native mobile shell, session migration and deep-link safety validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
@@ -136,11 +165,14 @@ jobs:
             if (!cfg.vars?.TEAM_DOMAIN) throw new Error("TEAM_DOMAIN missing from generated config");
             if (!cfg.vars?.PORTAL_BASE_URL) throw new Error("PORTAL_BASE_URL missing from generated config");
             if (!cfg.vars?.PORTAL_MAIL_FROM) throw new Error("PORTAL_MAIL_FROM missing from generated config");
+            if (!cfg.vars?.PORTAL_MOBILE_APP_SCHEME) throw new Error("PORTAL_MOBILE_APP_SCHEME missing from generated config");
+            if (!cfg.vars?.PORTAL_ANDROID_PACKAGE) throw new Error("PORTAL_ANDROID_PACKAGE missing from generated config");
+            if (!cfg.vars?.PORTAL_IOS_BUNDLE_ID) throw new Error("PORTAL_IOS_BUNDLE_ID missing from generated config");
             const d1 = (cfg.d1_databases ?? []).some((x) => x.binding === "DB");
             const r2 = (cfg.r2_buckets ?? []).some((x) => x.binding === "MEDIA");
             if (!d1) throw new Error("DB binding missing from generated config");
             if (!r2) throw new Error("MEDIA binding missing from generated config");
-            console.log("Generated Cloudflare config contains DB, MEDIA, Access config and portal mail metadata.");
+            console.log("Generated Cloudflare config contains DB, MEDIA, portal mail and mobile application identity.");
           '
 
       - name: Validate Worker package

@@ -194,11 +194,21 @@ export async function createPortalSession(memberId: string) {
     .run();
 
   const jar = await cookies();
+  // Clear the legacy path-scoped cookie before issuing the API-compatible root cookie.
+  for (const path of ["/", "/portal"]) {
+    jar.set(SESSION_COOKIE, "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path,
+      maxAge: 0,
+    });
+  }
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
-    path: "/portal",
+    path: "/",
     maxAge: SESSION_SECONDS,
   });
 }
@@ -212,13 +222,15 @@ export async function clearPortalSession() {
     await env.DB.prepare("DELETE FROM portal_sessions WHERE session_hash = ?").bind(hash).run();
   }
 
-  jar.set(SESSION_COOKIE, "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/portal",
-    maxAge: 0,
-  });
+  for (const path of ["/", "/portal"]) {
+    jar.set(SESSION_COOKIE, "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path,
+      maxAge: 0,
+    });
+  }
 }
 
 export async function getPortalMember(): Promise<PortalMember | null> {
@@ -314,4 +326,29 @@ export async function loginPortalMember(email: string, password: string) {
 
   await createPortalSession(row.id);
   return rowToMember(row);
+}
+
+
+export async function promoteLegacyPortalSessionCookie() {
+  const jar = await cookies();
+  const token = jar.get(SESSION_COOKIE)?.value;
+  if (!token || !env.DB) return false;
+
+  const hash = await sha256Hex(token);
+  const valid = await env.DB.prepare(
+    "SELECT 1 AS ok FROM portal_sessions s JOIN portal_members m ON m.id=s.member_id " +
+    "WHERE s.session_hash=? AND datetime(s.expires_at)>datetime('now') AND m.status='active' LIMIT 1"
+  ).bind(hash).first<{ ok: number }>();
+  if (!valid) return false;
+
+  // Writing a root-scoped cookie makes authenticated /api/portal routes available
+  // without invalidating the existing D1 session token.
+  jar.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_SECONDS,
+  });
+  return true;
 }

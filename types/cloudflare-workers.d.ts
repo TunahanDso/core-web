@@ -74,6 +74,15 @@ declare module "cloudflare:workers" {
     CORE_RUNNER_TOKEN?: string;
     CORE_CONVERTER_URL?: string;
     CORE_CONVERTER_TOKEN?: string;
+    PORTAL_MOBILE_APP_SCHEME?: string;
+    PORTAL_MOBILE_APP_VERSION?: string;
+    PORTAL_MOBILE_HANDOFF_ENABLED?: string;
+    PORTAL_ANDROID_PACKAGE?: string;
+    PORTAL_ANDROID_PLAY_STORE_URL?: string;
+    PORTAL_ANDROID_SHA256_CERT_FINGERPRINTS?: string;
+    PORTAL_IOS_BUNDLE_ID?: string;
+    PORTAL_IOS_APP_STORE_URL?: string;
+    PORTAL_IOS_TEAM_ID?: string;
     EMAIL?: EmailBinding;
     [key: string]: unknown;
   };

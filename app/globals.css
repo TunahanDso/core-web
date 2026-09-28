@@ -6024,3 +6024,137 @@ html,body{max-width:100%;overflow-x:clip}
   .publicHeader .joinNav{display:inline-flex!important}
   .navInlineUtility{display:flex!important;align-items:center;gap:5px}
 }
+
+
+/* =========================================================
+   CORE PORTAL V5 — NATIVE MOBILE HANDOFF
+   ========================================================= */
+
+.portalAppHandoff{
+  position:fixed;
+  z-index:180;
+  inset:0;
+  display:grid;
+  place-items:end center;
+  padding:18px 14px calc(18px + env(safe-area-inset-bottom));
+  background:rgba(17,19,23,.62);
+  backdrop-filter:blur(10px);
+}
+.portalAppHandoff>section{
+  width:min(560px,100%);
+  display:grid;
+  gap:14px;
+  padding:22px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:18px;
+  background:#fbfcf9;
+  box-shadow:0 22px 70px rgba(0,0,0,.28);
+}
+.portalAppHandoffKicker{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.13em;
+}
+.portalAppHandoff h2{
+  margin:0;
+  font-size:29px;
+  letter-spacing:-.04em;
+}
+.portalAppHandoff p{
+  margin:0;
+  color:#697178;
+  line-height:1.62;
+}
+.portalAppHandoffActions{
+  display:grid;
+  gap:7px;
+}
+.portalAppHandoffActions a,
+.portalAppHandoffActions button{
+  min-height:48px;
+  display:grid;
+  place-items:center;
+  border:1px solid #d8dbd5;
+  border-radius:8px;
+  background:#fff;
+  color:#17191d;
+  padding:0 14px;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.06em;
+  cursor:pointer;
+  text-decoration:none;
+}
+.portalAppHandoffActions a.primary{
+  border-color:#ff6500;
+  background:#ff6500;
+  color:#111;
+}
+.portalAppHandoffActions a.store{
+  border-color:#17191d;
+}
+.portalAppHandoff>section>small{
+  color:#949a9f;
+  font-size:9px;
+  line-height:1.45;
+}
+
+.portalMobileDevicePanel{margin-top:14px}
+.portalMobileDeviceList{display:grid}
+.portalMobileDeviceList article{
+  display:grid;
+  grid-template-columns:70px minmax(0,1fr) 95px auto;
+  gap:10px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid #eceee9;
+}
+.portalMobileDevicePlatform{
+  display:grid;
+  place-items:center;
+  min-height:34px;
+  border:1px solid #d9dcd6;
+  background:#f6f7f3;
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+}
+.portalMobileDeviceList article>div{display:grid;gap:4px;min-width:0}
+.portalMobileDeviceList article>div>b{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.portalMobileDeviceList article>div>small{color:#858c92}
+.portalMobileDeviceList em{
+  font-style:normal;
+  font:850 8px ui-monospace,monospace;
+}
+.portalMobileDeviceList em.trusted{color:#278451}
+.portalMobileDeviceList em.pending{color:#a46a19}
+.portalMobileDeviceList em.revoked{color:#b43a22}
+.portalMobileDeviceList button{
+  min-height:34px;
+  border:1px solid #e0b8ad;
+  background:#fff7f4;
+  color:#a9341d;
+  padding:0 10px;
+  font:850 7px ui-monospace,monospace;
+  cursor:pointer;
+}
+
+html[data-core-native="native"] .portalInstallButton{
+  display:none!important;
+}
+html[data-core-native="native"] .portalMobileNav{
+  padding-bottom:calc(7px + env(safe-area-inset-bottom));
+}
+
+@media(max-width:640px){
+  .portalAppHandoff{padding-left:8px;padding-right:8px}
+  .portalAppHandoff>section{padding:18px;border-radius:15px}
+  .portalAppHandoff h2{font-size:25px}
+  .portalMobileDeviceList article{
+    grid-template-columns:52px minmax(0,1fr) auto;
+  }
+  .portalMobileDeviceList article>em{grid-column:2}
+  .portalMobileDeviceList article>form{grid-column:3;grid-row:1/3}
+}
