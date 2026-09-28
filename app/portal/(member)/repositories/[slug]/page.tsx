@@ -338,9 +338,22 @@ export default async function PortalRepositoryWorkspacePage({
                 </article>
               ))}
             </div>
+            <div className="repoReviewLaunch">
+              <div>
+                <span>RP-02 / CODE REVIEW</span>
+                <b>Satır bazlı diff, thread ve review sonucu</b>
+                <small>Review immutable base/head commit snapshot'ına sabitlenir.</small>
+              </div>
+              <a
+                className="portalPrimaryButton"
+                href={"/portal/repositories/" + encodeURIComponent(repo.slug) + "/review?base=" + encodeURIComponent(workspace.compare.base) + "&head=" + encodeURIComponent(workspace.compare.head) + "&view=split"}
+              >
+                CODE REVIEW AÇ →
+              </a>
+            </div>
           </>
         ) : (
-          <p className="repoReviewHint">İki ref seçildiğinde değişen dosyalar, ekleme/silme sayıları ve merge-base özeti burada açılır. Satır bazlı diff + review thread bir sonraki RP birimidir.</p>
+          <p className="repoReviewHint">İki ref seçildiğinde dosya değişiklik özeti burada açılır; ardından CODE REVIEW ekranından gerçek hunks ve satır thread'lerine geçilir.</p>
         )}
       </section>
 
