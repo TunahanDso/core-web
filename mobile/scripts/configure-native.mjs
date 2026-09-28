@@ -76,6 +76,20 @@ function configureIos() {
     write(plist, info);
   }
 
+  if (!info.includes("NSCameraUsageDescription")) {
+    const privacy = `
+\t<key>NSCameraUsageDescription</key>
+\t<string>CORE üyeleri saha, prototip ve test fotoğraflarını teknik Vault'a kaydedebilmek için kamerayı kullanır.</string>
+\t<key>NSPhotoLibraryUsageDescription</key>
+\t<string>CORE üyeleri teknik görselleri Vault'a eklemek için fotoğraf arşivine erişebilir.</string>
+\t<key>NSPhotoLibraryAddUsageDescription</key>
+\t<string>CORE uygulaması gerektiğinde oluşturulan teknik görselleri cihaz fotoğraf arşivine kaydedebilir.</string>`;
+    info = read(plist);
+    if (!info.includes("</dict>")) throw new Error("Info.plist root dictionary was not found.");
+    info = info.replace(/\s*<\/dict>\s*<\/plist>\s*$/, privacy + "\n</dict>\n</plist>\n");
+    write(plist, info);
+  }
+
   const entitlements = "ios/App/App/App.entitlements";
   const entitlementBody = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
