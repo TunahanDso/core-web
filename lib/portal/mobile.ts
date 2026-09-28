@@ -65,6 +65,12 @@ export async function setPortalMobileDeviceTrust(input: {
   deviceId: string;
   trustedState: "pending" | "trusted" | "revoked";
 }) {
+  if (input.trustedState === "revoked") {
+    await database().prepare(
+      "UPDATE portal_mobile_devices SET trusted_state='revoked',push_provider=NULL,push_token=NULL,updated_at=CURRENT_TIMESTAMP WHERE id=? AND member_id=?"
+    ).bind(input.deviceId,input.memberId).run();
+    return;
+  }
   await database().prepare(
     "UPDATE portal_mobile_devices SET trusted_state=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND member_id=?"
   ).bind(input.trustedState,input.deviceId,input.memberId).run();
