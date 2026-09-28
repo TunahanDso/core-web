@@ -8053,3 +8053,64 @@ html[data-core-native="native-v2"] .portalTaskFilterSummary{
   gap:9px;
 }
 html[data-core-native="native-v2"] .portalTaskFilterSummary span{margin:0}
+
+
+/* CORE PORTAL V8 — notification controls */
+.portalNotificationToolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin:0 0 12px;
+  padding:8px;
+  border:1px solid var(--portal-line);
+  border-radius:12px;
+  background:#fff;
+}
+.portalNotificationToolbar nav{display:flex;gap:6px}
+.portalNotificationToolbar nav a{
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 11px;
+  border-radius:9px;
+  color:#777e84;
+  font:900 8px ui-monospace,monospace;
+}
+.portalNotificationToolbar nav a b{
+  min-width:19px;height:19px;
+  display:grid;place-items:center;
+  border-radius:999px;
+  background:#eceee9;
+  color:#7e858a;
+  font-size:7px;
+}
+.portalNotificationToolbar nav a.active{
+  background:#fff1e6;
+  color:#c94d00;
+}
+.portalNotificationToolbar nav a.active b{
+  background:#ff6500;
+  color:#111;
+}
+.portalNotificationToolbar form button{
+  min-height:38px;
+  border:0;
+  border-radius:9px;
+  background:#17191d;
+  color:#fff;
+  padding:0 12px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalNotificationToolbar>span{
+  color:#8c9398;
+  font:850 8px ui-monospace,monospace;
+  padding-right:8px;
+}
+@media(max-width:620px){
+  .portalNotificationToolbar{align-items:stretch;flex-direction:column}
+  .portalNotificationToolbar nav{display:grid;grid-template-columns:1fr 1fr}
+  .portalNotificationToolbar nav a{justify-content:center}
+  .portalNotificationToolbar form button{width:100%}
+}
