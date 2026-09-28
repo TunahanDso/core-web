@@ -1,4 +1,5 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
+import { requirePortalMember } from "@/lib/portal/auth";
 import { uploadPortalVaultAction } from "@/app/portal/vault-actions";
 import { listPortalResources } from "@/lib/portal/db";
 import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
@@ -18,8 +19,9 @@ export default async function PortalKütüphanePage({
     ? String(query.state) as "active" | "archived" | "trashed"
     : "active";
 
+  const member = await requirePortalMember();
   const [vaultFiles, legacyResources] = await Promise.all([
-    listPortalVaultFiles({ query: q || undefined, kind: kind || undefined, lifecycle }),
+    listPortalVaultFiles({ query: q || undefined, kind: kind || undefined, lifecycle, viewer: member }),
     listPortalResources(),
   ]);
 
