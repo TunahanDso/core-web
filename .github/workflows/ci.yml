@@ -41,7 +41,13 @@ jobs:
             if (source.includes("db.exec(")) {
               throw new Error("Showcase seed must not execute through D1 exec().");
             }
-            console.log("D1 seed runner uses atomic batch() and no unsupported control statements.");
+            if (source.includes('.split(";")')) {
+              throw new Error("Showcase seed must not naively split SQL on semicolons.");
+            }
+            if (!source.includes("splitSqlStatements")) {
+              throw new Error("Showcase seed must use quote-aware SQL statement parsing.");
+            }
+            console.log("D1 seed runner uses atomic batch() with quote-aware SQL parsing.");
           '
 
       - name: Typecheck
