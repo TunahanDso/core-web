@@ -2,12 +2,13 @@ import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
   listPortalCodeRuns,
+  listPortalCodeTerminalSessions,
   probeCodeRunner,
   RUNNER_LIMITS,
   RUNNER_TASKS,
 } from "@/lib/portal/code-lab";
 import { listAccessibleNativeRepositories } from "@/lib/portal/repositories";
-import { submitCodeRunAction } from "@/app/portal/engineering-actions";
+import { createCodeTerminalAction, submitCodeRunAction } from "@/app/portal/engineering-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +30,11 @@ function formatDate(value: unknown) {
 
 export default async function PortalCodeLabPage() {
   const member = await requirePortalMember();
-  const [runner, repositories, runs] = await Promise.all([
+  const [runner, repositories, runs, terminals] = await Promise.all([
     probeCodeRunner(),
     listAccessibleNativeRepositories(member),
     listPortalCodeRuns(member.id,80),
+    listPortalCodeTerminalSessions(member.id,12),
   ]);
 
   const tasks = Object.entries(RUNNER_TASKS).flatMap(([language, values]) =>
@@ -47,7 +49,7 @@ export default async function PortalCodeLabPage() {
       <PortalPageHeader
         code="CL / CODE LAB"
         title="İzole Kod Laboratuvarı"
-        lead="Native repository snapshot'larını CORE Runner'a gönder; derleme, test ve statik analiz Cloudflare Workflow + izole Linux container içinde çalışır. CMS Worker kullanıcı kodu execute etmez."
+        lead="Native repository snapshot'larında canlı terminal aç veya sabit build/test görevleri çalıştır. Shell ve job süreçleri CMS Worker'dan ayrılmış, internetsiz CORE Runner container'larında yürür."
       />
 
       <section className="runnerBoundary">
@@ -74,6 +76,60 @@ export default async function PortalCodeLabPage() {
         <article><span>PASSED</span><b>{passed}</b><small>son {runs.length} job</small></article>
         <article><span>FAILED</span><b>{failed}</b><small>failed / timeout</small></article>
       </section>
+
+      <section className="codeTerminalLaunch">
+        <div className="codeTerminalLaunchCopy">
+          <span>LIVE TERMINAL / CL-02</span>
+          <h2>Snapshot içinde gerçek, interaktif shell.</h2>
+          <p>
+            Python input(), CLI menüleri, derleyiciler, git-benzeri dosya inceleme akışları ve uzun komutlar
+            canlı stdin/stdout üzerinden çalışır. Oturum ephemeral, internet kapalı ve 30 dakika ile sınırlıdır.
+          </p>
+          <div>
+            <small>WEBSOCKET STREAM</small>
+            <small>XTERM</small>
+            <small>PTY</small>
+            <small>NETWORK DENY</small>
+          </div>
+        </div>
+        <form className="codeTerminalLaunchForm" action={createCodeTerminalAction}>
+          <label>
+            <span>Native repository</span>
+            <select name="repositoryRef" required defaultValue="">
+              <option value="" disabled>Repository seç</option>
+              {repositories.map((repo) => (
+                <option value={repo.slug} key={repo.id}>
+                  {repo.name} · {repo.team_code || "CORE"} · {repo.default_branch}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Snapshot / branch / commit SHA</span>
+            <input name="snapshotRef" defaultValue="main" maxLength={180} required />
+          </label>
+          <button className="portalPrimaryButton" type="submit" disabled={!runner.healthy || !repositories.length}>
+            {runner.healthy ? "LIVE TERMINAL AÇ →" : "RUNNER OFFLINE"}
+          </button>
+          <small>Terminaldeki dosya değişiklikleri otomatik commit edilmez.</small>
+        </form>
+      </section>
+
+      {terminals.length ? (
+        <section className="portalPanel codeTerminalHistory">
+          <div className="portalPanelHead"><span>SON TERMINAL OTURUMLARI</span><small>{terminals.length} KAYIT</small></div>
+          <div className="codeTerminalSessionList">
+            {terminals.map((terminal) => (
+              <a href={"/portal/code-lab/terminal/" + encodeURIComponent(terminal.id)} key={terminal.id}>
+                <span className={"terminalStatus " + terminal.status}>{String(terminal.status).toUpperCase()}</span>
+                <div><b>{String(terminal.repo_name || terminal.repository_slug)}</b><small>{terminal.snapshot_ref}{terminal.snapshot_sha ? " · " + shortSha(terminal.snapshot_sha) : ""}</small></div>
+                <small>{formatDate(terminal.created_at)}</small>
+                <strong>OPEN →</strong>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="portalPanel">
         <div className="portalPanelHead">

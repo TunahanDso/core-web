@@ -380,3 +380,156 @@ export async function getPortalCodeRunArtifact(
   if (!object) return null;
   return { artifact,object };
 }
+
+
+export type PortalCodeTerminalRow = {
+  id: string;
+  member_id: string;
+  native_repository_id: string;
+  service_repository_id: string;
+  repository_slug: string;
+  snapshot_ref: string;
+  snapshot_sha: string | null;
+  status: "preparing" | "ready" | "connected" | "closed" | "expired" | "failed";
+  expires_at: string;
+  created_at: string;
+  connected_at: string | null;
+  ended_at: string | null;
+  last_activity_at: string;
+  repo_name?: string | null;
+  repo_team_code?: string | null;
+};
+
+async function codeTerminalAccess(member: PortalMember, sessionId: string) {
+  await ensurePortalCodeLabSchema();
+  const row = await database().prepare(
+    "SELECT t.*,nr.name AS repo_name,nr.team_code AS repo_team_code " +
+    "FROM portal_code_terminal_sessions t " +
+    "LEFT JOIN portal_native_repositories nr ON nr.id=t.native_repository_id " +
+    "WHERE t.id=? LIMIT 1"
+  ).bind(sessionId).first<PortalCodeTerminalRow & { connect_token?: string | null }>();
+  if (!row) return null;
+  if (row.member_id === member.id || member.role === "admin") return row;
+  const repo = await getAccessibleNativeRepository(member,row.repository_slug);
+  if (!repo || !(await canManageNativeRepository(member,repo))) return null;
+  return row;
+}
+
+export async function listPortalCodeTerminalSessions(memberId: string, limit = 12) {
+  await ensurePortalCodeLabSchema();
+  const response = await database().prepare(
+    "SELECT t.id,t.member_id,t.native_repository_id,t.service_repository_id,t.repository_slug,t.snapshot_ref,t.snapshot_sha," +
+    "t.status,t.expires_at,t.created_at,t.connected_at,t.ended_at,t.last_activity_at," +
+    "nr.name AS repo_name,nr.team_code AS repo_team_code " +
+    "FROM portal_code_terminal_sessions t " +
+    "LEFT JOIN portal_native_repositories nr ON nr.id=t.native_repository_id " +
+    "WHERE t.member_id=? ORDER BY t.created_at DESC LIMIT ?"
+  ).bind(memberId,Math.min(Math.max(limit,1),30)).all<PortalCodeTerminalRow>();
+  return response.results ?? [];
+}
+
+export async function createPortalCodeTerminal(input: {
+  memberId: string;
+  actorEmail: string;
+  repo: NativeRepositoryRecord;
+  snapshotRef: string;
+}) {
+  await ensurePortalCodeLabSchema();
+  if (!input.repo.service_repository_id) throw new Error("Repository servis kimliği yok.");
+  const service = getCodeRunnerServiceStatus();
+  if (!service.url) throw new Error("CORE Runner henüz production'a bağlanmadı.");
+
+  const id = crypto.randomUUID();
+  const connectToken = randomToken();
+  const snapshotRef = cleanSnapshotRef(input.snapshotRef || input.repo.default_branch || "main");
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+  await database().batch([
+    database().prepare(
+      "INSERT INTO portal_code_terminal_sessions " +
+      "(id,member_id,native_repository_id,service_repository_id,repository_slug,snapshot_ref,connect_token,status,expires_at) " +
+      "VALUES (?,?,?,?,?,?,?,'preparing',?)"
+    ).bind(
+      id,input.memberId,input.repo.id,input.repo.service_repository_id,input.repo.slug,snapshotRef,connectToken,expiresAt
+    ),
+    database().prepare(
+      "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) " +
+      "VALUES (?,'code.terminal.create','code_terminal',?,?)"
+    ).bind(input.actorEmail,id,JSON.stringify({
+      repositorySlug:input.repo.slug,
+      snapshotRef,
+      expiresAt,
+    })),
+  ]);
+
+  try {
+    const response = await runnerFetch("/v1/terminals", {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body:JSON.stringify({
+        sessionId:id,
+        repositoryRef:input.repo.service_repository_id,
+        snapshotRef,
+        connectToken,
+      }),
+    });
+    const payload = await response.json().catch(() => null) as {
+      snapshotSha?: string;
+      error?: string;
+    } | null;
+    if (!response.ok) throw new Error(payload?.error || "Live terminal hazırlanamadı.");
+    await database().prepare(
+      "UPDATE portal_code_terminal_sessions SET status='ready',snapshot_sha=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(payload?.snapshotSha || null,id).run();
+  } catch (error) {
+    await database().prepare(
+      "UPDATE portal_code_terminal_sessions SET status='failed',ended_at=CURRENT_TIMESTAMP,last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(id).run();
+    throw error;
+  }
+
+  return id;
+}
+
+export async function getPortalCodeTerminal(member: PortalMember, sessionId: string) {
+  const terminal = await codeTerminalAccess(member,sessionId);
+  if (!terminal) return null;
+
+  const expires = new Date(String(terminal.expires_at)).getTime();
+  if (Number.isFinite(expires) && expires <= Date.now() && !["closed","failed","expired"].includes(terminal.status)) {
+    await database().prepare(
+      "UPDATE portal_code_terminal_sessions SET status='expired',ended_at=COALESCE(ended_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(sessionId).run();
+    terminal.status = "expired";
+  }
+
+  const token = String(terminal.connect_token || "");
+  const service = getCodeRunnerServiceStatus();
+  const socketUrl = service.url && token && ["ready","connected"].includes(terminal.status)
+    ? service.url.replace(/^https:/,"wss:") +
+      "/v1/terminals/" + encodeURIComponent(sessionId) +
+      "/socket?token=" + encodeURIComponent(token)
+    : null;
+  const { connect_token: _hidden, ...safeTerminal } = terminal;
+  return { terminal:safeTerminal,socketUrl };
+}
+
+export async function closePortalCodeTerminal(member: PortalMember, sessionId: string) {
+  const terminal = await codeTerminalAccess(member,sessionId);
+  if (!terminal) throw new Error("Live terminal oturumu bulunamadı.");
+  if (["closed","failed","expired"].includes(terminal.status)) return;
+
+  const token = String(terminal.connect_token || "");
+  if (!token) throw new Error("Terminal capability bulunamadı.");
+  const response = await runnerFetch(
+    "/v1/terminals/" + encodeURIComponent(sessionId) + "/close",
+    { method:"POST", headers:{ "x-core-terminal-token":token } }
+  );
+  if (!response.ok && response.status !== 409) {
+    const payload = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(payload?.error || "Terminal kapatılamadı.");
+  }
+  await database().prepare(
+    "UPDATE portal_code_terminal_sessions SET status='closed',ended_at=COALESCE(ended_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+  ).bind(sessionId).run();
+}

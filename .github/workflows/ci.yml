@@ -86,14 +86,15 @@ jobs:
               "portal_repo_review_submissions",
               "portal_code_run_execution",
               "portal_code_run_events",
-              "portal_code_run_artifacts"
+              "portal_code_run_artifacts",
+              "portal_code_terminal_sessions"
             ];
             for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL")) {
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL") || !portalBootstrap.includes("PORTAL_V9_SQL")) {
               throw new Error("Portal engineering/mobile/control-plane/review/code-lab migrations must be part of the idempotent bootstrap path.");
             }
             const nativeRepoEngine = fs.readFileSync("lib/portal/native-repo-engine.ts", "utf8");
@@ -136,7 +137,7 @@ jobs:
             if (!codeLabPage.includes("listAccessibleNativeRepositories") || codeLabPage.includes("listNativeRepositories()")) {
               throw new Error("Code Lab repository selector must enforce member-scoped repository access.");
             }
-            for (const required of ["createPortalCodeRun", "cancelPortalCodeRun", "retryPortalCodeRun", "dispatchToken"]) {
+            for (const required of ["createPortalCodeRun", "cancelPortalCodeRun", "retryPortalCodeRun", "dispatchToken", "createPortalCodeTerminal", "closePortalCodeTerminal"]) {
               if (!codeLab.includes(required)) throw new Error(`Code Lab lifecycle missing: ${required}`);
             }
             if (!runnerWorker.includes("extends Container") || !runnerWorker.includes("extends WorkflowEntrypoint")) {
@@ -145,13 +146,23 @@ jobs:
             if (!runnerWorker.includes("enableInternet = false") || !runnerSandbox.includes("TASKS = {")) {
               throw new Error("Sandbox must deny runtime internet and resolve commands from a fixed allowlist.");
             }
+            const liveTerminal = fs.readFileSync("components/portal/LiveCodeTerminal.tsx", "utf8");
+            for (const required of ["WebSocket", "onData", "@xterm/xterm", "@xterm/addon-fit"]) {
+              if (!liveTerminal.includes(required)) throw new Error(`CL-02 terminal client missing: ${required}`);
+            }
+            for (const required of ["WebSocketPair", "ctx.container.exec", "/v1/terminals", "terminalSocket", "stdin: \"pipe\""]) {
+              if (!runnerWorker.includes(required)) throw new Error(`CL-02 runner terminal transport missing: ${required}`);
+            }
+            if (!runnerSandbox.includes("/prepare-terminal") || !runnerSandbox.includes("prepare_terminal")) {
+              throw new Error("CL-02 sandbox must materialize an isolated terminal workspace.");
+            }
             if (!(runnerConfig.containers ?? []).length || !(runnerConfig.workflows ?? []).length) {
               throw new Error("CORE Runner Wrangler config must declare both Containers and Workflows.");
             }
             if (rootConfig.vars?.CORE_RUNNER_URL !== "https://core-runner.oyuncunun61.workers.dev") {
               throw new Error("Portal CORE_RUNNER_URL is not pointed at the production runner service.");
             }
-            console.log("CL-01 Code Lab access, lifecycle, Workflow and Container isolation validated.");
+            console.log("CL-02 Code Lab jobs + WebSocket live terminal isolation validated.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
             if (!mailSource.includes("not_configured")) {

@@ -175,9 +175,140 @@ async function persistRunResult(env, payload, snapshot, result) {
 
 export class RunnerContainer extends Container {
   defaultPort = 8080;
-  sleepAfter = "45s";
+  sleepAfter = "15m";
   enableInternet = false;
   pingEndpoint = "localhost/health";
+
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.env = env;
+  }
+
+  async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname !== "/internal/terminal") {
+      return this.containerFetch(request);
+    }
+    if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") {
+      return responseJson({ error:"websocket_required" }, { status:426 });
+    }
+
+    if (!this.ctx.container.running) await this.start();
+
+    const sessionId = String(request.headers.get("x-core-terminal-session") || "");
+    if (!/^[a-f0-9-]{36}$/i.test(sessionId)) {
+      return responseJson({ error:"invalid_terminal_session" }, { status:400 });
+    }
+    const workspace = "/tmp/core-terminal/" + sessionId;
+    const cols = Math.max(40, Math.min(240, Number(url.searchParams.get("cols") || 120) || 120));
+    const rows = Math.max(12, Math.min(100, Number(url.searchParams.get("rows") || 32) || 32));
+    const shell = "stty cols " + Math.round(cols) + " rows " + Math.round(rows) +
+      "; printf '\\033[38;5;208mCORE LIVE TERMINAL\\033[0m  snapshot workspace hazır\\r\\n'; " +
+      "exec bash --noprofile --norc -i";
+
+    const process = await this.ctx.container.exec(
+      ["script", "-qefc", shell, "/dev/null"],
+      {
+        cwd: workspace,
+        env: {
+          HOME: workspace,
+          TERM: "xterm-256color",
+          COLORTERM: "truecolor",
+          CORE_RUNNER_NETWORK: "deny",
+          PS1: "\\[\\033[38;5;208m\\]core\\[\\033[0m\\]:\\[\\033[36m\\]\\w\\[\\033[0m\\]$ ",
+        },
+        user: "runner",
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "combined",
+      }
+    );
+
+    const pair = new WebSocketPair();
+    const client = pair[0];
+    const server = pair[1];
+    server.accept();
+
+    const writer = process.stdin?.getWriter();
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    let writeChain = Promise.resolve();
+    let finished = false;
+
+    const touch = async () => {
+      try {
+        await this.env.DB.prepare(
+          "UPDATE portal_code_terminal_sessions SET last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+        ).bind(sessionId).run();
+      } catch {}
+    };
+    const closeSession = async (status = "closed") => {
+      if (finished) return;
+      finished = true;
+      try {
+        await this.env.DB.prepare(
+          "UPDATE portal_code_terminal_sessions SET status=?,ended_at=COALESCE(ended_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+        ).bind(status,sessionId).run();
+      } catch {}
+    };
+
+    server.addEventListener("message", (event) => {
+      let message = null;
+      try { message = JSON.parse(String(event.data || "")); } catch {}
+      if (!message || typeof message !== "object") return;
+      if (message.type === "input" && writer) {
+        const data = String(message.data || "").slice(0, 32 * 1024);
+        writeChain = writeChain
+          .then(() => writer.write(encoder.encode(data)))
+          .then(touch)
+          .catch(() => {});
+      } else if (message.type === "ping") {
+        try { server.send(JSON.stringify({ type:"pong",at:Date.now() })); } catch {}
+      } else if (message.type === "signal" && String(message.signal) === "SIGINT" && writer) {
+        writeChain = writeChain
+          .then(() => writer.write(encoder.encode("\u0003")))
+          .then(touch)
+          .catch(() => {});
+      }
+    });
+
+    server.addEventListener("close", () => {
+      try { process.kill(); } catch {}
+      if (writer) writeChain = writeChain.then(() => writer.close()).catch(() => {});
+      this.ctx.waitUntil(closeSession("closed"));
+    });
+
+    server.addEventListener("error", () => {
+      try { process.kill(); } catch {}
+      this.ctx.waitUntil(closeSession("failed"));
+    });
+
+    this.ctx.waitUntil((async () => {
+      try {
+        if (process.stdout) {
+          for await (const chunk of process.stdout) {
+            const data = decoder.decode(chunk, { stream:true });
+            if (data) {
+              try { server.send(JSON.stringify({ type:"output",data })); } catch { break; }
+            }
+          }
+          const tail = decoder.decode();
+          if (tail) {
+            try { server.send(JSON.stringify({ type:"output",data:tail })); } catch {}
+          }
+        }
+        const exitCode = await process.exitCode;
+        try { server.send(JSON.stringify({ type:"exit",exitCode })); } catch {}
+        await closeSession("closed");
+        try { server.close(1000, "terminal process ended"); } catch {}
+      } catch {
+        await closeSession("failed");
+        try { server.close(1011, "terminal stream failed"); } catch {}
+      }
+    })());
+
+    return new Response(null, { status:101, webSocket:client });
+  }
 }
 
 export class CodeRunWorkflow extends WorkflowEntrypoint {
@@ -208,18 +339,24 @@ export class CodeRunWorkflow extends WorkflowEntrypoint {
         });
 
         const container = getContainer(this.env.RUNNER_SANDBOX, payload.jobId);
-        const response = await container.fetch(new Request("http://sandbox/run", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            jobId: payload.jobId,
-            language: payload.language,
-            task: payload.task,
-            files: snapshot.files,
-            limits: payload.limits,
-          }),
-        }));
-        const body = await response.text();
+        let response;
+        let body = "";
+        try {
+          response = await container.fetch(new Request("http://sandbox/run", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              jobId: payload.jobId,
+              language: payload.language,
+              task: payload.task,
+              files: snapshot.files,
+              limits: payload.limits,
+            }),
+          }));
+          body = await response.text();
+        } finally {
+          await container.stop().catch(() => {});
+        }
         if (!response.ok) {
           return {
             snapshot,
@@ -372,6 +509,140 @@ async function jobStatus(jobId, request, env) {
   return responseJson({ run,events:events.results || [],artifacts:artifacts.results || [] });
 }
 
+
+async function terminalRow(env, sessionId) {
+  return env.DB.prepare(
+    "SELECT t.*,nr.name AS repo_name FROM portal_code_terminal_sessions t " +
+    "LEFT JOIN portal_native_repositories nr ON nr.id=t.native_repository_id WHERE t.id=? LIMIT 1"
+  ).bind(sessionId).first();
+}
+
+function validTerminalContract(body) {
+  return Boolean(
+    body &&
+    typeof body === "object" &&
+    /^[a-f0-9-]{36}$/i.test(String(body.sessionId || "")) &&
+    body.repositoryRef &&
+    body.snapshotRef &&
+    body.connectToken
+  );
+}
+
+async function createTerminal(request, env) {
+  const body = await request.json().catch(() => null);
+  if (!validTerminalContract(body)) {
+    return responseJson({ error:"invalid_terminal_contract" }, { status:400 });
+  }
+  const sessionId = String(body.sessionId);
+  const row = await terminalRow(env,sessionId);
+  if (!row) return responseJson({ error:"terminal_not_registered" }, { status:404 });
+  if (String(row.connect_token || "") !== String(body.connectToken || "")) {
+    return responseJson({ error:"invalid_terminal_capability" }, { status:401 });
+  }
+  if (new Date(String(row.expires_at)).getTime() <= Date.now()) {
+    await env.DB.prepare(
+      "UPDATE portal_code_terminal_sessions SET status='expired',ended_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(sessionId).run();
+    return responseJson({ error:"terminal_expired" }, { status:410 });
+  }
+  if (
+    String(row.service_repository_id) !== String(body.repositoryRef) ||
+    String(row.snapshot_ref) !== String(body.snapshotRef)
+  ) {
+    return responseJson({ error:"terminal_contract_mismatch" }, { status:409 });
+  }
+
+  try {
+    const snapshot = await resolveSnapshot(env,String(body.repositoryRef),String(body.snapshotRef));
+    const container = getContainer(env.RUNNER_SANDBOX,"terminal-" + sessionId);
+    const response = await container.fetch(new Request("http://sandbox/prepare-terminal", {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body:JSON.stringify({
+        sessionId,
+        files:snapshot.files,
+      }),
+    }));
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || !payload?.ok) {
+      throw new Error(String(payload?.error || "terminal_workspace_prepare_failed"));
+    }
+    await env.DB.prepare(
+      "UPDATE portal_code_terminal_sessions SET status='ready',snapshot_sha=?,last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(snapshot.sha,sessionId).run();
+    return responseJson({
+      ready:true,
+      sessionId,
+      snapshotSha:snapshot.sha,
+      fileCount:snapshot.files.length,
+      sizeBytes:snapshot.totalBytes,
+    }, { status:201 });
+  } catch (error) {
+    await env.DB.prepare(
+      "UPDATE portal_code_terminal_sessions SET status='failed',ended_at=CURRENT_TIMESTAMP,last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(sessionId).run();
+    return responseJson({
+      error:error instanceof Error ? error.message : "terminal_prepare_failed",
+    }, { status:500 });
+  }
+}
+
+async function terminalSocket(sessionId, request, env) {
+  if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") {
+    return responseJson({ error:"websocket_required" }, { status:426 });
+  }
+  const row = await terminalRow(env,sessionId);
+  if (!row) return responseJson({ error:"terminal_not_found" }, { status:404 });
+  const url = new URL(request.url);
+  if (String(row.connect_token || "") !== String(url.searchParams.get("token") || "")) {
+    return responseJson({ error:"invalid_terminal_capability" }, { status:401 });
+  }
+  if (new Date(String(row.expires_at)).getTime() <= Date.now()) {
+    const container = getContainer(env.RUNNER_SANDBOX,"terminal-" + sessionId);
+    await container.stop().catch(() => {});
+    await env.DB.prepare(
+      "UPDATE portal_code_terminal_sessions SET status='expired',ended_at=COALESCE(ended_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(sessionId).run();
+    return responseJson({ error:"terminal_expired" }, { status:410 });
+  }
+  if (!["ready","connected"].includes(String(row.status))) {
+    return responseJson({ error:"terminal_not_connectable",status:row.status }, { status:409 });
+  }
+
+  await env.DB.prepare(
+    "UPDATE portal_code_terminal_sessions SET status='connected',connected_at=COALESCE(connected_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+  ).bind(sessionId).run();
+
+  const container = getContainer(env.RUNNER_SANDBOX,"terminal-" + sessionId);
+  const internal = new URL("http://container/internal/terminal");
+  internal.searchParams.set("cols",url.searchParams.get("cols") || "120");
+  internal.searchParams.set("rows",url.searchParams.get("rows") || "32");
+  const headers = new Headers(request.headers);
+  headers.delete("host");
+  headers.set("x-core-terminal-session",sessionId);
+  return container.fetch(new Request(internal.toString(), {
+    method:"GET",
+    headers,
+  }));
+}
+
+async function closeTerminal(sessionId, request, env) {
+  const row = await terminalRow(env,sessionId);
+  if (!row) return responseJson({ error:"terminal_not_found" }, { status:404 });
+  if (request.headers.get("x-core-terminal-token") !== String(row.connect_token || "")) {
+    return responseJson({ error:"invalid_terminal_capability" }, { status:401 });
+  }
+  if (["closed","failed","expired"].includes(String(row.status))) {
+    return responseJson({ closed:false,status:row.status }, { status:409 });
+  }
+  const container = getContainer(env.RUNNER_SANDBOX,"terminal-" + sessionId);
+  await container.stop().catch(() => {});
+  await env.DB.prepare(
+    "UPDATE portal_code_terminal_sessions SET status='closed',ended_at=COALESCE(ended_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+  ).bind(sessionId).run();
+  return responseJson({ closed:true,sessionId });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -381,11 +652,27 @@ export default {
         service:"core-runner",
         isolation:"cloudflare-container",
         workflow:true,
+        liveTerminal:true,
+        terminalTransport:"websocket",
         network:"deny",
       });
     }
     if (request.method === "POST" && url.pathname === "/v1/jobs") {
       return createJob(request, env);
+    }
+    if (request.method === "POST" && url.pathname === "/v1/terminals") {
+      return createTerminal(request, env);
+    }
+
+    const terminalMatch = url.pathname.match(/^\/v1\/terminals\/([^/]+)\/(socket|close)$/);
+    if (terminalMatch) {
+      const sessionId = decodeURIComponent(terminalMatch[1]);
+      if (request.method === "GET" && terminalMatch[2] === "socket") {
+        return terminalSocket(sessionId,request,env);
+      }
+      if (request.method === "POST" && terminalMatch[2] === "close") {
+        return closeTerminal(sessionId,request,env);
+      }
     }
 
     const match = url.pathname.match(/^\/v1\/jobs\/([^/]+)(?:\/(cancel))?$/);

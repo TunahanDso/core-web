@@ -7,6 +7,7 @@ on:
       - "services/core-runner/**"
       - "config/core-runner-tasks.json"
       - "migrations/0008_code_lab.sql"
+      - "migrations/0009_code_terminal.sql"
       - "lib/portal/code-lab.ts"
       - "app/portal/(member)/code-lab/**"
       - "app/api/portal/code-lab/**"
