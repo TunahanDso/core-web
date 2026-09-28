@@ -1,7 +1,8 @@
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { domains, projects, serviceUnits } from "@/lib/site-data";
+import { domains, serviceUnits } from "@/lib/site-data";
 import { siteSlug } from "@/lib/site-slug";
 import { getSiteSetting } from "@/lib/cms/extensions";
+import { listPublicProjects } from "@/lib/cms/public-projects";
 import type { Locale } from "@/lib/i18n";
 
 const labels = {
@@ -45,7 +46,7 @@ export default async function PublicChrome({
   children: React.ReactNode;
 }) {
   const l = labels[locale];
-  const identity = await getSiteSetting("site_identity");
+  const [identity,projects] = await Promise.all([getSiteSetting("site_identity"),listPublicProjects(locale)]);
   const slogan = locale === "tr"
     ? String(identity?.slogan_tr || l.slogan)
     : String(identity?.slogan_en || l.slogan);
@@ -111,7 +112,7 @@ export default async function PublicChrome({
                 </div>
                 <div className="navProjectGrid">
                   {projects.map((project, index) => (
-                    <a href={`/${locale}/projects/${siteSlug(project.name)}`} key={project.name}>
+                    <a href={`/${locale}/projects/${project.slug}`} key={project.name}>
                       <small>{String(index + 1).padStart(2, "0")}</small>
                       <b>{project.name}</b>
                       <span>{project.owner}</span>

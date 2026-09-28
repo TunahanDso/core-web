@@ -9,11 +9,14 @@ import {
   requirePortalCapability,
 } from "@/lib/portal/governance";
 import { requirePortalMember } from "@/lib/portal/auth";
+import { deleteShowcaseProjectBySlug, resetShowcaseProjects, syncShowcaseProject } from "@/lib/cms/project-control";
 import {
   createOrUpdatePortalProject,
   createPortalMapEdge,
   createPortalVehicleControl,
+  deletePortalProject,
   grantPortalMemberCapability,
+  resetPortalProjectCatalog,
   revokePortalMemberCapability,
   upsertPortalTeamMembership,
 } from "@/lib/portal/control";
@@ -96,26 +99,106 @@ export async function createPortalTeamVehicleAction(formData: FormData) {
 
 export async function upsertPortalProjectControlAction(formData: FormData) {
   const member = await requirePortalCapability("control.projects");
+  const title = text(formData,"title");
+  const summary = text(formData,"summary");
+  const domain = text(formData,"domain");
+  const teamCode = text(formData,"teamCode") || null;
+  const readiness = Number(formData.get("readiness") ?? 0);
   const projectSlug = await createOrUpdatePortalProject({
     slug: text(formData,"slug"),
-    title: text(formData,"title"),
-    summary: text(formData,"summary"),
-    domain: text(formData,"domain"),
-    teamCode: text(formData,"teamCode") || null,
+    title,
+    summary,
+    domain,
+    teamCode,
     status: text(formData,"status") || "concept",
     visibility: text(formData,"visibility") || "team",
     ownerMemberId: text(formData,"ownerMemberId") || null,
     startAt: text(formData,"startAt") || null,
     targetAt: text(formData,"targetAt") || null,
     riskLevel: text(formData,"riskLevel") || "medium",
-    readiness: Number(formData.get("readiness") ?? 0),
+    readiness,
     actorEmail: member.email,
   });
 
+  const showcaseStatus = text(formData,"showcaseStatus") || "draft";
+  if (!["draft","published","archived"].includes(showcaseStatus)) {
+    throw new Error("Geçersiz vitrin yayın durumu.");
+  }
+  const integrations = text(formData,"integrations")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  await syncShowcaseProject({
+    slug: projectSlug,
+    status: showcaseStatus as "draft" | "published" | "archived",
+    domain: domain || null,
+    progress: readiness,
+    owner: text(formData,"showcaseOwner") || teamCode || null,
+    integrations,
+    titleTr: text(formData,"titleTr") || title,
+    titleEn: text(formData,"titleEn") || text(formData,"titleTr") || title,
+    summaryTr: text(formData,"summaryTr") || summary,
+    summaryEn: text(formData,"summaryEn"),
+    categoryTr: text(formData,"categoryTr") || domain,
+    categoryEn: text(formData,"categoryEn") || domain,
+    statusTr: text(formData,"statusTr"),
+    statusEn: text(formData,"statusEn"),
+  },member.email);
+
+  revalidatePath("/portal");
   revalidatePath("/portal/projects");
   revalidatePath("/portal/project-map");
   revalidatePath("/portal/control");
-  redirect("/portal/control?project=" + encodeURIComponent(projectSlug));
+  revalidatePath("/tr");
+  revalidatePath("/en");
+  revalidatePath("/tr/projects");
+  revalidatePath("/en/projects");
+  revalidatePath("/tr/projects/" + projectSlug);
+  revalidatePath("/en/projects/" + projectSlug);
+  redirect("/portal/control?edit=" + encodeURIComponent(projectSlug) + "&saved=1#project-control");
+}
+
+export async function deletePortalProjectControlAction(formData: FormData) {
+  const member = await requirePortalCapability("control.projects");
+  const projectSlug = text(formData,"slug");
+  const confirmation = text(formData,"confirmation");
+  if (!projectSlug || confirmation !== projectSlug) {
+    throw new Error("Kalıcı silme için proje slug değerini aynen yazmalısın.");
+  }
+
+  await deletePortalProject({ slug: projectSlug, actorEmail: member.email });
+  await deleteShowcaseProjectBySlug(projectSlug,member.email);
+
+  revalidatePath("/portal");
+  revalidatePath("/portal/projects");
+  revalidatePath("/portal/project-map");
+  revalidatePath("/portal/control");
+  revalidatePath("/tr");
+  revalidatePath("/en");
+  revalidatePath("/tr/projects");
+  revalidatePath("/en/projects");
+  redirect("/portal/control?deleted=" + encodeURIComponent(projectSlug) + "#project-control");
+}
+
+export async function resetPortalProjectCatalogAction(formData: FormData) {
+  const member = await requirePortalCapability("portal.admin");
+  if (text(formData,"confirmation") !== "RESET PROJECTS") {
+    throw new Error("Proje kataloğunu sıfırlamak için RESET PROJECTS yazmalısın.");
+  }
+
+  const internalCount = await resetPortalProjectCatalog({ actorEmail: member.email });
+  const showcaseCount = await resetShowcaseProjects(member.email);
+
+  revalidatePath("/portal");
+  revalidatePath("/portal/projects");
+  revalidatePath("/portal/project-map");
+  revalidatePath("/portal/control");
+  revalidatePath("/tr");
+  revalidatePath("/en");
+  revalidatePath("/tr/projects");
+  revalidatePath("/en/projects");
+  redirect("/portal/control?reset=" + internalCount + "-" + showcaseCount + "#project-control");
 }
 
 export async function upsertPortalVehicleControlAction(formData: FormData) {

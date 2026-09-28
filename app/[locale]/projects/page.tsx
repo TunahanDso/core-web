@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
-import { projects } from "@/lib/site-data";
 import { isLocale } from "@/lib/i18n";
 import { getPublicPage } from "@/lib/cms/db";
-import { siteSlug } from "@/lib/site-slug";
+import { listPublicProjects } from "@/lib/cms/public-projects";
 
 export const dynamic = "force-dynamic";
 const copy = {
@@ -38,7 +37,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const c = copy[locale];
-  const cms = await getPublicPage("projects", locale);
+  const [cms,projects] = await Promise.all([getPublicPage("projects", locale),listPublicProjects(locale)]);
 
   return (
     <PublicChrome locale={locale}>
@@ -57,18 +56,18 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
           {projects.map((project, index) => (
             <a
               className="projectCard publicProjectCard"
-              href={`/${locale}/projects/${siteSlug(project.name)}`}
+              href={`/${locale}/projects/${project.slug}`}
               data-tilt
               data-reveal
               key={project.name}
             >
               <div className="projectSerial">{String(index + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</div>
               <div className="projectHeader">
-                <div><span className="ownerTag">{project.owner}</span><h3>{project.name}</h3><p className="projectCategory">{project.category[locale]}</p></div>
+                <div><span className="ownerTag">{project.owner}</span><h3>{project.name}</h3><p className="projectCategory">{project.category}</p></div>
                 <strong>{project.progress}%</strong>
               </div>
-              <p className="projectDescription">{project.description[locale]}</p>
-              <div className="progressMeta"><span>{c.progress}</span><span>{project.status[locale]}</span></div>
+              <p className="projectDescription">{project.description}</p>
+              <div className="progressMeta"><span>{c.progress}</span><span>{project.status}</span></div>
               <div className="progressTrack"><span data-progress={project.progress} /></div>
               <div className="integrationTags"><small>{c.integrated}</small><div>{project.integrations.map((x) => <span key={x}>{x}</span>)}</div></div>
               <small className="projectOpenLink">OPEN PROJECT →</small>
@@ -80,7 +79,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
       <section className="integrationSection publicIntegration">
         <div className="sectionHeading" data-reveal>
           <div><p className="eyebrow">{c.map}</p><h2>{c.mapTitle}</h2></div>
-          <p>Hydronom ↔ Hydronom AI ↔ CORE Runtime ↔ Gateway ↔ Ground Station ↔ OPS Screens</p>
+          <p>{projects.length ? projects.slice(0,6).map((project) => project.name).join(" ↔ ") : (locale === "tr" ? "Proje kataloğu henüz boş." : "The project catalog is currently empty.")}</p>
         </div>
         <div className="systemConstellation" data-reveal>
           <svg className="constellationLines" viewBox="0 0 1000 620" aria-hidden="true">
@@ -104,10 +103,10 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
             <span>shared architecture</span>
           </div>
 
-          {projects.map((project, index) => (
+          {projects.slice(0,6).map((project, index) => (
             <a
               className={`constellationNode constellationNode${index + 1}`}
-              href={`/${locale}/projects/${siteSlug(project.name)}`}
+              href={`/${locale}/projects/${project.slug}`}
               key={project.name}
             >
               <small>{String(index + 1).padStart(2, "0")}</small>

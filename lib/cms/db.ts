@@ -33,6 +33,10 @@ export type CmsProject = {
   progress: number | null;
   owner: string | null;
   integrations: string[];
+  categoryTr: string;
+  categoryEn: string;
+  statusTr: string;
+  statusEn: string;
   titleTr: string;
   titleEn: string;
   summaryTr: string;
@@ -75,6 +79,10 @@ function mapProject(row: CmsProjectRow): CmsProject {
     integrations: Array.isArray(metadata.integrations)
       ? metadata.integrations.filter((item): item is string => typeof item === "string")
       : [],
+    categoryTr: typeof metadata.category_tr === "string" ? metadata.category_tr : "",
+    categoryEn: typeof metadata.category_en === "string" ? metadata.category_en : "",
+    statusTr: typeof metadata.status_tr === "string" ? metadata.status_tr : "",
+    statusEn: typeof metadata.status_en === "string" ? metadata.status_en : "",
     titleTr: row.title_tr ?? "",
     titleEn: row.title_en ?? "",
     summaryTr: row.summary_tr ?? "",

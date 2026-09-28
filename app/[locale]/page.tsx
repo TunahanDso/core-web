@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
-import { domains, projects, serviceUnits } from "@/lib/site-data";
+import { domains, serviceUnits } from "@/lib/site-data";
 import { isLocale, locales } from "@/lib/i18n";
 import { getPublicPage } from "@/lib/cms/db";
+import { listPublicProjects } from "@/lib/cms/public-projects";
 
 export const dynamic = "force-dynamic";
 
@@ -128,7 +129,7 @@ export default async function Home({
   if (!isLocale(locale)) notFound();
 
   const c = copy[locale];
-  const cms = await getPublicPage("home", locale);
+  const [cms,projects] = await Promise.all([getPublicPage("home", locale),listPublicProjects(locale)]);
 
   return (
     <PublicChrome locale={locale}>
@@ -302,9 +303,9 @@ export default async function Home({
                 <small>{project.owner}</small>
               </div>
               <h3>{project.name}</h3>
-              <p>{project.description[locale]}</p>
+              <p>{project.description}</p>
               <div className="projectPreviewFooter">
-                <span>{project.status[locale]}</span>
+                <span>{project.status}</span>
                 <b>{project.progress}%</b>
               </div>
             </article>
