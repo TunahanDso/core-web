@@ -7611,3 +7611,138 @@ html[data-core-native="native-v2"] .portalAuthButton{
   html[data-core-native="native-v2"] .vaultFileGrid{grid-template-columns:1fr}
   .nativeQuickGrid{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE ADMIN — MAIL DELIVERABILITY HEALTH
+   ========================================================= */
+
+.adminMailHealthPanel{
+  display:grid;
+  gap:14px;
+  margin:16px 0;
+  padding:20px;
+  border:1px solid #dde0da;
+  border-radius:12px;
+  background:#fff;
+}
+.adminMailHealthHead{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:flex-start;
+}
+.adminMailHealthHead>div>span,
+.adminMailDeliverabilityNotes span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.adminMailHealthHead h2{margin:7px 0 8px;font-size:24px}
+.adminMailHealthHead p{
+  max-width:800px;
+  margin:0;
+  color:#747c82;
+  font-size:11px;
+  line-height:1.65;
+}
+.adminMailHealthHead>b{
+  flex:0 0 auto;
+  padding:9px 11px;
+  border-radius:999px;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.07em;
+}
+.adminMailHealthHead>b.pass{
+  color:#22603a;
+  background:#edf8f1;
+  border:1px solid #a7d3b7;
+}
+.adminMailHealthHead>b.warn{
+  color:#9b3c00;
+  background:#fff5ed;
+  border:1px solid #efbf9e;
+}
+.adminMailHealthGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.adminMailHealthGrid article{
+  display:grid;
+  gap:8px;
+  min-height:180px;
+  padding:14px;
+  border:1px solid #e0e3dd;
+  border-radius:10px;
+  background:#fafbf8;
+}
+.adminMailHealthGrid article.pass{border-color:#afd7bd;background:#f7fbf8}
+.adminMailHealthGrid article.warn{border-color:#e8c09e;background:#fff9f4}
+.adminMailHealthGrid article.fail{border-color:#e0a8a0;background:#fff7f6}
+.adminMailHealthGrid header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.adminMailHealthGrid header>span{
+  font:950 11px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.adminMailHealthGrid header>b{
+  font:900 7px ui-monospace,monospace;
+}
+.adminMailHealthGrid article.pass header>b{color:#28714a}
+.adminMailHealthGrid article.warn header>b{color:#a95111}
+.adminMailHealthGrid article.fail header>b{color:#a83d34}
+.adminMailHealthGrid article>small{
+  color:#899096;
+  font:750 8px ui-monospace,monospace;
+  overflow-wrap:anywhere;
+}
+.adminMailHealthGrid article>p{
+  margin:0;
+  color:#656d74;
+  font-size:10px;
+  line-height:1.55;
+}
+.adminMailHealthGrid code{
+  margin-top:auto;
+  padding:9px;
+  border-radius:7px;
+  background:#17191d;
+  color:#d4d8d4;
+  font-size:8px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.adminMailHealthError{
+  padding:12px;
+  border:1px solid #e2b3a6;
+  border-radius:8px;
+  background:#fff7f3;
+  color:#94401c;
+  font-size:10px;
+}
+.adminMailDeliverabilityNotes{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  padding-top:5px;
+}
+.adminMailDeliverabilityNotes>div{
+  padding:12px;
+  border-top:1px solid #e8eae5;
+}
+.adminMailDeliverabilityNotes p{
+  margin:7px 0 0;
+  color:#747c82;
+  font-size:10px;
+  line-height:1.55;
+}
+
+@media(max-width:900px){
+  .adminMailHealthGrid,
+  .adminMailDeliverabilityNotes{grid-template-columns:1fr}
+  .adminMailHealthHead{flex-direction:column}
+}
