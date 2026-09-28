@@ -278,6 +278,23 @@ const REQUIRED_PORTAL_TABLES = [
   "portal_repo_review_submissions",
 ] as const;
 
+let repoReviewSchemaPromise: Promise<void> | null = null;
+
+export async function ensurePortalRepoReviewSchema() {
+  if (repoReviewSchemaPromise) return repoReviewSchemaPromise;
+  repoReviewSchemaPromise = (async () => {
+    const db = env.DB;
+    if (!db) throw new Error("DB binding is not available.");
+    const statements = splitPortalSql(PORTAL_V7_SQL);
+    if (!statements.length) throw new Error("Repository review migration is empty.");
+    await db.batch(statements.map((statement) => db.prepare(statement)));
+  })().catch((error) => {
+    repoReviewSchemaPromise = null;
+    throw error;
+  });
+  return repoReviewSchemaPromise;
+}
+
 export async function portalBootstrapStatus() {
   const db = env.DB;
   if (!db) {
