@@ -41,10 +41,8 @@
       "label": "JavaScript test",
       "steps": [
         [
-          "npm",
-          "test",
-          "--",
-          "--run"
+          "vitest",
+          "run"
         ]
       ]
     },
@@ -65,8 +63,6 @@
       "label": "TypeScript check",
       "steps": [
         [
-          "npx",
-          "--no-install",
           "tsc",
           "--noEmit"
         ]
@@ -78,10 +74,8 @@
       "label": "TypeScript test",
       "steps": [
         [
-          "npm",
-          "test",
-          "--",
-          "--run"
+          "vitest",
+          "run"
         ]
       ]
     },
