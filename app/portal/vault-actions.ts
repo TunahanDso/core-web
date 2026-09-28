@@ -57,6 +57,10 @@ export async function uploadPortalVaultVersionAction(formData: FormData) {
   const file = formData.get("file");
   if (!fileId) throw new Error("Vault dosya kimliği eksik.");
   if (!(file instanceof File)) throw new Error("Yeni sürüm dosyası seçilmedi.");
+  const current = await getPortalVaultFile(fileId);
+  if (!current) throw new Error("Vault kaydı bulunamadı.");
+  const canManage = member.role === "admin" || member.role === "lead" || String(current.created_by) === member.email;
+  if (!canManage) throw new Error("Bu Vault kaydına yeni revision ekleme yetkin yok.");
 
   await createPortalVaultVersion({
     fileId,
@@ -123,6 +127,10 @@ export async function queuePortalDesignDerivativeAction(formData: FormData) {
   if (!fileId || !allowed.includes(derivativeType)) {
     throw new Error("Geçersiz türev isteği.");
   }
+  const current = await getPortalVaultFile(fileId);
+  if (!current) throw new Error("Vault kaydı bulunamadı.");
+  const canManage = member.role === "admin" || member.role === "lead" || String(current.created_by) === member.email;
+  if (!canManage) throw new Error("Bu dosya için dönüştürme işi oluşturma yetkin yok.");
 
   await queuePortalDesignDerivative({
     fileId,
