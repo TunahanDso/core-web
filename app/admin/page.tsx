@@ -10,10 +10,10 @@ const publicModules = [
   ["Projects", "Portfolio, integrations, ownership and completion.", "/admin/projects", true, "PJ"],
   ["Competitions", "Field targets, dates, locations and planning state.", "/admin/competitions", true, "CP"],
   ["Content", "TR/EN public pages, hero copy and SEO.", "/admin/content", true, "CT"],
-  ["Publications", "Research reports, papers and technical releases.", "/admin/publications", false, "PB"],
-  ["Media", "Images, project media and public files in R2.", "/admin/media", false, "MD"],
+  ["Publications", "Research reports, papers and technical releases.", "/admin/publications", true, "PB"],
+  ["Media", "Images, project media and public files in R2.", "/admin/media", true, "MD"],
   ["Team Showcase", "Domain teams, services and public profiles.", "/admin/team", false, "TM"],
-  ["Settings", "Navigation, homepage, metadata and site controls.", "/admin/settings", false, "ST"],
+  ["Settings", "Navigation, homepage, metadata and site controls.", "/admin/settings", true, "ST"],
 ] as const;
 
 const portalModules = [
