@@ -27,7 +27,7 @@ export async function initializePortalAction() {
   try {
     await applyPortalFoundation(actorFrom(identity));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Portal bootstrap failed.";
+    const message = error instanceof Error ? error.message : "Portal kurulumu başarısız.";
     redirect("/admin?portal=failed&portalError=" + encodeURIComponent(message.slice(0, 240)));
   }
   revalidatePath("/admin");
@@ -53,7 +53,7 @@ export async function createPortalInviteAdminAction(
       .filter(Boolean)
       .slice(0, 12);
 
-    if (!email || !fullName) return { error: "Student name and email are required." };
+    if (!email || !fullName) return { error: "Öğrenci adı ve e-posta gerekli." };
 
     const result = await createPortalInvite({
       email,
@@ -66,7 +66,7 @@ export async function createPortalInviteAdminAction(
     revalidatePath("/admin/members");
     return result;
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Invitation could not be created." };
+    return { error: error instanceof Error ? error.message : "Davet oluşturulamadı." };
   }
 }
 
@@ -75,7 +75,7 @@ export async function setPortalMemberStatusAdminAction(formData: FormData) {
   const memberId = String(formData.get("memberId") ?? "").trim();
   const status = String(formData.get("status") ?? "").trim();
   if (!memberId || !["active","suspended","archived"].includes(status)) {
-    throw new Error("Invalid member status request.");
+    throw new Error("Geçersiz üye durumu isteği.");
   }
 
   await setPortalMemberStatus(

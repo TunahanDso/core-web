@@ -12,6 +12,7 @@ const labels = {
     competitions: "Yarışmalar",
     about: "Hakkımızda",
     join: "Katıl",
+    portal: "Portal",
     allTeams: "Tüm takımları gör",
     allProjects: "Tüm projeleri gör",
     vehicleTeams: "Araç / saha",
@@ -26,6 +27,7 @@ const labels = {
     competitions: "Competitions",
     about: "About",
     join: "Join",
+    portal: "Portal",
     allTeams: "See all teams",
     allProjects: "See all projects",
     vehicleTeams: "Vehicle / field",
@@ -125,6 +127,7 @@ export default async function PublicChrome({
           </div>
 
           <div className="navUtility">
+            <a className="portalNavLink" href="/portal">{l.portal}</a>
             <a className="joinNav" href={`/${locale}/join`}>{l.join}</a>
             <LanguageSwitcher locale={locale} />
             <a className="adminLink" href="/admin">ADMIN</a>

@@ -20,27 +20,27 @@ export default async function AdminCompetitionEditPage({
   if (!competition) notFound();
 
   return (
-    <main className="admin">
+    <main className="admin adminLight">
       <div className="adminTopline">
         <div>
           <a className="adminBreadcrumb" href="/admin/competitions">
-            CORE CONTROL / COMPETITIONS
+            CORE CONTROL / YARIŞMALAR
           </a>
-          <p className="eyebrow">COMPETITION EDITOR · AUTHENTICATED WRITE</p>
+          <p className="eyebrow">YARIŞMA EDİTÖRÜ · DOĞRULANMIŞ YAZMA</p>
         </div>
-        <span className="cmsHealth online"><i />LIVE D1</span>
+        <span className="cmsHealth online"><i />CANLI D1</span>
       </div>
 
       <h1>{competition.titleTr || competition.titleEn || competition.slug}</h1>
       <p>
-        Editing <code>{competition.id}</code>. Saving updates production D1 and
+        Düzenleniyor: <code>{competition.id}</code>. Saving updates production D1 and
         appends an audit record with the verified Cloudflare Access identity.
       </p>
 
       {query.saved === "1" ? (
         <div className="cmsSuccess">
-          <b>Competition saved.</b>
-          <span>The D1 record and audit log were updated successfully.</span>
+          <b>Yarışma kaydedildi.</b>
+          <span>D1 kaydı ve denetim günlüğü başarıyla güncellendi.</span>
         </div>
       ) : null}
 
@@ -49,74 +49,74 @@ export default async function AdminCompetitionEditPage({
 
         <div className="editorGrid">
           <label>
-            <span>Title · TR</span>
+            <span>Başlık · TR</span>
             <input name="titleTr" defaultValue={competition.titleTr} required maxLength={160} />
           </label>
           <label>
-            <span>Title · EN</span>
+            <span>Başlık · EN</span>
             <input name="titleEn" defaultValue={competition.titleEn} maxLength={160} />
           </label>
 
           <label className="editorWide">
-            <span>Note / Summary · TR</span>
+            <span>Not / Özet · TR</span>
             <textarea name="summaryTr" defaultValue={competition.summaryTr} rows={4} maxLength={900} />
           </label>
           <label className="editorWide">
-            <span>Note / Summary · EN</span>
+            <span>Not / Özet · EN</span>
             <textarea name="summaryEn" defaultValue={competition.summaryEn} rows={4} maxLength={900} />
           </label>
 
           <label>
-            <span>Domain</span>
+            <span>Alan</span>
             <input name="domain" defaultValue={competition.domain ?? ""} maxLength={100} />
           </label>
           <label>
-            <span>Planning state</span>
+            <span>Planlama durumu</span>
             <select name="targetStatus" defaultValue={competition.targetStatus}>
-              <option value="confirmed">Confirmed</option>
-              <option value="target">Target</option>
-              <option value="evaluation">Evaluation</option>
+              <option value="confirmed">Kesinleşti</option>
+              <option value="target">Hedef</option>
+              <option value="evaluation">Değerlendirme</option>
             </select>
           </label>
 
           <label>
-            <span>Date · TR</span>
+            <span>Tarih · TR</span>
             <input name="dateTr" defaultValue={competition.dateTr} maxLength={160} />
           </label>
           <label>
-            <span>Date · EN</span>
+            <span>Tarih · EN</span>
             <input name="dateEn" defaultValue={competition.dateEn} maxLength={160} />
           </label>
 
           <label>
-            <span>Location · TR</span>
+            <span>Konum · TR</span>
             <input name="locationTr" defaultValue={competition.locationTr} maxLength={180} />
           </label>
           <label>
-            <span>Location · EN</span>
+            <span>Konum · EN</span>
             <input name="locationEn" defaultValue={competition.locationEn} maxLength={180} />
           </label>
 
           <label>
-            <span>Publication status</span>
+            <span>Yayın durumu</span>
             <select name="status" defaultValue={competition.status}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              <option value="draft">Taslak</option>
+              <option value="published">Yayında</option>
+              <option value="archived">Arşiv</option>
             </select>
           </label>
         </div>
 
         <div className="editorActions">
-          <a className="adminSecondaryButton" href="/admin/competitions">CANCEL</a>
-          <button className="adminPrimaryButton" type="submit">SAVE COMPETITION →</button>
+          <a className="adminSecondaryButton" href="/admin/competitions">İPTAL</a>
+          <button className="adminPrimaryButton" type="submit">YARIŞMAYI KAYDET →</button>
         </div>
       </form>
 
       <div className="terminal">
-        <span>AUDIT</span>
+        <span>DENETİM</span>
         <b>competition.update</b>
-        <small>ACTOR + STATUS + DATE + LOCATION + DOMAIN ARE RECORDED ON SAVE</small>
+        <small>KAYITTA AKTÖR + DURUM + TARİH + KONUM + ALAN KAYDEDİLİR</small>
       </div>
     </main>
   );

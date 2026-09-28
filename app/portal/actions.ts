@@ -37,10 +37,10 @@ export async function loginPortalAction(
   try {
     const email = textValue(formData, "email");
     const password = textValue(formData, "password");
-    if (!email || !password) return { error: "Email and password are required." };
+    if (!email || !password) return { error: "E-posta ve parola gerekli." };
     await loginPortalMember(email, password);
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Login failed." };
+    return { error: error instanceof Error ? error.message : "Giriş başarısız." };
   }
   redirect("/portal");
 }
@@ -54,11 +54,11 @@ export async function activatePortalAction(
     const code = textValue(formData, "code");
     const password = textValue(formData, "password");
     const confirm = textValue(formData, "confirm");
-    if (!email || !code || !password) return { error: "Email, invite code and password are required." };
-    if (password !== confirm) return { error: "Passwords do not match." };
+    if (!email || !code || !password) return { error: "E-posta, davet kodu ve parola gerekli." };
+    if (password !== confirm) return { error: "Parolalar eşleşmiyor." };
     await activatePortalMember(email, code, password);
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Activation failed." };
+    return { error: error instanceof Error ? error.message : "Aktivasyon başarısız." };
   }
   redirect("/portal");
 }
@@ -71,7 +71,7 @@ export async function logoutPortalAction() {
 export async function createTaskAction(formData: FormData) {
   const member = await requirePortalMember();
   const title = textValue(formData, "title");
-  if (!title) throw new Error("Task title is required.");
+  if (!title) throw new Error("Görev başlığı gerekli.");
 
   const priorityRaw = textValue(formData, "priority") || "medium";
   const priority = ["low","medium","high","critical"].includes(priorityRaw)
@@ -98,7 +98,7 @@ export async function updateTaskStatusAction(formData: FormData) {
   const member = await requirePortalMember();
   const id = textValue(formData, "id");
   const status = textValue(formData, "status");
-  if (!id) throw new Error("Task id is required.");
+  if (!id) throw new Error("Görev kimliği gerekli.");
   await updatePortalTaskStatus(id, status, member.email);
   revalidatePath("/portal");
   revalidatePath("/portal/tasks");
@@ -108,7 +108,7 @@ export async function createResourceAction(formData: FormData) {
   const member = await requirePortalMember();
   const title = textValue(formData, "title");
   const kind = textValue(formData, "kind");
-  if (!title || !kind) throw new Error("Resource title and type are required.");
+  if (!title || !kind) throw new Error("Kaynak başlığı ve türü gerekli.");
 
   const tags = textValue(formData, "tags")
     .split(",")
@@ -139,7 +139,7 @@ export async function createRepositoryAction(formData: FormData) {
   const member = await requirePortalRole(["admin","lead"]);
   const name = textValue(formData, "name");
   const repoUrl = textValue(formData, "repoUrl");
-  if (!name || !repoUrl) throw new Error("Repository name and URL are required.");
+  if (!name || !repoUrl) throw new Error("Repo adı ve URL gerekli.");
 
   await createPortalRepository({
     name,
@@ -158,12 +158,12 @@ export async function upsertInventoryAction(formData: FormData) {
   const member = await requirePortalRole(["admin","lead"]);
   const sku = textValue(formData, "sku").toUpperCase();
   const name = textValue(formData, "name");
-  if (!sku || !name) throw new Error("SKU and item name are required.");
+  if (!sku || !name) throw new Error("SKU ve ürün adı gerekli.");
 
   const quantity = Number(formData.get("quantity") ?? 0);
   const minimumQuantity = Number(formData.get("minimumQuantity") ?? 0);
   if (!Number.isFinite(quantity) || !Number.isFinite(minimumQuantity)) {
-    throw new Error("Inventory quantities must be numeric.");
+    throw new Error("Envanter miktarları sayısal olmalı.");
   }
 
   await upsertPortalInventoryItem({
@@ -185,8 +185,8 @@ export async function sendChatMessageAction(formData: FormData) {
   const member = await requirePortalMember();
   const channelId = textValue(formData, "channelId");
   const body = textValue(formData, "body");
-  if (!channelId || !body) throw new Error("Channel and message are required.");
-  if (body.length > 4000) throw new Error("Message is too long.");
+  if (!channelId || !body) throw new Error("Kanal ve mesaj gerekli.");
+  if (body.length > 4000) throw new Error("Mesaj çok uzun.");
 
   await sendPortalMessage(channelId, member.id, body);
   revalidatePath("/portal/chat");
@@ -199,7 +199,7 @@ export async function createMailThreadAction(formData: FormData) {
   const subject = textValue(formData, "subject");
   const body = textValue(formData, "body");
   const participants = formData.getAll("participantId").map((item) => String(item)).filter(Boolean);
-  if (!subject || !body) throw new Error("Subject and message are required.");
+  if (!subject || !body) throw new Error("Konu ve mesaj gerekli.");
 
   await createPortalMailThread({
     subject,
@@ -216,7 +216,7 @@ export async function createCalendarEventAction(formData: FormData) {
   const member = await requirePortalMember();
   const title = textValue(formData, "title");
   const startsAt = textValue(formData, "startsAt");
-  if (!title || !startsAt) throw new Error("Event title and start time are required.");
+  if (!title || !startsAt) throw new Error("Etkinlik başlığı ve başlangıç zamanı gerekli.");
 
   await createPortalCalendarEvent({
     title,
@@ -237,7 +237,7 @@ export async function createCalendarEventAction(formData: FormData) {
 export async function createNotificationAction(formData: FormData) {
   const member = await requirePortalRole(["admin","lead"]);
   const title = textValue(formData, "title");
-  if (!title) throw new Error("Notification title is required.");
+  if (!title) throw new Error("Bildirim başlığı gerekli.");
 
   await createPortalNotification({
     memberId: textValue(formData, "memberId") || null,
@@ -255,7 +255,7 @@ export async function createNotificationAction(formData: FormData) {
 export async function markNotificationReadAction(formData: FormData) {
   const member = await requirePortalMember();
   const id = textValue(formData, "id");
-  if (!id) throw new Error("Notification id is required.");
+  if (!id) throw new Error("Bildirim kimliği gerekli.");
   await markPortalNotificationRead(id, member.id);
   revalidatePath("/portal/notifications");
 }

@@ -17,7 +17,7 @@ export default async function PortalMailThreadPage({
 
   return (
     <>
-      <PortalPageHeader code="ML / THREAD" title={String(data.thread.subject)} lead="Durable internal decision and handoff trail." />
+      <PortalPageHeader code="ML / YAZIŞMA" title={String(data.thread.subject)} lead="Kalıcı iç karar ve devir teslim geçmişi." />
       <div className="portalThread">
         {data.messages.map((message) => (
           <article key={String(message.id)}>
@@ -26,7 +26,7 @@ export default async function PortalMailThreadPage({
           </article>
         ))}
       </div>
-      <a className="portalBackLink" href="/portal/mail">← Back to internal mail</a>
+      <a className="portalBackLink" href="/portal/mail">← İç yazışmalara dön</a>
     </>
   );
 }

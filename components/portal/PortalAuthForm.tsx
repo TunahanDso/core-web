@@ -20,7 +20,7 @@ export default function PortalAuthForm({
   return (
     <form className="portalAuthForm" action={formAction}>
       <label>
-        <span>Yıldız student email</span>
+        <span>Yıldız öğrenci e-postası</span>
         <input
           name="email"
           type="email"
@@ -32,7 +32,7 @@ export default function PortalAuthForm({
 
       {mode === "activate" ? (
         <label>
-          <span>Invitation code</span>
+          <span>Davet kodu</span>
           <input
             name="code"
             autoComplete="one-time-code"
@@ -43,7 +43,7 @@ export default function PortalAuthForm({
       ) : null}
 
       <label>
-        <span>{mode === "activate" ? "Create password" : "Password"}</span>
+        <span>{mode === "activate" ? "Parola oluştur" : "Parola"}</span>
         <input
           name="password"
           type="password"
@@ -55,7 +55,7 @@ export default function PortalAuthForm({
 
       {mode === "activate" ? (
         <label>
-          <span>Confirm password</span>
+          <span>Parolayı doğrula</span>
           <input
             name="confirm"
             type="password"
@@ -70,10 +70,10 @@ export default function PortalAuthForm({
 
       <button className="portalAuthButton" type="submit" disabled={pending}>
         {pending
-          ? "PROCESSING..."
+          ? "İŞLENİYOR..."
           : mode === "activate"
-            ? "ACTIVATE CORE ACCOUNT →"
-            : "ENTER CORE →"}
+            ? "CORE HESABINI AKTİFLEŞTİR →"
+            : "CORE'A GİR →"}
       </button>
     </form>
   );

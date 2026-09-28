@@ -1,5 +1,6 @@
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { getPortalAnalytics, listPortalInventory, listPortalTasks } from "@/lib/portal/db";
+import { portalTaskStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -16,22 +17,22 @@ export default async function PortalAnalyticsPage() {
 
   return (
     <>
-      <PortalPageHeader code="AN / ANALYTICS" title="CORE Analytics" lead="Operational signals for people, work, knowledge, hardware and communication. No vanity metrics required." />
+      <PortalPageHeader code="AN / İSTATİSTİK" title="CORE İstatistikleri" lead="İnsan, iş, bilgi, donanım ve iletişim için operasyon sinyalleri. Gösteriş metriğine ihtiyaç yok." />
       <section className="portalAnalyticsGrid">
-        <article><span>MEMBERS</span><b>{String(analytics.members_active || 0)}</b><small>{String(analytics.members_total || 0)} total records</small></article>
-        <article><span>TASK COMPLETION</span><b>{completion}%</b><small>{doneTasks} / {totalTasks} done</small></article>
-        <article><span>KNOWLEDGE</span><b>{String(analytics.resources_total || 0)}</b><small>indexed resources</small></article>
-        <article><span>INVENTORY</span><b>{String(analytics.inventory_total || 0)}</b><small>{low} low-stock items</small></article>
-        <article><span>CHAT</span><b>{String(analytics.messages_total || 0)}</b><small>messages retained</small></article>
-        <article><span>ACTIVITY</span><b>{String(analytics.portal_activity_total || 0)}</b><small>portal events</small></article>
+        <article><span>ÜYELER</span><b>{String(analytics.members_active || 0)}</b><small>{String(analytics.members_total || 0)} toplam kayıt</small></article>
+        <article><span>GÖREV TAMAMLAMA</span><b>{completion}%</b><small>{doneTasks} / {totalTasks} tamamlandı</small></article>
+        <article><span>BİLGİ</span><b>{String(analytics.resources_total || 0)}</b><small>indeksli kaynak</small></article>
+        <article><span>ENVANTER</span><b>{String(analytics.inventory_total || 0)}</b><small>{low} düşük stok ürünü</small></article>
+        <article><span>SOHBET</span><b>{String(analytics.messages_total || 0)}</b><small>mesaj saklandı</small></article>
+        <article><span>ETKİNLİK</span><b>{String(analytics.portal_activity_total || 0)}</b><small>portal olayı</small></article>
       </section>
       <section className="portalPanel">
-        <div className="portalPanelHead"><span>WORK DISTRIBUTION</span><small>LIVE D1</small></div>
+        <div className="portalPanelHead"><span>İŞ DAĞILIMI</span><small>CANLI D1</small></div>
         <div className="portalStatusBars">
           {["backlog","todo","doing","review","blocked","done"].map((status) => {
             const count = tasks.filter((task) => String(task.status) === status).length;
             const width = totalTasks ? Math.max(3, Math.round(count / totalTasks * 100)) : 0;
-            return <div key={status}><span>{status.toUpperCase()}</span><i><b style={{ width: width + "%" }} /></i><strong>{count}</strong></div>;
+            return <div key={status}><span>{portalTaskStatusLabel(status)}</span><i><b style={{ width: width + "%" }} /></i><strong>{count}</strong></div>;
           })}
         </div>
       </section>

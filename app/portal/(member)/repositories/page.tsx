@@ -11,18 +11,18 @@ export default async function PortalRepositoriesPage() {
 
   return (
     <>
-      <PortalPageHeader code="RP / REPOSITORIES" title="Repository Service" lead="A single registry for code ownership, project links and repository health. Private GitHub synchronization can be connected without exposing tokens to the browser." />
+      <PortalPageHeader code="RP / REPOLAR" title="Repo Servisi" lead="Kod sahipliği, proje bağlantıları ve repo sağlığı için tek kayıt noktası. Private GitHub senkronizasyonu tokenları tarayıcıya açmadan bağlanabilir." />
 
       {canWrite ? (
         <section className="portalPanel portalCreatePanel">
-          <div className="portalPanelHead"><span>REGISTER REPOSITORY</span><small>LEAD / ADMIN</small></div>
+          <div className="portalPanelHead"><span>REPO KAYDET</span><small>LİDER / ADMİN</small></div>
           <form className="portalFormGrid" action={createRepositoryAction}>
-            <label><span>Name</span><input name="name" required /></label>
-            <label><span>Repository URL</span><input name="repoUrl" type="url" required /></label>
-            <label><span>Project slug</span><input name="projectSlug" /></label>
-            <label><span>Team</span><input name="teamCode" /></label>
-            <label><span>Visibility</span><select name="visibility"><option>private</option><option>internal</option><option>public</option></select></label>
-            <button type="submit" className="portalPrimaryButton">REGISTER →</button>
+            <label><span>Ad</span><input name="name" required /></label>
+            <label><span>Repo URL</span><input name="repoUrl" type="url" required /></label>
+            <label><span>Proje slug</span><input name="projectSlug" /></label>
+            <label><span>Takım</span><input name="teamCode" /></label>
+            <label><span>Görünürlük</span><select name="visibility" defaultValue="private"><option value="private">Özel</option><option value="internal">İç</option><option value="public">Public</option></select></label>
+            <button type="submit" className="portalPrimaryButton">KAYDET →</button>
           </form>
         </section>
       ) : null}
@@ -38,7 +38,7 @@ export default async function PortalRepositoriesPage() {
             </a>
           ))}
         </div>
-      ) : <PortalEmpty title="No repositories registered yet." text="Leads can register private or public repository links above." />}
+      ) : <PortalEmpty title="Henüz repo kaydı yok." text="Liderler private veya public repo bağlantılarını yukarıdan kaydedebilir." />}
     </>
   );
 }

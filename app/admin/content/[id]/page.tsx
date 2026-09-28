@@ -20,27 +20,27 @@ export default async function AdminContentEditPage({
   if (!page) notFound();
 
   return (
-    <main className="admin">
+    <main className="admin adminLight">
       <div className="adminTopline">
         <div>
           <a className="adminBreadcrumb" href="/admin/content">
-            CORE CONTROL / CONTENT
+            CORE CONTROL / İÇERİK
           </a>
-          <p className="eyebrow">PAGE EDITOR · AUTHENTICATED WRITE</p>
+          <p className="eyebrow">SAYFA EDİTÖRÜ · DOĞRULANMIŞ YAZMA</p>
         </div>
-        <span className="cmsHealth online"><i />LIVE D1</span>
+        <span className="cmsHealth online"><i />CANLI D1</span>
       </div>
 
-      <h1>{page.slug === "home" ? "Homepage" : page.titleTr || page.slug}</h1>
+      <h1>{page.slug === "home" ? "Ana Sayfa" : page.titleTr || page.slug}</h1>
       <p>
-        Editing <code>{page.id}</code>. Published content overrides the built-in
+        Düzenleniyor: <code>{page.id}</code>. Published content overrides the built-in
         public copy while static text remains available as a runtime fallback.
       </p>
 
       {query.saved === "1" ? (
         <div className="cmsSuccess">
-          <b>Page saved.</b>
-          <span>Public page copy and audit log were updated successfully.</span>
+          <b>Sayfa kaydedildi.</b>
+          <span>Vitrin sayfası içeriği ve denetim günlüğü başarıyla güncellendi.</span>
         </div>
       ) : null}
 
@@ -49,15 +49,15 @@ export default async function AdminContentEditPage({
 
         <div className="editorGrid">
           <label>
-            <span>Page code</span>
+            <span>Sayfa kodu</span>
             <input name="code" defaultValue={page.code} maxLength={30} />
           </label>
           <label>
-            <span>Publication status</span>
+            <span>Yayın durumu</span>
             <select name="status" defaultValue={page.status}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              <option value="draft">Taslak</option>
+              <option value="published">Yayında</option>
+              <option value="archived">Arşiv</option>
             </select>
           </label>
 
@@ -71,70 +71,70 @@ export default async function AdminContentEditPage({
           </label>
 
           <label>
-            <span>Title · TR</span>
+            <span>Başlık · TR</span>
             <input name="titleTr" defaultValue={page.titleTr} required maxLength={220} />
           </label>
           <label>
-            <span>Title · EN</span>
+            <span>Başlık · EN</span>
             <input name="titleEn" defaultValue={page.titleEn} maxLength={220} />
           </label>
 
           <label>
-            <span>Accent title · TR</span>
+            <span>Vurgu başlığı · TR</span>
             <input name="accentTr" defaultValue={page.accentTr} maxLength={120} />
           </label>
           <label>
-            <span>Accent title · EN</span>
+            <span>Vurgu başlığı · EN</span>
             <input name="accentEn" defaultValue={page.accentEn} maxLength={120} />
           </label>
 
           <label className="editorWide">
-            <span>Hero summary · TR</span>
+            <span>Hero özeti · TR</span>
             <textarea name="summaryTr" defaultValue={page.summaryTr} rows={5} maxLength={1400} />
           </label>
           <label className="editorWide">
-            <span>Hero summary · EN</span>
+            <span>Hero özeti · EN</span>
             <textarea name="summaryEn" defaultValue={page.summaryEn} rows={5} maxLength={1400} />
           </label>
 
           <label className="editorWide">
-            <span>Primary body / statement · TR</span>
+            <span>Ana metin / ifade · TR</span>
             <textarea name="bodyTr" defaultValue={page.bodyTr} rows={6} maxLength={4000} />
           </label>
           <label className="editorWide">
-            <span>Primary body / statement · EN</span>
+            <span>Ana metin / ifade · EN</span>
             <textarea name="bodyEn" defaultValue={page.bodyEn} rows={6} maxLength={4000} />
           </label>
 
           <label>
-            <span>SEO title · TR</span>
+            <span>SEO başlığı · TR</span>
             <input name="seoTitleTr" defaultValue={page.seoTitleTr} maxLength={180} />
           </label>
           <label>
-            <span>SEO title · EN</span>
+            <span>SEO başlığı · EN</span>
             <input name="seoTitleEn" defaultValue={page.seoTitleEn} maxLength={180} />
           </label>
 
           <label className="editorWide">
-            <span>SEO description · TR</span>
+            <span>SEO açıklaması · TR</span>
             <textarea name="seoDescriptionTr" defaultValue={page.seoDescriptionTr} rows={3} maxLength={500} />
           </label>
           <label className="editorWide">
-            <span>SEO description · EN</span>
+            <span>SEO açıklaması · EN</span>
             <textarea name="seoDescriptionEn" defaultValue={page.seoDescriptionEn} rows={3} maxLength={500} />
           </label>
         </div>
 
         <div className="editorActions">
-          <a className="adminSecondaryButton" href="/admin/content">CANCEL</a>
-          <button className="adminPrimaryButton" type="submit">SAVE PAGE →</button>
+          <a className="adminSecondaryButton" href="/admin/content">İPTAL</a>
+          <button className="adminPrimaryButton" type="submit">SAYFAYI KAYDET →</button>
         </div>
       </form>
 
       <div className="terminal">
-        <span>AUDIT</span>
+        <span>DENETİM</span>
         <b>page.update</b>
-        <small>ACTOR + PAGE ID + PUBLICATION STATUS ARE RECORDED ON SAVE</small>
+        <small>KAYITTA AKTÖR + SAYFA ID + YAYIN DURUMU KAYDEDİLİR</small>
       </div>
     </main>
   );

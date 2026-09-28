@@ -17,21 +17,21 @@ export default function InviteMemberForm() {
   return (
     <div className="adminInviteBlock">
       <form className="adminLightForm" action={action}>
-        <label><span>Student full name</span><input name="fullName" required /></label>
-        <label><span>Yıldız student email</span><input name="email" type="email" placeholder="name@std.yildiz.edu.tr" required /></label>
+        <label><span>Öğrenci adı soyadı</span><input name="fullName" required /></label>
+        <label><span>Yıldız öğrenci e-postası</span><input name="email" type="email" placeholder="name@std.yildiz.edu.tr" required /></label>
         <label>
-          <span>Portal role</span>
+          <span>Portal rolü</span>
           <select name="role" defaultValue="member">
-            <option value="member">Member</option>
-            <option value="lead">Team lead</option>
-            <option value="admin">Portal admin</option>
-            <option value="alumni">Alumni</option>
-            <option value="viewer">Viewer</option>
+            <option value="member">Üye</option>
+            <option value="lead">Takım lideri</option>
+            <option value="admin">Portal yöneticisi</option>
+            <option value="alumni">Mezun</option>
+            <option value="viewer">Görüntüleyici</option>
           </select>
         </label>
-        <label><span>Teams</span><input name="teams" placeholder="MAR, SYS, EMB" /></label>
+        <label><span>Takımlar</span><input name="teams" placeholder="MAR, SYS, EMB" /></label>
         <button type="submit" disabled={pending}>
-          {pending ? "GENERATING..." : "CREATE INVITATION →"}
+          {pending ? "OLUŞTURULUYOR..." : "DAVET OLUŞTUR →"}
         </button>
       </form>
 
@@ -39,10 +39,10 @@ export default function InviteMemberForm() {
 
       {state.code ? (
         <div className="adminInviteResult">
-          <span>SHOW THIS CODE ONCE</span>
+          <span>BU KODU YALNIZCA BİR KEZ GÖSTER</span>
           <b>{state.code}</b>
           <p>{state.email}</p>
-          <small>Expires: {state.expiresAt}</small>
+          <small>Son geçerlilik: {state.expiresAt}</small>
         </div>
       ) : null}
     </div>

@@ -19,27 +19,27 @@ export default async function AdminProjectEditPage({
   if (!project) notFound();
 
   return (
-    <main className="admin">
+    <main className="admin adminLight">
       <div className="adminTopline">
         <div>
           <a className="adminBreadcrumb" href="/admin/projects">
-            CORE CONTROL / PROJECTS
+            CORE CONTROL / PROJELER
           </a>
-          <p className="eyebrow">PROJECT EDITOR · AUTHENTICATED WRITE</p>
+          <p className="eyebrow">PROJE EDİTÖRÜ · DOĞRULANMIŞ YAZMA</p>
         </div>
-        <span className="cmsHealth online"><i />LIVE D1</span>
+        <span className="cmsHealth online"><i />CANLI D1</span>
       </div>
 
       <h1>{project.titleTr || project.titleEn || project.slug}</h1>
       <p>
-        Editing <code>{project.id}</code>. Saving updates production D1 and
+        Düzenleniyor: <code>{project.id}</code>. Saving updates production D1 and
         appends an audit record with the verified Cloudflare Access identity.
       </p>
 
       {query.saved === "1" ? (
         <div className="cmsSuccess">
-          <b>Project saved.</b>
-          <span>The D1 record and audit log were updated successfully.</span>
+          <b>Proje kaydedildi.</b>
+          <span>D1 kaydı ve denetim günlüğü başarıyla güncellendi.</span>
         </div>
       ) : null}
 
@@ -48,34 +48,34 @@ export default async function AdminProjectEditPage({
 
         <div className="editorGrid">
           <label>
-            <span>Title · TR</span>
+            <span>Başlık · TR</span>
             <input name="titleTr" defaultValue={project.titleTr} required maxLength={120} />
           </label>
           <label>
-            <span>Title · EN</span>
+            <span>Başlık · EN</span>
             <input name="titleEn" defaultValue={project.titleEn} maxLength={120} />
           </label>
 
           <label className="editorWide">
-            <span>Summary · TR</span>
+            <span>Özet · TR</span>
             <textarea name="summaryTr" defaultValue={project.summaryTr} rows={4} maxLength={700} />
           </label>
           <label className="editorWide">
-            <span>Summary · EN</span>
+            <span>Özet · EN</span>
             <textarea name="summaryEn" defaultValue={project.summaryEn} rows={4} maxLength={700} />
           </label>
 
           <label>
-            <span>Domain</span>
+            <span>Alan</span>
             <input name="domain" defaultValue={project.domain ?? ""} maxLength={100} />
           </label>
           <label>
-            <span>Owner</span>
+            <span>Sorumlu</span>
             <input name="owner" defaultValue={project.owner ?? ""} maxLength={100} />
           </label>
 
           <label>
-            <span>Progress · %</span>
+            <span>İlerleme · %</span>
             <input
               name="progress"
               type="number"
@@ -87,16 +87,16 @@ export default async function AdminProjectEditPage({
             />
           </label>
           <label>
-            <span>Status</span>
+            <span>Durum</span>
             <select name="status" defaultValue={project.status}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
+              <option value="draft">Taslak</option>
+              <option value="published">Yayında</option>
+              <option value="archived">Arşiv</option>
             </select>
           </label>
 
           <label className="editorWide">
-            <span>Integrations · comma separated</span>
+            <span>Entegrasyonlar · virgülle ayır</span>
             <input
               name="integrations"
               defaultValue={project.integrations.join(", ")}
@@ -106,15 +106,15 @@ export default async function AdminProjectEditPage({
         </div>
 
         <div className="editorActions">
-          <a className="adminSecondaryButton" href="/admin/projects">CANCEL</a>
-          <button className="adminPrimaryButton" type="submit">SAVE PROJECT →</button>
+          <a className="adminSecondaryButton" href="/admin/projects">İPTAL</a>
+          <button className="adminPrimaryButton" type="submit">PROJEYİ KAYDET →</button>
         </div>
       </form>
 
       <div className="terminal">
-        <span>AUDIT</span>
+        <span>DENETİM</span>
         <b>project.update</b>
-        <small>ACTOR + ENTITY + UPDATED METADATA ARE RECORDED ON SAVE</small>
+        <small>KAYITTA AKTÖR + VARLIK + GÜNCELLENEN METADATA KAYDEDİLİR</small>
       </div>
     </main>
   );

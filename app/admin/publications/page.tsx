@@ -1,29 +1,30 @@
 import { createPublicationAction } from "@/app/admin/extended-actions";
 import { listPublications } from "@/lib/cms/extensions";
+import { cmsStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPublicationsPage() {
+export default async function AdminYayınlarPage() {
   const publications = await listPublications();
   return (
     <main className="admin adminLight">
-      <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">RESEARCH OUTPUTS</p></div><span className="cmsHealth online"><i />LIVE D1</span></div>
-      <h1>Publications</h1>
-      <p>Technical reports, papers, validation notes and public research outputs. Published records can be surfaced on the Research showcase.</p>
+      <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">ARAŞTIRMA ÇIKTILARI</p></div><span className="cmsHealth online"><i />CANLI D1</span></div>
+      <h1>Yayınlar</h1>
+      <p>Teknik raporları, makaleleri, doğrulama notlarını ve public araştırma çıktılarını yönet. Yayınlanan kayıtlar Araştırma vitrininin içinde gösterilir.</p>
 
       <section className="adminEditor adminLightEditor">
         <form className="editorGrid" action={createPublicationAction}>
-          <label><span>Title · TR</span><input name="titleTr" required /></label>
-          <label><span>Title · EN</span><input name="titleEn" /></label>
-          <label><span>Kind</span><select name="kind"><option value="technical-report">Technical report</option><option value="paper">Paper</option><option value="validation-note">Validation note</option><option value="patent-note">Patent note</option></select></label>
-          <label><span>Domain</span><input name="domain" placeholder="CORE Research / Marine..." /></label>
-          <label><span>Status</span><select name="status"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
-          <label><span>External URL</span><input name="externalUrl" type="url" /></label>
-          <label className="editorWide"><span>Summary · TR</span><textarea name="summaryTr" rows={3} /></label>
-          <label className="editorWide"><span>Summary · EN</span><textarea name="summaryEn" rows={3} /></label>
-          <label className="editorWide"><span>Body · TR</span><textarea name="bodyTr" rows={5} /></label>
-          <label className="editorWide"><span>Body · EN</span><textarea name="bodyEn" rows={5} /></label>
-          <div className="editorActions editorWide"><button className="adminPrimaryButton" type="submit">CREATE PUBLICATION →</button></div>
+          <label><span>Başlık · TR</span><input name="titleTr" required /></label>
+          <label><span>Başlık · EN</span><input name="titleEn" /></label>
+          <label><span>Tür</span><select name="kind"><option value="technical-report">Teknik rapor</option><option value="paper">Makale</option><option value="validation-note">Doğrulama notu</option><option value="patent-note">Patent notu</option></select></label>
+          <label><span>Alan</span><input name="domain" placeholder="CORE Research / Marine..." /></label>
+          <label><span>Durum</span><select name="status"><option value="draft">Taslak</option><option value="published">Yayında</option><option value="archived">Arşiv</option></select></label>
+          <label><span>Harici URL</span><input name="externalUrl" type="url" /></label>
+          <label className="editorWide"><span>Özet · TR</span><textarea name="summaryTr" rows={3} /></label>
+          <label className="editorWide"><span>Özet · EN</span><textarea name="summaryEn" rows={3} /></label>
+          <label className="editorWide"><span>Metin · TR</span><textarea name="bodyTr" rows={5} /></label>
+          <label className="editorWide"><span>Metin · EN</span><textarea name="bodyEn" rows={5} /></label>
+          <div className="editorActions editorWide"><button className="adminPrimaryButton" type="submit">YAYIN OLUŞTUR →</button></div>
         </form>
       </section>
 
@@ -33,10 +34,10 @@ export default async function AdminPublicationsPage() {
           try { metadata = JSON.parse(String(item.metadata_json || "{}")); } catch { metadata = {}; }
           return (
             <article key={String(item.id)}>
-              <span>{String(metadata.kind || "PUBLICATION").toUpperCase()}</span>
+              <span>{String(metadata.kind || "YAYIN").toUpperCase()}</span>
               <div><h3>{String(item.title_tr || item.title_en || item.slug)}</h3><p>{String(item.summary_tr || item.summary_en || "")}</p></div>
               <small>{String(item.domain || "CORE Research")}</small>
-              <b>{String(item.status).toUpperCase()}</b>
+              <b>{cmsStatusLabel(String(item.status))}</b>
             </article>
           );
         })}

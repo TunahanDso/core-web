@@ -33,7 +33,7 @@ type PortalMemberRow = {
 };
 
 function database() {
-  if (!env.DB) throw new Error("DB binding is not available.");
+  if (!env.DB) throw new Error("DB bağlantısı kullanılamıyor.");
   return env.DB;
 }
 
@@ -44,7 +44,7 @@ function bytesToHex(bytes: Uint8Array) {
 function hexToBytes(value: string) {
   const clean = value.toLowerCase();
   if (clean.length % 2 !== 0 || !/^[0-9a-f]+$/.test(clean)) {
-    throw new Error("Invalid hex value.");
+    throw new Error("Geçersiz hex değeri.");
   }
   const output = new Uint8Array(clean.length / 2);
   for (let index = 0; index < clean.length; index += 2) {
@@ -117,7 +117,7 @@ export async function hashPortalInviteCode(email: string, code: string) {
 }
 
 export async function hashPortalPassword(password: string) {
-  if (password.length < 10) throw new Error("Password must be at least 10 characters.");
+  if (password.length < 10) throw new Error("Parola en az 10 karakter olmalı.");
 
   const salt = new Uint8Array(16);
   crypto.getRandomValues(salt);
@@ -234,7 +234,7 @@ export async function requirePortalMember() {
 
 export async function requirePortalRole(allowed: PortalRole[]) {
   const member = await requirePortalMember();
-  if (!allowed.includes(member.role)) throw new Error("Portal role does not permit this action.");
+  if (!allowed.includes(member.role)) throw new Error("Portal rolünüz bu işleme izin vermiyor.");
   return member;
 }
 
@@ -243,7 +243,7 @@ export async function activatePortalMember(email: string, inviteCode: string, pa
   const normalizedEmail = normalizePortalEmail(email);
 
   if (!isAllowedPortalEmail(normalizedEmail)) {
-    throw new Error("Use an approved Yıldız Technical University student email.");
+    throw new Error("Onaylı bir Yıldız Teknik Üniversitesi öğrenci e-postası kullanın.");
   }
 
   const codeHash = await hashPortalInviteCode(normalizedEmail, inviteCode);
@@ -252,7 +252,7 @@ export async function activatePortalMember(email: string, inviteCode: string, pa
     .bind(normalizedEmail, codeHash)
     .first<{ invite_id: string; member_id: string; status: string }>();
 
-  if (!record) throw new Error("Invite code is invalid, expired, or already used.");
+  if (!record) throw new Error("Davet kodu geçersiz, süresi dolmuş veya daha önce kullanılmış.");
 
   const passwordHash = await hashPortalPassword(password);
 
@@ -275,11 +275,11 @@ export async function loginPortalMember(email: string, password: string) {
     .first<PortalMemberRow & { password_hash: string | null; failed_login_count: number; locked_until: string | null }>();
 
   if (!row || row.status !== "active" || !row.password_hash) {
-    throw new Error("Email or password is incorrect.");
+    throw new Error("E-posta veya parola hatalı.");
   }
 
   if (row.locked_until && new Date(row.locked_until).getTime() > Date.now()) {
-    throw new Error("Account is temporarily locked. Try again later.");
+    throw new Error("Hesap geçici olarak kilitlendi. Daha sonra tekrar deneyin.");
   }
 
   const valid = await verifyPortalPassword(password, row.password_hash);
@@ -291,7 +291,7 @@ export async function loginPortalMember(email: string, password: string) {
       .prepare("UPDATE portal_members SET failed_login_count=?,locked_until=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
       .bind(lock ? 0 : failures, lock, row.id)
       .run();
-    throw new Error("Email or password is incorrect.");
+    throw new Error("E-posta veya parola hatalı.");
   }
 
   await db.batch([
