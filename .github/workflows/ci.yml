@@ -41,7 +41,7 @@ jobs:
             if (source.includes("db.exec(")) {
               throw new Error("Showcase seed must not execute through D1 exec().");
             }
-            if (source.includes('.split(";")')) {
+            if (source.includes(".split(\\\";\\\")")) {
               throw new Error("Showcase seed must not naively split SQL on semicolons.");
             }
             if (!source.includes("splitSqlStatements")) {
