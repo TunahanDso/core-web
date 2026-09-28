@@ -14,14 +14,14 @@ export default async function PortalMailPage() {
 
   return (
     <>
-      <PortalPageHeader code="ML / INTERNAL MAIL" title="Internal Mail" lead="Long-form communication for decisions, requests and handoffs that deserve a durable thread instead of disappearing inside chat." />
+      <PortalPageHeader code="ML / INTERNAL MAIL" title="İç Yazışma" lead="Sohbette kaybolmaması gereken karar, talep ve devir teslimler için kalıcı yazışma alanı." />
 
       <section className="portalPanel portalCreatePanel">
-        <div className="portalPanelHead"><span>NEW THREAD</span><small>INTERNAL ONLY</small></div>
+        <div className="portalPanelHead"><span>YENİ YAZIŞMA</span><small>YALNIZCA İÇ KULLANIM</small></div>
         <form className="portalMailCompose" action={createMailThreadAction}>
-          <label><span>Subject</span><input name="subject" required /></label>
+          <label><span>Konu</span><input name="subject" required /></label>
           <fieldset>
-            <legend>Recipients</legend>
+            <legend>Alıcılar</legend>
             <div className="portalRecipientGrid">
               {members.filter((item) => String(item.status) === "active" && String(item.id) !== member.id).map((item) => (
                 <label key={String(item.id)}>
@@ -31,8 +31,8 @@ export default async function PortalMailPage() {
               ))}
             </div>
           </fieldset>
-          <label><span>Message</span><textarea name="body" rows={5} required /></label>
-          <button className="portalPrimaryButton" type="submit">START THREAD →</button>
+          <label><span>Mesaj</span><textarea name="body" rows={5} required /></label>
+          <button className="portalPrimaryButton" type="submit">YAZIŞMAYI BAŞLAT →</button>
         </form>
       </section>
 
@@ -46,7 +46,7 @@ export default async function PortalMailPage() {
             </a>
           ))}
         </div>
-      ) : <PortalEmpty title="Inbox is clear." text="Start the first internal thread above." />}
+      ) : <PortalEmpty title="Gelen kutusu temiz." text="İlk iç yazışmayı yukarıdan başlat." />}
     </>
   );
 }
