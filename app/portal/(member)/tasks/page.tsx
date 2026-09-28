@@ -48,11 +48,11 @@ export default async function PortalTasksPage() {
           const bucket = tasks.filter((task) => String(task.status) === status);
           return (
             <div className="portalTaskColumn" key={status}>
-              <header><span>{status.toUpperCase()}</span><b>{bucket.length}</b></header>
+              <header><span>{portalTaskStatusLabel(status)}</span><b>{bucket.length}</b></header>
               {bucket.map((task) => (
                 <article className="portalTaskCard" key={String(task.id)}>
                   <div className="portalTaskMeta">
-                    <span className={"portalÖncelik " + String(task.priority)}>{String(task.priority).toUpperCase()}</span>
+                    <span className={"portalÖncelik " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                     <small>{String(task.project_slug || task.team_code || "CORE")}</small>
                   </div>
                   <h3>{String(task.title)}</h3>
