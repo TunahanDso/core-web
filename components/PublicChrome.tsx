@@ -1,6 +1,7 @@
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { domains, projects, serviceUnits } from "@/lib/site-data";
 import { siteSlug } from "@/lib/site-slug";
+import { getSiteSetting } from "@/lib/cms/extensions";
 import type { Locale } from "@/lib/i18n";
 
 const labels = {
@@ -34,7 +35,7 @@ const labels = {
   },
 } satisfies Record<Locale, Record<string, string>>;
 
-export default function PublicChrome({
+export default async function PublicChrome({
   locale,
   children,
 }: {
@@ -42,6 +43,10 @@ export default function PublicChrome({
   children: React.ReactNode;
 }) {
   const l = labels[locale];
+  const identity = await getSiteSetting("site_identity");
+  const slogan = locale === "tr"
+    ? String(identity?.slogan_tr || l.slogan)
+    : String(identity?.slogan_en || l.slogan);
 
   return (
     <main className="publicPage">
@@ -131,11 +136,11 @@ export default function PublicChrome({
         <div>
           <span>YILDIZ TECHNICAL UNIVERSITY</span>
           <b>STUDENT ENGINEERING TEAM</b>
-          <span>{l.slogan}</span>
+          <span>{slogan}</span>
           <b>LEARN · BUILD · TEST · SHARE</b>
           <span>YILDIZ TECHNICAL UNIVERSITY</span>
           <b>STUDENT ENGINEERING TEAM</b>
-          <span>{l.slogan}</span>
+          <span>{slogan}</span>
           <b>LEARN · BUILD · TEST · SHARE</b>
         </div>
       </div>
@@ -152,7 +157,7 @@ export default function PublicChrome({
           </span>
           <div>
             <b>YTÜ CORE</b>
-            <small>{l.slogan}</small>
+            <small>{slogan}</small>
           </div>
         </div>
         <div className="footerStudentNote">
