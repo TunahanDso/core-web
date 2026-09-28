@@ -7120,3 +7120,494 @@ html[data-core-native="native-v2"] .portalAuthCard h2{
 @media(max-width:440px){
   .nativeCaptureForm>div{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE PORTAL V7 — NATIVE MOBILE PRODUCT UX
+   ========================================================= */
+
+.portalNativeTaskList{display:none}
+
+.nativeBadgeButton{position:relative}
+.nativeBadgeButton>em,
+.nativeTabBadge{
+  position:absolute;
+  display:grid;
+  place-items:center;
+  min-width:17px;
+  height:17px;
+  padding:0 4px;
+  border-radius:999px;
+  background:#ff6500;
+  color:#111;
+  font:950 7px/1 ui-monospace,monospace;
+  font-style:normal;
+  box-shadow:0 0 0 2px #fbfcf9;
+}
+.nativeBadgeButton>em{top:0;right:0}
+.nativeTabBadge{top:2px;right:13px}
+
+.nativeSearchSheet{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.nativeSearchForm{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  margin:3px 0 14px;
+  padding:8px;
+  border:1px solid #dfe2dc;
+  border-radius:13px;
+  background:#fff;
+}
+.nativeSearchForm svg{width:20px;height:20px;color:#8b9298;margin-left:4px}
+.nativeSearchForm input{
+  min-width:0;
+  min-height:42px;
+  border:0;
+  outline:0;
+  background:transparent;
+  font-size:16px;
+}
+.nativeSearchForm button{
+  min-height:40px;
+  padding:0 13px;
+  border:0;
+  border-radius:10px;
+  background:#17191d;
+  color:#fff;
+  font:900 8px ui-monospace,monospace;
+}
+.nativeSearchSuggestions{display:grid;gap:6px}
+.nativeSearchSuggestions>button{
+  min-height:58px;
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  text-align:left;
+  border:1px solid #e1e4de;
+  border-radius:12px;
+  background:#fff;
+  padding:9px 11px;
+}
+.nativeSearchSuggestions>button>span{
+  width:38px;height:38px;
+  display:grid;place-items:center;
+  border-radius:10px;
+  background:#f0f2ed;
+  color:#c94d00;
+  font:900 8px ui-monospace,monospace;
+}
+.nativeSearchSuggestions>button>div{display:grid;gap:3px;min-width:0}
+.nativeSearchSuggestions b{font-size:11px}
+.nativeSearchSuggestions small{
+  color:#969da2;
+  font:800 7px ui-monospace,monospace;
+}
+.nativeSearchSuggestions i{font-style:normal;color:#a0a5a9;font-size:18px}
+
+.nativePersonalRail{
+  display:grid;
+  gap:14px;
+  margin-bottom:18px;
+}
+.nativePersonalRail section>p{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:0 0 7px 2px;
+  color:#9aa0a5;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.nativePersonalRail section>p svg{width:13px;height:13px}
+.nativePersonalRail section>div{
+  display:flex;
+  gap:7px;
+  overflow:auto;
+  padding-bottom:3px;
+  scrollbar-width:none;
+}
+.nativePersonalRail section>div::-webkit-scrollbar{display:none}
+.nativePersonalRail section button{
+  flex:0 0 130px;
+  min-height:74px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:flex-start;
+  border:1px solid #e0e3dd;
+  border-radius:12px;
+  background:#fff;
+  padding:10px;
+  text-align:left;
+}
+.nativePersonalRail section button span{
+  color:#c94d00;
+  font:900 7px ui-monospace,monospace;
+}
+.nativePersonalRail section button b{
+  font-size:10px;
+  line-height:1.25;
+}
+
+.nativeModuleGroups>section>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.nativeModuleItem{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 40px;
+  min-height:63px;
+  border:1px solid #e0e3dd;
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+}
+.nativeModuleItem.active{
+  border-color:#ffb988;
+  background:#fff7f1;
+}
+.nativeModuleOpen{
+  min-width:0;
+  display:grid!important;
+  grid-template-columns:35px minmax(0,1fr) 12px!important;
+  align-items:center;
+  gap:8px!important;
+  min-height:63px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  padding:9px!important;
+  text-align:left!important;
+  color:#333940!important;
+}
+.nativeModuleOpen>span{
+  width:35px;height:35px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:#f0f2ed;
+  color:#c94d00;
+  font:900 7px ui-monospace,monospace;
+}
+.nativeModuleOpen>b{min-width:0;font-size:10px;line-height:1.25}
+.nativeModuleOpen>i{font-style:normal;color:#aaa;font-size:18px}
+.nativeFavoriteButton{
+  width:40px;
+  min-height:63px;
+  border:0;
+  border-left:1px solid #eceee9;
+  background:transparent;
+  color:#c5c9c4;
+  font-size:16px;
+}
+.nativeFavoriteButton.active{color:#ff6500;background:#fff2e8}
+
+html[data-core-native="native-v2"] .portalNativeTaskList{
+  display:grid;
+  gap:8px;
+  margin:0;
+}
+html[data-core-native="native-v2"] .portalNativeTaskList>a{
+  display:grid;
+  gap:9px;
+  padding:15px;
+  border:1px solid #e0e3dd;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 2px 12px rgba(22,24,27,.035);
+}
+.portalNativeTaskTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.portalNativeTaskTop em{
+  color:#7f878d;
+  font:850 8px ui-monospace,monospace;
+  font-style:normal;
+}
+.portalNativeTaskList h3{
+  margin:0;
+  font-size:16px;
+  line-height:1.25;
+}
+.portalNativeTaskList p{
+  margin:0;
+  color:#7d858b;
+  font-size:11px;
+  line-height:1.5;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.portalNativeTaskList footer{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding-top:8px;
+  border-top:1px solid #f0f1ed;
+}
+.portalNativeTaskList footer span,
+.portalNativeTaskList footer small{
+  color:#969ca1;
+  font:800 8px ui-monospace,monospace;
+}
+
+/* Native route layouts */
+html[data-core-native="native-v2"] .portalTaskBoard{display:none}
+html[data-core-native="native-v2"] #create-task,
+html[data-core-native="native-v2"] #upload,
+html[data-core-native="native-v2"] #create-event,
+html[data-core-native="native-v2"] .mailboxCompose{
+  scroll-margin-top:calc(78px + env(safe-area-inset-top));
+}
+html[data-core-native="native-v2"] .portalCreatePanel{
+  margin:10px 0 14px;
+}
+html[data-core-native="native-v2"] .portalCreatePanel .portalPanelHead small{display:none}
+
+/* Chat becomes a real single-column conversation view */
+html[data-core-native="native-v2"] .portalChatLayout{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  min-height:auto;
+}
+html[data-core-native="native-v2"] .portalChatLayout>aside{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:0 0 4px;
+  border:0;
+  background:transparent;
+  scrollbar-width:none;
+}
+html[data-core-native="native-v2"] .portalChatLayout>aside::-webkit-scrollbar{display:none}
+html[data-core-native="native-v2"] .portalChatLayout>aside>span{display:none}
+html[data-core-native="native-v2"] .portalChatLayout>aside form{flex:0 0 auto}
+html[data-core-native="native-v2"] .portalChatLayout>aside button{
+  min-width:138px;
+  max-width:188px;
+  border:1px solid #dfe2dc;
+  border-radius:12px;
+  background:#fff;
+  padding:10px 12px;
+}
+html[data-core-native="native-v2"] .portalChatLayout>aside button.active{
+  border-color:#ffb783;
+  background:#fff5ed;
+}
+html[data-core-native="native-v2"] .portalChatRoom{
+  min-height:calc(100dvh - 230px);
+  border-radius:14px;
+  overflow:hidden;
+}
+html[data-core-native="native-v2"] .portalMessages{
+  max-height:none;
+  min-height:48dvh;
+  padding:12px;
+}
+html[data-core-native="native-v2"] .portalMessages article{
+  border-radius:12px;
+  padding:11px 12px;
+}
+html[data-core-native="native-v2"] .portalChatComposer{
+  position:sticky;
+  bottom:calc(84px + env(safe-area-inset-bottom));
+  z-index:35;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:7px;
+  padding:8px;
+  background:rgba(251,252,249,.96);
+  backdrop-filter:blur(16px);
+}
+html[data-core-native="native-v2"] .portalChatComposer textarea{
+  min-height:46px;
+  max-height:120px;
+  border-radius:12px;
+}
+html[data-core-native="native-v2"] .portalChatComposer button{
+  min-width:74px;
+  min-height:46px;
+  border-radius:12px;
+}
+
+/* Mail becomes bottom-nav friendly */
+html[data-core-native="native-v2"] .mailboxShell{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+}
+html[data-core-native="native-v2"] .mailboxSidebar{
+  padding:8px;
+  overflow:hidden;
+}
+html[data-core-native="native-v2"] .mailboxComposeJump,
+html[data-core-native="native-v2"] .mailboxUnread{display:none}
+html[data-core-native="native-v2"] .mailboxSidebar nav{
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+html[data-core-native="native-v2"] .mailboxSidebar nav::-webkit-scrollbar{display:none}
+html[data-core-native="native-v2"] .mailboxSidebar nav a{
+  flex:0 0 auto;
+  min-width:98px;
+  min-height:44px;
+  border-radius:10px;
+}
+html[data-core-native="native-v2"] .mailboxMain{padding:10px}
+html[data-core-native="native-v2"] .mailboxSearch{
+  position:sticky;
+  top:calc(66px + env(safe-area-inset-top));
+  z-index:28;
+  padding:6px;
+  border-radius:12px;
+  background:rgba(251,252,249,.95);
+  backdrop-filter:blur(14px);
+}
+html[data-core-native="native-v2"] .mailboxThreadList article{
+  border-radius:12px;
+  margin:7px 0;
+  border:1px solid #eceee9;
+  background:#fff;
+}
+html[data-core-native="native-v2"] .mailboxOpenThread button{
+  grid-template-columns:24px minmax(0,1fr)!important;
+  gap:8px!important;
+  padding:12px!important;
+}
+html[data-core-native="native-v2"] .mailboxOpenThread time{display:none}
+html[data-core-native="native-v2"] .mailboxRowActions{
+  padding:0 10px 10px;
+  justify-content:flex-end;
+}
+html[data-core-native="native-v2"] .portalRecipientGrid{
+  grid-template-columns:1fr;
+  max-height:280px;
+  overflow:auto;
+}
+html[data-core-native="native-v2"] .mailboxAttachmentPicker{
+  grid-template-columns:1fr;
+  max-height:280px;
+  overflow:auto;
+}
+html[data-core-native="native-v2"] .mailboxComposeActions{
+  position:sticky;
+  bottom:calc(84px + env(safe-area-inset-bottom));
+  z-index:32;
+  padding:8px;
+  margin:0 -8px -8px;
+  background:rgba(251,252,249,.96);
+  backdrop-filter:blur(14px);
+}
+
+/* Vault / inventory / calendar cards */
+html[data-core-native="native-v2"] .vaultCapabilityRail{display:none}
+html[data-core-native="native-v2"] .vaultSearchBar form{
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+html[data-core-native="native-v2"] .vaultSearchBar input{grid-column:1/-1}
+html[data-core-native="native-v2"] .vaultFileGrid{
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+html[data-core-native="native-v2"] .vaultFileGrid>a{
+  min-height:210px;
+  border-radius:14px;
+  padding:13px;
+}
+html[data-core-native="native-v2"] .portalInventoryTable{
+  display:grid;
+  gap:8px;
+}
+html[data-core-native="native-v2"] .portalInventoryTable>header{display:none}
+html[data-core-native="native-v2"] .portalInventoryTable>article{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:7px 12px;
+  padding:14px;
+  border:1px solid #e0e3dd;
+  border-radius:13px;
+  background:#fff;
+}
+html[data-core-native="native-v2"] .portalInventoryTable>article>span:first-child{
+  color:#c94d00;
+  font:900 8px ui-monospace,monospace;
+}
+html[data-core-native="native-v2"] .portalInventoryTable>article>div{
+  grid-column:1/-1;
+  grid-row:2;
+}
+html[data-core-native="native-v2"] .portalInventoryTable>article>strong{
+  grid-column:2;
+  grid-row:1;
+}
+html[data-core-native="native-v2"] .portalInventoryTable>article>span:nth-of-type(2),
+html[data-core-native="native-v2"] .portalInventoryTable>article>span:last-child{
+  font-size:9px;
+  color:#8c9398;
+}
+html[data-core-native="native-v2"] .portalTimeline{
+  display:grid;
+  gap:8px;
+}
+html[data-core-native="native-v2"] .portalTimeline article{
+  grid-template-columns:1fr;
+  gap:7px;
+  padding:14px;
+  border-radius:13px;
+}
+html[data-core-native="native-v2"] .portalTimeline article>span{
+  color:#c94d00;
+  font:850 8px ui-monospace,monospace;
+}
+
+/* Authentication inside the native shell */
+html[data-core-native="native-v2"] .portalAuthPage{
+  display:block;
+  min-height:100dvh;
+  padding:
+    calc(22px + env(safe-area-inset-top))
+    14px
+    calc(24px + env(safe-area-inset-bottom));
+  background:#f4f5f1;
+}
+html[data-core-native="native-v2"] .portalAuthBrand{
+  min-height:auto;
+  padding:20px;
+  border-radius:18px;
+  background:#17191d;
+}
+html[data-core-native="native-v2"] .portalAuthBrand h1{
+  margin:36px 0 16px;
+  font-size:46px;
+}
+html[data-core-native="native-v2"] .portalAuthBrand>small{display:none}
+html[data-core-native="native-v2"] .portalAuthPanel{
+  display:block;
+  padding:20px 4px 0;
+}
+html[data-core-native="native-v2"] .portalAuthCard{width:100%}
+html[data-core-native="native-v2"] .portalAuthCard h2{font-size:31px}
+html[data-core-native="native-v2"] .portalAuthForm input{
+  min-height:54px;
+  border-radius:12px;
+}
+html[data-core-native="native-v2"] .portalAuthButton{
+  min-height:54px;
+  border-radius:12px;
+}
+
+/* Small phones */
+@media(max-width:390px){
+  html[data-core-native="native-v2"] .portalContent{padding-left:8px;padding-right:8px}
+  .nativeBottomTabs{left:5px;right:5px}
+  .nativeBottomTabs button span{font-size:7px}
+  .nativeModuleGroups>section>div{grid-template-columns:1fr}
+  html[data-core-native="native-v2"] .vaultFileGrid{grid-template-columns:1fr}
+  .nativeQuickGrid{grid-template-columns:1fr}
+}
