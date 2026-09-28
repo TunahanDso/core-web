@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#111317"/>
+  <path d="M387 136H235c-75 0-125 50-125 120s50 120 125 120h152v-80H241c-27 0-45-16-45-40s18-40 45-40h146v-80Z" fill="#ff6500"/>
+  <rect x="382" y="136" width="32" height="240" fill="#ff6500"/>
+  <text x="256" y="448" text-anchor="middle" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#f4f5f2">YTÜ CORE</text>
+</svg>
