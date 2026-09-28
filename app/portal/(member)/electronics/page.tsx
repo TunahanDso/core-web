@@ -1,4 +1,5 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
+import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalResources } from "@/lib/portal/db";
 import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
 import { portalResourceKindLabel } from "@/lib/portal/labels";
@@ -10,8 +11,9 @@ const ELECTRONICS_EXTENSIONS = new Set([
 ]);
 
 export default async function PortalElectronicsPage() {
+  const member = await requirePortalMember();
   const [vaultFiles, legacy] = await Promise.all([
-    listPortalVaultFiles({ lifecycle: "active", limit: 300 }),
+    listPortalVaultFiles({ lifecycle: "active", limit: 300, viewer: member }),
     listPortalResources(),
   ]);
   const files = vaultFiles.filter((item) =>
