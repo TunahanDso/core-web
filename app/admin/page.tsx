@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const modules = [
   ["Projects", "Products, integrations, status and completion percentage", "/admin/projects", true],
-  ["Competitions", "Target competitions, official dates and planning state", "#", false],
+  ["Competitions", "Target competitions, official dates and planning state", "/admin/competitions", true],
   ["Content", "TR/EN pages, announcements and institutional copy", "#", false],
   ["Publications", "Research reports, papers and technical releases", "#", false],
   ["Media", "Images, project media, documents and public assets", "#", false],
