@@ -1,6 +1,7 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { getPortalMailThread, listPortalMembers } from "@/lib/portal/db";
+import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
 import {
   getPortalMailboxCounts,
   getPortalMailDraft,
@@ -55,10 +56,11 @@ export default async function PortalMailPage({
     : "inbox";
   const q = String(query.q || "").trim().toLowerCase();
 
-  const [members, counts, drafts] = await Promise.all([
+  const [members, counts, drafts, vaultFiles] = await Promise.all([
     listPortalMembers(),
     getPortalMailboxCounts(member.id),
     listPortalMailDrafts(member.id),
+    listPortalVaultFiles({ lifecycle: "active", limit: 60, viewer: member }),
   ]);
 
   const threads = folder === "drafts"
@@ -243,6 +245,20 @@ export default async function PortalMailPage({
             </div>
           </fieldset>
           <label><span>Mesaj</span><textarea name="body" rows={8} defaultValue={composeBody} required /></label>
+          <fieldset>
+            <legend>Vault ekleri <small>· mevcut teknik dosyalardan en fazla 12</small></legend>
+            <div className="mailboxAttachmentPicker">
+              {vaultFiles.length ? vaultFiles.slice(0,30).map((file) => (
+                <label key={String(file.id)}>
+                  <input type="checkbox" name="vaultFileId" value={String(file.id)} />
+                  <span>
+                    <b>{String(file.title)}</b>
+                    <small>R{String(file.revision)} · {String(file.extension || "FILE").toUpperCase()} · {formatVaultBytes(file.size_bytes)}</small>
+                  </span>
+                </label>
+              )) : <p className="portalMuted">Vault'ta eklenebilir dosya yok.</p>}
+            </div>
+          </fieldset>
           <div className="mailboxComposeActions">
             <button className="portalPrimaryButton" type="submit">GÖNDER →</button>
             <button className="portalOutlineButton" formAction={saveMailboxDraftAction} formNoValidate type="submit">TASLAĞA KAYDET</button>
