@@ -2,6 +2,7 @@ import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createNotificationAction, markNotificationReadAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalMembers, listPortalNotifications } from "@/lib/portal/db";
+import { portalNotificationKindLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export default async function PortalNotificationsPage() {
         <div className="portalNotificationList">
           {notifications.map((item) => (
             <article className={item.read_at ? "read" : ""} key={String(item.id)}>
-              <span>{String(item.kind).toUpperCase()}</span>
+              <span>{portalNotificationKindLabel(String(item.kind))}</span>
               <div><h3>{String(item.title)}</h3><p>{String(item.body || "")}</p><small>{String(item.created_at)}</small></div>
               {item.href ? <a href={String(item.href)}>AÇ →</a> : null}
               {!item.read_at ? (
