@@ -9905,3 +9905,42 @@ html[data-core-native="native-v2"] .portalDeviceActions{
   .repoReviewHistory article{grid-template-columns:1fr}
   .repoReviewReply{grid-template-columns:1fr}
 }
+
+
+.repoRecentReviews{margin-top:14px}
+.repoRecentReviews>div:last-child{display:grid}
+.repoRecentReviews a{
+  display:grid;
+  grid-template-columns:150px minmax(0,1fr) auto auto;
+  gap:14px;
+  align-items:center;
+  min-height:58px;
+  padding:11px 14px;
+  border-bottom:1px solid #1b2027;
+}
+.repoRecentReviews a:hover{background:rgba(255,101,0,.045)}
+.repoRecentReviews a>span{
+  color:#8c95a0;
+  font:850 8px/1.2 ui-monospace,monospace;
+}
+.repoRecentReviews a>div{display:grid;gap:5px;min-width:0}
+.repoRecentReviews a b{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:700 11px/1.4 ui-monospace,monospace;
+}
+.repoRecentReviews a code{color:#6a7480;font-size:8px}
+.repoRecentReviews a small{color:#707985;font-size:9px;white-space:nowrap}
+.repoRecentReviews a strong{
+  color:var(--orange);
+  font:850 8px/1 ui-monospace,monospace;
+  white-space:nowrap;
+}
+@media(max-width:780px){
+  .repoRecentReviews a{grid-template-columns:1fr auto}
+  .repoRecentReviews a>div{grid-column:1/-1;grid-row:1}
+  .repoRecentReviews a>span{grid-column:1}
+  .repoRecentReviews a>small{grid-column:1}
+  .repoRecentReviews a>strong{grid-column:2;grid-row:2/4}
+}
