@@ -7,7 +7,7 @@ export default async function PortalActivityPage() {
   const activity = await listPortalActivity(150);
   return (
     <>
-      <PortalPageHeader code="AC / ACTIVITY" title="Etkinlik Geçmişi" lead="Hesap, görev, kaynak, envanter ve koordinasyon olaylarının okunabilir operasyon geçmişi." />
+      <PortalPageHeader code="AC / ETKİNLİK" title="Etkinlik Geçmişi" lead="Hesap, görev, kaynak, envanter ve koordinasyon olaylarının okunabilir operasyon geçmişi." />
       {activity.length ? (
         <div className="portalActivityTable">
           {activity.map((item) => (
