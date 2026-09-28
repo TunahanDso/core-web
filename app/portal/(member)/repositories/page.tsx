@@ -15,13 +15,13 @@ export default async function PortalRepositoriesPage({
 }: {
   searchParams?: Promise<{ created?: string }>;
 }) {
-  const [member, externalRepositories, nativeRepositories, services, query] = await Promise.all([
+  const [member, externalRepositories, nativeRepositories, services] = await Promise.all([
     requirePortalMember(),
     listPortalRepositories(),
     listNativeRepositories(),
     Promise.resolve(getEngineeringServiceStatus()),
-    searchParams ?? Promise.resolve({}),
   ]);
+  const query: { created?: string } = searchParams ? await searchParams : {};
   const canWrite = member.role === "admin" || member.role === "lead";
 
   return (
