@@ -8,6 +8,8 @@ on:
       - "capacitor.config.ts"
       - "mobile/**"
       - "components/portal/PortalMobileRuntime.tsx"
+      - "components/portal/PortalNativeExperience.tsx"
+      - "app/globals.css"
       - "app/portal/**"
       - "app/api/portal/mobile/**"
       - "app/.well-known/**"
@@ -65,6 +67,7 @@ jobs:
           npm run mobile:configure:android
           npm run mobile:configure:android
           npx cap sync android
+          grep -q "ytucore" android/app/src/main/AndroidManifest.xml
 
       - name: Build debug APK
         working-directory: android
@@ -102,6 +105,8 @@ jobs:
           npm run mobile:configure:ios
           npm run mobile:configure:ios
           npx cap sync ios
+          grep -q "NSCameraUsageDescription" ios/App/App/Info.plist
+          grep -q "applinks:ytucore.com" ios/App/App/App.entitlements
 
       - name: Build iOS Simulator app
         run: |

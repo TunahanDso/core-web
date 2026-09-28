@@ -28,8 +28,51 @@ export default async function PortalDashboard() {
   const unreadNotifications = notifications.filter((item) => !item.read_at).slice(0, 5);
   const upcoming = calendar.slice(0, 5);
 
+  const firstName = (member.fullName || member.email).trim().split(/\s+/)[0] || "CORE";
+
   return (
     <>
+      <section className="portalNativeHome" aria-label="Mobil CORE ana sayfası">
+        <header>
+          <div>
+            <span>CORE / MOBILE</span>
+            <h1>Merhaba, {firstName}.</h1>
+            <p>Bugün neye odaklanıyoruz?</p>
+          </div>
+          <a href="/portal/profile" className="portalNativeHomeProfile">PROFİL →</a>
+        </header>
+
+        <div className="portalNativeMetricGrid">
+          <a href="/portal/tasks"><span>AÇIK GÖREV</span><b>{metrics.openTasks}</b><small>iş kuyruğu</small></a>
+          <a href="/portal/notifications"><span>BİLDİRİM</span><b>{metrics.unread}</b><small>okunmamış</small></a>
+          <a href="/portal/inventory"><span>DÜŞÜK STOK</span><b>{metrics.lowStock}</b><small>kontrol et</small></a>
+          <a href="/portal/ops"><span>CANLI ARAÇ</span><b>{metrics.vehiclesOnline}</b><small>gözlem</small></a>
+        </div>
+
+        <div className="portalNativeQuickRail">
+          <a href="/portal/tasks"><span>PM</span><b>Görevler</b><small>Planla ve ilerlet</small></a>
+          <a href="/portal/chat"><span>CH</span><b>Sohbet</b><small>Takımla konuş</small></a>
+          <a href="/portal/mail"><span>ML</span><b>Mail</b><small>Kalıcı yazışma</small></a>
+          <a href="/portal/library"><span>VA</span><b>Vault</b><small>Dosya ve teknik hafıza</small></a>
+          <a href="/portal/calendar"><span>CL</span><b>Takvim</b><small>Test ve toplantılar</small></a>
+        </div>
+
+        {tasks[0] ? (
+          <a className="portalNativeFocusCard" href={"/portal/tasks/" + encodeURIComponent(String(tasks[0].id))}>
+            <span>ŞİMDİ / ODAK</span>
+            <h2>{String(tasks[0].title)}</h2>
+            <p>{String(tasks[0].project_slug || tasks[0].team_code || "CORE")} · {portalTaskStatusLabel(String(tasks[0].status))}</p>
+            <b>AÇ →</b>
+          </a>
+        ) : (
+          <div className="portalNativeFocusCard empty">
+            <span>ŞİMDİ / ODAK</span>
+            <h2>Açık atanmış görevin yok.</h2>
+            <p>Görev panosundan yeni bir iş seçebilirsin.</p>
+            <a href="/portal/tasks">GÖREV PANOSU →</a>
+          </div>
+        )}
+      </section>
       <section className="portalHero">
         <div>
           <span>CORE / ANA SAYFA</span>

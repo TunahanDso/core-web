@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
+import { Preferences } from "@capacitor/preferences";
 
 type MobileConfig = {
   appScheme: string;
@@ -33,8 +34,21 @@ function standalonePwa() {
   return window.matchMedia("(display-mode: standalone)").matches || iosStandalone;
 }
 
-function installId() {
+async function installId() {
   const key = "core_mobile_install_id";
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const existing = await Preferences.get({ key });
+      if (existing.value) return existing.value;
+      const next = crypto.randomUUID();
+      await Preferences.set({ key, value: next });
+      return next;
+    } catch {
+      // Fall through to the web storage compatibility path.
+    }
+  }
+
   try {
     const existing = localStorage.getItem(key);
     if (existing) return existing;
@@ -98,7 +112,7 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
     }).catch(() => null);
 
     if (isNative || isStandalone) {
-      document.documentElement.dataset.coreNative = isNative ? "native" : "pwa";
+      document.documentElement.dataset.coreNative = isNative ? "native-v2" : "pwa";
       void promote.then(async () => {
         const platform = isNative
           ? Capacitor.getPlatform()
@@ -108,7 +122,7 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
           credentials: "same-origin",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            installId: installId(),
+            installId: await installId(),
             platform,
             appVersion: config.appVersion,
             deviceLabel: (navigator.platform || "CORE device") + " · " + navigator.userAgent.slice(0,90),

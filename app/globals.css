@@ -6274,3 +6274,849 @@ html[data-core-native="native"] .portalMobileNav{
   .adminMailTest form{grid-template-columns:1fr}
   .adminMailIdentity{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE PORTAL V6 — NATIVE-FIRST MOBILE APPLICATION UX
+   ========================================================= */
+
+.portalNativeHome,
+.nativeAppBar,
+.nativeBottomTabs,
+.nativeFab,
+.nativeSheetBackdrop,
+.nativeOfflineBanner,
+.nativePullIndicator,
+.nativeToast{display:none}
+
+html[data-core-native="native-v2"]{
+  background:#f4f5f1;
+  overscroll-behavior-y:none;
+  -webkit-tap-highlight-color:transparent;
+}
+html[data-core-native="native-v2"] body{
+  background:#f4f5f1;
+  overscroll-behavior-y:none;
+}
+html[data-core-native="native-v2"] .portalSidebar,
+html[data-core-native="native-v2"] .portalTopbar,
+html[data-core-native="native-v2"] .portalMobileNav,
+html[data-core-native="native-v2"] .portalInstallButton{
+  display:none!important;
+}
+html[data-core-native="native-v2"] .portalApp{
+  display:block;
+  min-height:100dvh;
+  padding:0;
+  background:#f4f5f1;
+}
+html[data-core-native="native-v2"] .portalWorkspace{min-width:0}
+html[data-core-native="native-v2"] .portalContent{
+  padding:
+    calc(76px + env(safe-area-inset-top))
+    12px
+    calc(104px + env(safe-area-inset-bottom));
+}
+html[data-core-native="native-v2"] .portalSystemBanner{
+  position:fixed;
+  z-index:82;
+  top:calc(64px + env(safe-area-inset-top));
+  left:10px;
+  right:10px;
+  margin:0;
+  border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+}
+html[data-core-native="native-v2"] a,
+html[data-core-native="native-v2"] button{
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
+}
+html[data-core-native="native-v2"] input,
+html[data-core-native="native-v2"] textarea,
+html[data-core-native="native-v2"] select{
+  font-size:16px!important;
+}
+html[data-core-native="native-v2"] .portalPanel,
+html[data-core-native="native-v2"] .portalCreatePanel,
+html[data-core-native="native-v2"] .vaultUploadPanel,
+html[data-core-native="native-v2"] .mailboxMain,
+html[data-core-native="native-v2"] .mailboxSidebar{
+  border-radius:14px;
+  box-shadow:0 2px 12px rgba(22,24,27,.035);
+}
+html[data-core-native="native-v2"] .portalPageHeader{
+  display:block;
+  margin:2px 2px 16px;
+  padding:8px 2px 17px;
+}
+html[data-core-native="native-v2"] .portalPageHeader h1{
+  margin-top:8px;
+  font-size:32px;
+  line-height:.98;
+}
+html[data-core-native="native-v2"] .portalPageHeader p{
+  margin-top:9px;
+  font-size:12px;
+  line-height:1.55;
+}
+html[data-core-native="native-v2"] .portalPageAction{
+  margin-top:12px;
+  justify-self:auto;
+}
+html[data-core-native="native-v2"] .portalFormGrid{
+  grid-template-columns:1fr!important;
+  gap:11px;
+}
+html[data-core-native="native-v2"] .portalFormWide{grid-column:auto!important}
+html[data-core-native="native-v2"] .portalPrimaryButton,
+html[data-core-native="native-v2"] .portalAuthButton{
+  min-height:50px;
+  border-radius:10px;
+}
+html[data-core-native="native-v2"] .portalPanel{padding:16px}
+html[data-core-native="native-v2"] .portalPanelHead{
+  gap:10px;
+  padding-bottom:12px;
+}
+html[data-core-native="native-v2"] .portalPanelHead a{
+  min-height:32px;
+  display:flex;
+  align-items:center;
+}
+
+/* Native app bar */
+.nativeAppBar{
+  position:fixed;
+  z-index:110;
+  top:0;
+  left:0;
+  right:0;
+  min-height:calc(62px + env(safe-area-inset-top));
+  padding:env(safe-area-inset-top) 12px 0;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid rgba(17,19,23,.08);
+  background:rgba(250,251,248,.94);
+  backdrop-filter:blur(22px) saturate(1.2);
+  -webkit-backdrop-filter:blur(22px) saturate(1.2);
+}
+html[data-core-native="native-v2"] .nativeAppBar{display:flex}
+.nativeAppBarStart,.nativeAppBarActions{display:flex;align-items:center;gap:9px}
+.nativeBrandMark{
+  width:38px;height:38px;
+  display:grid;place-items:center;
+  border-radius:11px;
+  background:#ff6500;color:#111;
+  font-size:19px;font-weight:950;
+  box-shadow:0 5px 16px rgba(255,101,0,.21);
+}
+.nativeAppIdentity{display:grid;gap:2px}
+.nativeAppIdentity b{font-size:12px;letter-spacing:.08em}
+.nativeAppIdentity small{
+  color:#899097;
+  font:800 7px ui-monospace,monospace;
+  letter-spacing:.05em;
+}
+.nativeIconButton,.nativeAvatarButton{
+  width:42px;height:42px;
+  display:grid;place-items:center;
+  border:1px solid #e0e3dd;
+  border-radius:12px;
+  background:#fff;
+  color:#343a40;
+  padding:0;
+}
+.nativeAvatarButton{
+  border:0;
+  background:#17191d;
+  color:#fff;
+  font:900 9px ui-monospace,monospace;
+}
+
+/* Bottom tab bar + FAB */
+.nativeBottomTabs{
+  position:fixed;
+  z-index:112;
+  left:8px;
+  right:8px;
+  bottom:calc(8px + env(safe-area-inset-bottom));
+  min-height:66px;
+  grid-template-columns:repeat(5,1fr);
+  gap:2px;
+  padding:6px;
+  border:1px solid rgba(26,29,33,.1);
+  border-radius:19px;
+  background:rgba(252,253,250,.96);
+  box-shadow:0 14px 42px rgba(18,20,23,.17);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+}
+html[data-core-native="native-v2"] .nativeBottomTabs{display:grid}
+.nativeBottomTabs button{
+  position:relative;
+  min-width:0;
+  min-height:52px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:3px;
+  border:0;
+  border-radius:13px;
+  background:transparent;
+  color:#858c92;
+  padding:4px 2px;
+}
+.nativeBottomTabs button svg{width:20px;height:20px}
+.nativeBottomTabs button span{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:8px;
+  font-weight:800;
+}
+.nativeBottomTabs button.active{
+  background:#fff2e8;
+  color:#c94d00;
+}
+.nativeBottomTabs button.active::after{
+  content:"";
+  position:absolute;
+  top:3px;
+  width:18px;height:2px;
+  border-radius:2px;
+  background:#ff6500;
+}
+.nativeFab{
+  position:fixed;
+  z-index:113;
+  right:17px;
+  bottom:calc(86px + env(safe-area-inset-bottom));
+  width:54px;height:54px;
+  place-items:center;
+  border:0;
+  border-radius:18px;
+  background:#ff6500;
+  color:#111;
+  box-shadow:0 14px 28px rgba(255,101,0,.28);
+}
+html[data-core-native="native-v2"] .nativeFab{display:grid}
+.nativeFab svg{width:24px;height:24px}
+
+/* Sheets */
+.nativeSheetBackdrop{
+  position:fixed;
+  z-index:140;
+  inset:0;
+  align-items:end;
+  background:rgba(8,10,12,.42);
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+html[data-core-native="native-v2"] .nativeSheetBackdrop{display:flex}
+.nativeSheet{
+  width:100%;
+  max-height:88dvh;
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding:
+    8px
+    14px
+    calc(18px + env(safe-area-inset-bottom));
+  border-radius:24px 24px 0 0;
+  background:#fbfcf9;
+  box-shadow:0 -20px 60px rgba(0,0,0,.2);
+  animation:nativeSheetUp .2s ease-out;
+}
+@keyframes nativeSheetUp{
+  from{transform:translateY(18px);opacity:.6}
+  to{transform:translateY(0);opacity:1}
+}
+.nativeSheetHandle{
+  width:42px;height:4px;
+  margin:2px auto 14px;
+  border-radius:99px;
+  background:#cfd3cd;
+}
+.nativeSheet>header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.nativeSheet>header span{
+  color:#c94d00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.11em;
+}
+.nativeSheet>header h2{
+  margin:5px 0 0;
+  font-size:26px;
+  letter-spacing:-.04em;
+}
+.nativeSheet>header>button{
+  min-height:34px;
+  border:1px solid #dde0da;
+  border-radius:9px;
+  background:#fff;
+  padding:0 10px;
+  color:#737a80;
+  font:900 7px ui-monospace,monospace;
+}
+.nativeMemberCard{
+  display:grid;
+  grid-template-columns:45px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  margin-bottom:18px;
+  padding:12px;
+  border-radius:13px;
+  background:#17191d;
+  color:#fff;
+}
+.nativeMemberAvatar{
+  width:45px;height:45px;
+  display:grid;place-items:center;
+  border-radius:13px;
+  background:#ff6500;
+  color:#111;
+  font:950 10px ui-monospace,monospace;
+}
+.nativeMemberCard>div{display:grid;gap:3px;min-width:0}
+.nativeMemberCard>div b{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12px;
+}
+.nativeMemberCard>div small{color:#989fa6;font-size:8px}
+.nativeMemberCard>button{
+  border:0;background:transparent;color:#ff6500;
+  font:900 7px ui-monospace,monospace;
+}
+.nativeModuleGroups{display:grid;gap:18px}
+.nativeModuleGroups>section>p{
+  margin:0 0 7px 3px;
+  color:#9ca2a7;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.11em;
+}
+.nativeModuleGroups>section>div{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+.nativeModuleGroups button{
+  min-height:63px;
+  display:grid;
+  grid-template-columns:35px minmax(0,1fr) 12px;
+  align-items:center;
+  gap:8px;
+  text-align:left;
+  border:1px solid #e0e3dd;
+  border-radius:12px;
+  background:#fff;
+  padding:9px;
+  color:#333940;
+}
+.nativeModuleGroups button>span{
+  width:35px;height:35px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:#f0f2ed;
+  color:#c94d00;
+  font:900 7px ui-monospace,monospace;
+}
+.nativeModuleGroups button>b{
+  min-width:0;
+  font-size:10px;
+  line-height:1.25;
+}
+.nativeModuleGroups button>i{
+  color:#aaa;font-style:normal;font-size:18px;
+}
+.nativeModuleGroups button.active{
+  border-color:#ffb988;
+  background:#fff7f1;
+}
+.nativeQuickGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.nativeQuickGrid button{
+  min-height:132px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  text-align:left;
+  border:1px solid #e0e2dd;
+  border-radius:14px;
+  background:#fff;
+  padding:14px;
+}
+.nativeQuickGrid button:first-child{
+  background:#17191d;
+  color:#fff;
+}
+.nativeQuickGrid button>span{
+  color:#ff6500;
+  font:900 8px ui-monospace,monospace;
+}
+.nativeQuickGrid button>b{
+  margin-top:25px;
+  font-size:16px;
+}
+.nativeQuickGrid button>small{
+  margin-top:6px;
+  color:#898f94;
+  font-size:9px;
+  line-height:1.4;
+}
+
+/* Connectivity, refresh and Android exit feedback */
+.nativeOfflineBanner{
+  position:fixed;
+  z-index:125;
+  top:calc(67px + env(safe-area-inset-top));
+  left:10px;right:10px;
+  grid-template-columns:24px 1fr auto;
+  align-items:center;
+  gap:9px;
+  padding:9px 11px;
+  border-radius:11px;
+  background:#17191d;
+  color:#fff;
+  box-shadow:0 10px 26px rgba(0,0,0,.18);
+}
+html[data-core-native="native-v2"] .nativeOfflineBanner{display:grid}
+.nativeOfflineBanner svg{color:#ff6500}
+.nativeOfflineBanner>div{display:grid;gap:1px}
+.nativeOfflineBanner b{font-size:10px}
+.nativeOfflineBanner span{color:#9ca3aa;font-size:8px}
+.nativeOfflineBanner button{
+  min-height:31px;border:0;border-radius:8px;
+  background:#ff6500;color:#111;padding:0 9px;
+  font:900 7px ui-monospace,monospace;
+}
+.nativePullIndicator{
+  position:fixed;
+  z-index:126;
+  top:calc(69px + env(safe-area-inset-top));
+  left:50%;
+  min-height:34px;
+  align-items:center;
+  gap:6px;
+  padding:0 10px;
+  border:1px solid #dde0da;
+  border-radius:99px;
+  background:#fff;
+  color:#7c8389;
+  box-shadow:0 8px 22px rgba(0,0,0,.1);
+  transition:transform .1s ease-out;
+}
+html[data-core-native="native-v2"] .nativePullIndicator{display:flex}
+.nativePullIndicator svg{width:16px;height:16px}
+.nativePullIndicator span{font:900 6px ui-monospace,monospace}
+.nativePullIndicator.refreshing svg{animation:nativeSpin .7s linear infinite}
+@keyframes nativeSpin{to{transform:rotate(360deg)}}
+.nativeToast{
+  position:fixed;
+  z-index:170;
+  left:50%;
+  bottom:calc(92px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:max-content;
+  max-width:calc(100vw - 28px);
+  padding:10px 13px;
+  border-radius:10px;
+  background:#17191d;
+  color:#fff;
+  font-size:10px;
+  box-shadow:0 10px 28px rgba(0,0,0,.2);
+}
+html[data-core-native="native-v2"] .nativeToast{display:block}
+
+/* Mobile dashboard: information first, no desktop marketing hero. */
+.portalNativeHome{margin:0 0 14px}
+html[data-core-native="native-v2"] .portalNativeHome{display:block}
+.portalNativeHome>header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 3px 15px;
+}
+.portalNativeHome>header span{
+  color:#c94d00;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.11em;
+}
+.portalNativeHome>header h1{
+  margin:5px 0 3px;
+  font-size:31px;
+  line-height:1;
+  letter-spacing:-.045em;
+}
+.portalNativeHome>header p{
+  margin:0;color:#858c92;font-size:11px;
+}
+.portalNativeHomeProfile{
+  min-height:34px;
+  display:flex;align-items:center;
+  border:1px solid #dfe2dc;
+  border-radius:9px;
+  background:#fff;
+  padding:0 9px;
+  color:#7b8288;
+  font:900 7px ui-monospace,monospace;
+}
+.portalNativeMetricGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+.portalNativeMetricGrid>a{
+  min-height:112px;
+  display:flex;
+  flex-direction:column;
+  padding:13px;
+  border:1px solid #dfe2dc;
+  border-radius:14px;
+  background:#fff;
+}
+.portalNativeMetricGrid>a:first-child{
+  background:#17191d;color:#fff;border-color:#17191d;
+}
+.portalNativeMetricGrid span{
+  color:#949b9f;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.portalNativeMetricGrid b{
+  margin-top:auto;
+  color:#ff6500;
+  font-size:32px;
+  letter-spacing:-.05em;
+}
+.portalNativeMetricGrid small{color:#8b9297;font-size:8px}
+.portalNativeQuickRail{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  margin:10px -12px 10px;
+  padding:0 12px 4px;
+  scrollbar-width:none;
+  scroll-snap-type:x proximity;
+}
+.portalNativeQuickRail::-webkit-scrollbar{display:none}
+.portalNativeQuickRail>a{
+  flex:0 0 132px;
+  min-height:102px;
+  display:flex;
+  flex-direction:column;
+  scroll-snap-align:start;
+  padding:12px;
+  border:1px solid #dfe2dc;
+  border-radius:13px;
+  background:#fff;
+}
+.portalNativeQuickRail span{
+  color:#c94d00;
+  font:900 7px ui-monospace,monospace;
+}
+.portalNativeQuickRail b{margin-top:auto;font-size:13px}
+.portalNativeQuickRail small{margin-top:3px;color:#969ca1;font-size:8px}
+.portalNativeFocusCard{
+  position:relative;
+  display:block;
+  min-height:142px;
+  padding:17px 50px 17px 17px;
+  overflow:hidden;
+  border-radius:16px;
+  background:#ff6500;
+  color:#111;
+}
+.portalNativeFocusCard::after{
+  content:"→";
+  position:absolute;
+  right:16px;bottom:13px;
+  font-size:28px;
+}
+.portalNativeFocusCard>span{
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.09em;
+}
+.portalNativeFocusCard h2{
+  max-width:300px;
+  margin:31px 0 6px;
+  font-size:21px;
+  line-height:1.05;
+  letter-spacing:-.035em;
+}
+.portalNativeFocusCard p{margin:0;font-size:9px;opacity:.7}
+.portalNativeFocusCard>b{display:none}
+.portalNativeFocusCard.empty{background:#fff;border:1px dashed #ccd0ca}
+.portalNativeFocusCard.empty::after{display:none}
+.portalNativeFocusCard.empty a{
+  display:inline-flex;margin-top:12px;font:900 8px ui-monospace,monospace;color:#c94d00;
+}
+
+html[data-core-native="native-v2"] .portalHero,
+html[data-core-native="native-v2"] .portalMetrics,
+html[data-core-native="native-v2"] .portalSection,
+html[data-core-native="native-v2"] .portalVehicleStrip,
+html[data-core-native="native-v2"] .portalActivityPanel{
+  display:none;
+}
+html[data-core-native="native-v2"] .portalDashboardFocus{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:9px;
+  margin-top:10px;
+}
+html[data-core-native="native-v2"] .portalDashboardFocus>.portalPanel:nth-child(n+3){
+  display:none;
+}
+html[data-core-native="native-v2"] .portalCompactList>div{
+  grid-template-columns:auto minmax(0,1fr);
+}
+html[data-core-native="native-v2"] .portalCompactList>div>em{
+  grid-column:2;
+  font-size:7px;
+}
+
+/* Task board becomes finger-friendly horizontal lanes rather than a squeezed desktop grid. */
+html[data-core-native="native-v2"] .portalTaskBoard{
+  display:flex;
+  gap:9px;
+  margin:0 -12px;
+  padding:0 12px 12px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+}
+html[data-core-native="native-v2"] .portalTaskBoard::-webkit-scrollbar{display:none}
+html[data-core-native="native-v2"] .portalTaskColumn{
+  flex:0 0 min(86vw,340px);
+  min-height:400px;
+  scroll-snap-align:start;
+  border-radius:14px;
+}
+html[data-core-native="native-v2"] .portalTaskCard{
+  border-radius:11px;
+  padding:13px;
+}
+
+/* Mail / chat / Vault / data screens become touch-first. */
+html[data-core-native="native-v2"] .mailboxShell{
+  display:block;
+  margin:0 -4px;
+}
+html[data-core-native="native-v2"] .mailboxSidebar{
+  margin-bottom:8px;
+  overflow-x:auto;
+}
+html[data-core-native="native-v2"] .mailboxSidebar nav{
+  display:flex;
+  min-width:max-content;
+  padding-bottom:2px;
+}
+html[data-core-native="native-v2"] .mailboxSidebar nav>a{
+  min-width:108px;
+  min-height:43px;
+  border-radius:10px;
+}
+html[data-core-native="native-v2"] .mailboxThreadList>article{
+  border-radius:11px;
+  margin-bottom:6px;
+}
+html[data-core-native="native-v2"] .vaultFileGrid,
+html[data-core-native="native-v2"] .portalResourceGrid,
+html[data-core-native="native-v2"] .portalMemberGrid,
+html[data-core-native="native-v2"] .portalVehicleGrid,
+html[data-core-native="native-v2"] .portalSecurityGrid{
+  grid-template-columns:1fr!important;
+}
+html[data-core-native="native-v2"] .vaultFileGrid article,
+html[data-core-native="native-v2"] .portalResourceGrid article,
+html[data-core-native="native-v2"] .portalMemberGrid article,
+html[data-core-native="native-v2"] .portalVehicleGrid article,
+html[data-core-native="native-v2"] .portalSecurityGrid article{
+  min-height:auto;
+  border-radius:13px;
+}
+html[data-core-native="native-v2"] .portalListTable article{
+  grid-template-columns:70px minmax(0,1fr);
+  border-radius:11px;
+  margin-bottom:6px;
+}
+html[data-core-native="native-v2"] .portalListTable article>*:nth-child(n+3){
+  grid-column:2;
+}
+html[data-core-native="native-v2"] .portalEmpty{
+  margin:12px 0;
+  padding:28px 18px;
+  border-radius:14px;
+}
+html[data-core-native="native-v2"] .portalSplit{
+  grid-template-columns:1fr;
+  margin-top:16px;
+}
+html[data-core-native="native-v2"] .portalActivityList>div{
+  grid-template-columns:1fr;
+  gap:4px;
+}
+html[data-core-native="native-v2"] .portalAnalyticsGrid{
+  grid-template-columns:1fr 1fr;
+}
+html[data-core-native="native-v2"] .portalAnalyticsGrid article{
+  min-height:110px;
+  border-radius:13px;
+}
+
+/* Auth is also app-like when loaded inside the native WebView. */
+html[data-core-native="native-v2"] .portalAuthPage{
+  display:block;
+  min-height:100dvh;
+  padding:
+    calc(36px + env(safe-area-inset-top))
+    16px
+    calc(26px + env(safe-area-inset-bottom));
+  background:#f4f5f1;
+}
+html[data-core-native="native-v2"] .portalAuthBrand{
+  min-height:auto;
+  display:block;
+  padding:18px 4px 28px;
+  background:transparent;
+  color:#17191d;
+}
+html[data-core-native="native-v2"] .portalAuthBrand>a{
+  display:inline-flex;
+  padding:9px 11px;
+  border-radius:9px;
+  background:#17191d;
+  color:#fff;
+}
+html[data-core-native="native-v2"] .portalAuthBrand>div{
+  margin-top:38px;
+}
+html[data-core-native="native-v2"] .portalAuthBrand h1{
+  margin:10px 0 12px;
+  font-size:44px;
+  color:#17191d;
+}
+html[data-core-native="native-v2"] .portalAuthBrand p{
+  color:#747b82;
+  font-size:12px;
+}
+html[data-core-native="native-v2"] .portalAuthBrand>small{display:none}
+html[data-core-native="native-v2"] .portalAuthPanel{
+  display:block;
+  padding:0;
+}
+html[data-core-native="native-v2"] .portalAuthCard{
+  width:100%;
+  padding:20px;
+  border:1px solid #dfe2dc;
+  border-radius:17px;
+  background:#fff;
+  box-shadow:0 12px 34px rgba(22,24,27,.06);
+}
+html[data-core-native="native-v2"] .portalAuthCard h2{
+  font-size:30px;
+}
+
+@media(min-width:700px){
+  html[data-core-native="native-v2"] .portalContent{
+    max-width:760px;
+    margin:0 auto;
+  }
+  .nativeBottomTabs{
+    width:min(680px,calc(100vw - 20px));
+    left:50%;right:auto;
+    transform:translateX(-50%);
+  }
+  .nativeSheet{
+    width:min(620px,100%);
+    margin:0 auto;
+  }
+}
+
+
+/* Native camera → Vault */
+.nativeCameraQuick{
+  background:#fff7f0!important;
+  border-color:#ffc79f!important;
+}
+.nativeCameraQuick>span{
+  width:34px;height:34px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:#ff6500;
+  color:#111!important;
+}
+.nativeCameraQuick>span svg{width:18px;height:18px}
+.nativeCaptureSheet{padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+.nativeCapturePreview{
+  width:100%;
+  max-height:42dvh;
+  display:block;
+  object-fit:cover;
+  border-radius:15px;
+  background:#17191d;
+  box-shadow:0 10px 30px rgba(0,0,0,.11);
+}
+.nativeCaptureForm{
+  display:grid;
+  gap:11px;
+  margin-top:14px;
+}
+.nativeCaptureForm>div{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+.nativeCaptureForm label{display:grid;gap:6px}
+.nativeCaptureForm label>span{
+  color:#858c92;
+  font:850 7px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.nativeCaptureForm input{
+  width:100%;
+  min-height:47px;
+  border:1px solid #daddd7;
+  border-radius:10px;
+  background:#fff;
+  padding:0 12px;
+  outline:none;
+}
+.nativeCaptureForm input:focus{
+  border-color:#ff6500;
+  box-shadow:0 0 0 3px rgba(255,101,0,.08);
+}
+.nativeCaptureError{
+  margin:0;
+  padding:10px 12px;
+  border:1px solid #efb18c;
+  border-radius:9px;
+  background:#fff3eb;
+  color:#ad3f00;
+  font-size:10px;
+}
+.nativeCaptureSubmit{
+  min-height:52px;
+  border:0;
+  border-radius:11px;
+  background:#ff6500;
+  color:#111;
+  font:900 9px ui-monospace,monospace;
+  letter-spacing:.04em;
+}
+.nativeCaptureSubmit:disabled{opacity:.55}
+
+@media(max-width:440px){
+  .nativeCaptureForm>div{grid-template-columns:1fr}
+}
