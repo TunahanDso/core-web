@@ -14,10 +14,10 @@ from pathlib import Path
 TASKS = {
     "python-test": [["python3", "-m", "pytest", "-q"]],
     "python-script": [["python3", "main.py"]],
-    "js-test": [["npm", "test", "--", "--run"]],
+    "js-test": [["vitest", "run"]],
     "js-script": [["node", "index.js"]],
     "ts-typecheck": [["tsc", "--noEmit"]],
-    "ts-test": [["npm", "test", "--", "--run"]],
+    "ts-test": [["vitest", "run"]],
     "c-build": [
         ["cmake", "-S", ".", "-B", "build", "-G", "Ninja"],
         ["cmake", "--build", "build", "--parallel", "2"],
@@ -51,7 +51,7 @@ LANGUAGE = {
     "cpp-test": "cpp",
 }
 
-MAX_BODY = 24 * 1024 * 1024
+MAX_BODY = 32 * 1024 * 1024
 MAX_FILES = 1200
 MAX_SNAPSHOT = 16 * 1024 * 1024
 MAX_OUTPUT = 1_000_000
