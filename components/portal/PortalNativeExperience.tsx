@@ -138,7 +138,6 @@ export default function PortalNativeExperience({
         targetWidth: 1800,
         targetHeight: 1800,
         correctOrientation: true,
-        includeMetadata: true,
       });
       if (!result.webPath) throw new Error("Kamera çıktısı alınamadı.");
 
@@ -147,8 +146,8 @@ export default function PortalNativeExperience({
       if (!blob.size) throw new Error("Fotoğraf verisi boş.");
       if (blob.size > 25 * 1024 * 1024) throw new Error("Fotoğraf 25 MB Vault sınırını aşıyor.");
 
-      const format = String(result.format || "jpeg").toLowerCase();
-      const extension = format === "jpeg" ? "jpg" : format.replace(/[^a-z0-9]/g, "") || "jpg";
+      const mimeFormat = (blob.type.split("/")[1] || "jpeg").toLowerCase();
+      const extension = mimeFormat === "jpeg" ? "jpg" : mimeFormat.replace(/[^a-z0-9]/g, "") || "jpg";
       const now = new Date();
       setCapture({
         blob,
