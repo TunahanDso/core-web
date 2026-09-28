@@ -644,3 +644,21 @@ export async function listPortalChannelsForMember(memberId: string) {
   ).bind(memberId).all<Record<string, unknown>>();
   return response.results ?? [];
 }
+
+
+export async function getPortalProjectWorkspace(slug: string) {
+  const db = database();
+  const [tasks, resources, repositories] = await Promise.all([
+    db.prepare("SELECT t.*,m.full_name AS assignee_name FROM portal_tasks t LEFT JOIN portal_members m ON m.id=t.assignee_id WHERE t.project_slug=? ORDER BY CASE t.status WHEN 'doing' THEN 0 WHEN 'review' THEN 1 WHEN 'todo' THEN 2 WHEN 'blocked' THEN 3 WHEN 'backlog' THEN 4 ELSE 5 END,t.updated_at DESC")
+      .bind(slug).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM portal_resources WHERE project_slug=? ORDER BY updated_at DESC")
+      .bind(slug).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM portal_repositories WHERE project_slug=? ORDER BY name")
+      .bind(slug).all<Record<string, unknown>>(),
+  ]);
+  return {
+    tasks: tasks.results ?? [],
+    resources: resources.results ?? [],
+    repositories: repositories.results ?? [],
+  };
+}
