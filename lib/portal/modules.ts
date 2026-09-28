@@ -24,6 +24,7 @@ export const portalNavigation = [
       ["Chat", "/portal/chat", "CH"],
       ["Internal Mail", "/portal/mail", "ML"],
       ["Members", "/portal/members", "MB"],
+      ["Security & Devices", "/portal/security", "SEC"],
     ],
   },
   {
