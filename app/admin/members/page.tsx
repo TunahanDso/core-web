@@ -5,6 +5,7 @@ import { listPortalMembers } from "@/lib/portal/db";
 import { setPortalMemberStatusAdminAction } from "@/app/admin/portal-actions";
 import { portalMemberStatusLabel, portalRoleLabel } from "@/lib/portal/labels";
 import { portalMailProviderStatus } from "@/lib/portal/mail";
+import { getPortalMailDnsHealth } from "@/lib/portal/mail-health";
 import MailDeliveryTestForm from "@/components/admin/MailDeliveryTestForm";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminMembersPage() {
   const status = await portalBootstrapStatus();
   const mail = portalMailProviderStatus();
-  const members = status.ready ? await listPortalMembers() : [];
+  const [members, mailDns] = await Promise.all([
+    status.ready ? listPortalMembers() : Promise.resolve([]),
+    getPortalMailDnsHealth(),
+  ]);
 
   return (
     <main className="admin adminLight">
@@ -36,7 +40,7 @@ export default async function AdminMembersPage() {
         <article className={mail.configured ? "ok" : "warn"}>
           <span>DAVET E-POSTASI</span>
           <b>{mail.configured ? "BAĞLANTI HAZIR" : "YAPILANDIRILMADI"}</b>
-          <small>{mail.provider}</small>
+          <small>{mail.provider} · inbox/spam kararı alıcı tarafında</small>
         </article>
         <article>
           <span>AKTİF ÜYE</span>
@@ -48,6 +52,51 @@ export default async function AdminMembersPage() {
           <b>{members.filter((member) => String(member.status) === "invited").length}</b>
           <small>aktivasyon bekliyor</small>
         </article>
+      </section>
+
+      <section className="adminMailHealthPanel">
+        <div className="adminMailHealthHead">
+          <div>
+            <span>DELIVERABILITY / DOMAIN HEALTH</span>
+            <h2>SPF · DKIM · DMARC</h2>
+            <p>
+              Test mailinin gönderilmiş olması yalnızca alıcı sunucusuna ulaşabildiğini kanıtlar.
+              Bu kart, ytucore.com için alıcıların baktığı temel kimlik doğrulama DNS sinyallerini
+              canlı olarak kontrol eder.
+            </p>
+          </div>
+          <b className={mailDns.healthy ? "pass" : "warn"}>
+            {mailDns.healthy ? "AUTH SAĞLIKLI" : "KONTROL GEREKİYOR"}
+          </b>
+        </div>
+        {mailDns.error ? (
+          <div className="adminMailHealthError">{mailDns.error}</div>
+        ) : (
+          <div className="adminMailHealthGrid">
+            {mailDns.checks.map((check) => (
+              <article className={check.status} key={check.key}>
+                <header><span>{check.label}</span><b>{check.status === "pass" ? "PASS" : check.status === "warn" ? "WARN" : "FAIL"}</b></header>
+                <small>{check.hostname}</small>
+                <p>{check.summary}</p>
+                {check.values[0] ? <code>{check.values[0]}</code> : <code>DNS kaydı görünmedi</code>}
+              </article>
+            ))}
+          </div>
+        )}
+        <div className="adminMailDeliverabilityNotes">
+          <div>
+            <span>YENİ DOMAIN DAVRANIŞI</span>
+            <p>İlk günlerde düşük hacimle yalnız gerçek davetlere gönder. Ani toplu gönderim ve bounce üretme.</p>
+          </div>
+          <div>
+            <span>GMAIL REPUTATION</span>
+            <p>Google Postmaster Tools üzerinden domain reputation, auth ve spam oranını takip et.</p>
+          </div>
+          <div>
+            <span>CLOUDFLARE LOGS</span>
+            <p>Email Sending Activity Log'da Sent/Delivered/Delivery failed/Rejected durumlarını kontrol et.</p>
+          </div>
+        </div>
       </section>
 
       <section className="adminMailOps">
@@ -93,7 +142,7 @@ export default async function AdminMembersPage() {
                   <div className={"inviteDelivery " + String(member.invite_delivery_status || "none")}>
                     <b>
                       {String(member.invite_delivery_status || "") === "sent"
-                        ? "GÖNDERİLDİ"
+                        ? "SAĞLAYICI KABUL ETTİ"
                         : String(member.invite_delivery_status || "") === "failed"
                           ? "HATA"
                           : String(member.invite_delivery_status || "") === "not_configured"

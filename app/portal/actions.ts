@@ -19,6 +19,7 @@ import {
   createPortalResource,
   createPortalTask,
   markPortalChannelRead,
+  markAllPortalNotificationsRead,
   markPortalNotificationRead,
   savePortalMemberProfile,
   sendPortalMailReply,
@@ -264,6 +265,14 @@ export async function markNotificationReadAction(formData: FormData) {
   const id = textValue(formData, "id");
   if (!id) throw new Error("Bildirim kimliği gerekli.");
   await markPortalNotificationRead(id, member.id);
+  revalidatePath("/portal");
+  revalidatePath("/portal/notifications");
+}
+
+export async function markAllNotificationsReadAction() {
+  const member = await requirePortalMember();
+  await markAllPortalNotificationsRead(member.id);
+  revalidatePath("/portal");
   revalidatePath("/portal/notifications");
 }
 

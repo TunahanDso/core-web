@@ -214,6 +214,50 @@ jobs:
             }
             console.log("Native-first V7 search, badges, favorites, recents and route layouts validated.");
 
+            const mailHealth = fs.readFileSync("lib/portal/mail-health.ts", "utf8");
+            for (const required of [
+              "cf-bounce.ytucore.com",
+              "cf-bounce._domainkey.ytucore.com",
+              "_dmarc.ytucore.com",
+              "include:_spf.mx.cloudflare.net"
+            ]) {
+              if (!mailHealth.includes(required)) {
+                throw new Error(`Mail deliverability health check missing: ${required}`);
+              }
+            }
+            const commandCenter = fs.readFileSync("components/portal/PortalCommandCenter.tsx", "utf8");
+            for (const required of [
+              "core_command_recents",
+              "metaKey",
+              "ctrlKey",
+              "/portal/search?q=",
+              "/portal/tasks#create-task",
+              "/portal/library#upload"
+            ]) {
+              if (!commandCenter.includes(required)) {
+                throw new Error(`CORE Command Center missing capability: ${required}`);
+              }
+            }
+            const portalShell = fs.readFileSync("components/portal/PortalShell.tsx", "utf8");
+            if (!portalShell.includes("PortalCommandCenter")) {
+              throw new Error("Portal shell must expose the global Command Center.");
+            }
+            const filteredTasksPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
+            for (const required of ["statusFilter", "priorityFilter", "projectFilter", "mine", "portalTaskFilters"]) {
+              if (!filteredTasksPage.includes(required)) {
+                throw new Error(`Task usability filter missing: ${required}`);
+              }
+            }
+            const notificationPage = fs.readFileSync("app/portal/(member)/notifications/page.tsx", "utf8");
+            if (!notificationPage.includes("markAllNotificationsReadAction") || !notificationPage.includes("filter=unread")) {
+              throw new Error("Notification center must preserve unread filtering and mark-all-read.");
+            }
+            const portalDb = fs.readFileSync("lib/portal/db.ts", "utf8");
+            if (!portalDb.includes("markAllPortalNotificationsRead")) {
+              throw new Error("Notification mark-all persistence helper is missing.");
+            }
+            console.log("Deliverability diagnostics, Command Center, task filters and notification controls validated.");
+
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
             if (!pbkdf2Match) {

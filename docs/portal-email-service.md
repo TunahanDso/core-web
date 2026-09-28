@@ -67,3 +67,25 @@ Before enabling broad invitations:
 - verify the activation link opens the correct email,
 - verify an invitation cannot be reused after activation,
 - verify reissue invalidates the previous unused invitation.
+
+
+## Deliverability / spam placement
+
+A successful Worker `EMAIL.send()` call means the provider accepted the message. It does **not** guarantee Inbox placement. Gmail, Outlook, Yahoo and institutional mail systems independently classify the message after receipt.
+
+For a new sending domain:
+
+1. Keep volume low and predictable at first. Send only real transactional invitations.
+2. Do not repeatedly re-send to invalid or unengaged recipients.
+3. Review **Cloudflare Email Service > Email Sending > Activity Log**. Distinguish `Sent`, `Delivered`, `Delivery failed`, `Rejected` and `Failed`.
+4. Review **Suppressions** before re-sending to an address that bounced or complained.
+5. Add `ytucore.com` to Google Postmaster Tools and monitor authentication, domain reputation, delivery errors and user-reported spam rate.
+6. Keep SPF and DKIM healthy. Publish DMARC and tighten the policy only after legitimate senders are confirmed.
+7. Ask early invited members who intentionally requested membership to move a misplaced message out of Spam/Junk rather than repeatedly sending duplicates.
+
+The admin Members & Access page performs live public-DNS checks for:
+- `cf-bounce.ytucore.com` SPF,
+- `cf-bounce._domainkey.ytucore.com` DKIM,
+- `_dmarc.ytucore.com` DMARC.
+
+These checks validate public authentication records only; they do not measure Gmail/Outlook reputation or inbox placement.

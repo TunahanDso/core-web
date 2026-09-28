@@ -7611,3 +7611,506 @@ html[data-core-native="native-v2"] .portalAuthButton{
   html[data-core-native="native-v2"] .vaultFileGrid{grid-template-columns:1fr}
   .nativeQuickGrid{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE ADMIN — MAIL DELIVERABILITY HEALTH
+   ========================================================= */
+
+.adminMailHealthPanel{
+  display:grid;
+  gap:14px;
+  margin:16px 0;
+  padding:20px;
+  border:1px solid #dde0da;
+  border-radius:12px;
+  background:#fff;
+}
+.adminMailHealthHead{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:flex-start;
+}
+.adminMailHealthHead>div>span,
+.adminMailDeliverabilityNotes span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.adminMailHealthHead h2{margin:7px 0 8px;font-size:24px}
+.adminMailHealthHead p{
+  max-width:800px;
+  margin:0;
+  color:#747c82;
+  font-size:11px;
+  line-height:1.65;
+}
+.adminMailHealthHead>b{
+  flex:0 0 auto;
+  padding:9px 11px;
+  border-radius:999px;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.07em;
+}
+.adminMailHealthHead>b.pass{
+  color:#22603a;
+  background:#edf8f1;
+  border:1px solid #a7d3b7;
+}
+.adminMailHealthHead>b.warn{
+  color:#9b3c00;
+  background:#fff5ed;
+  border:1px solid #efbf9e;
+}
+.adminMailHealthGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.adminMailHealthGrid article{
+  display:grid;
+  gap:8px;
+  min-height:180px;
+  padding:14px;
+  border:1px solid #e0e3dd;
+  border-radius:10px;
+  background:#fafbf8;
+}
+.adminMailHealthGrid article.pass{border-color:#afd7bd;background:#f7fbf8}
+.adminMailHealthGrid article.warn{border-color:#e8c09e;background:#fff9f4}
+.adminMailHealthGrid article.fail{border-color:#e0a8a0;background:#fff7f6}
+.adminMailHealthGrid header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.adminMailHealthGrid header>span{
+  font:950 11px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.adminMailHealthGrid header>b{
+  font:900 7px ui-monospace,monospace;
+}
+.adminMailHealthGrid article.pass header>b{color:#28714a}
+.adminMailHealthGrid article.warn header>b{color:#a95111}
+.adminMailHealthGrid article.fail header>b{color:#a83d34}
+.adminMailHealthGrid article>small{
+  color:#899096;
+  font:750 8px ui-monospace,monospace;
+  overflow-wrap:anywhere;
+}
+.adminMailHealthGrid article>p{
+  margin:0;
+  color:#656d74;
+  font-size:10px;
+  line-height:1.55;
+}
+.adminMailHealthGrid code{
+  margin-top:auto;
+  padding:9px;
+  border-radius:7px;
+  background:#17191d;
+  color:#d4d8d4;
+  font-size:8px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.adminMailHealthError{
+  padding:12px;
+  border:1px solid #e2b3a6;
+  border-radius:8px;
+  background:#fff7f3;
+  color:#94401c;
+  font-size:10px;
+}
+.adminMailDeliverabilityNotes{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  padding-top:5px;
+}
+.adminMailDeliverabilityNotes>div{
+  padding:12px;
+  border-top:1px solid #e8eae5;
+}
+.adminMailDeliverabilityNotes p{
+  margin:7px 0 0;
+  color:#747c82;
+  font-size:10px;
+  line-height:1.55;
+}
+
+@media(max-width:900px){
+  .adminMailHealthGrid,
+  .adminMailDeliverabilityNotes{grid-template-columns:1fr}
+  .adminMailHealthHead{flex-direction:column}
+}
+
+
+/* =========================================================
+   CORE PORTAL V8 — COMMAND CENTER
+   ========================================================= */
+
+.portalCommandTrigger{
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:0 10px;
+  border:1px solid var(--portal-line);
+  border-radius:999px;
+  background:#fff;
+  color:#676f76;
+  cursor:pointer;
+}
+.portalCommandTrigger>span{color:var(--portal-orange);font-weight:950}
+.portalCommandTrigger>b{font-size:9px}
+.portalCommandTrigger>kbd{
+  border:0;
+  background:transparent;
+  color:#9aa0a5;
+  font:800 7px ui-monospace,monospace;
+}
+.portalCommandBackdrop{
+  position:fixed;
+  z-index:300;
+  inset:0;
+  display:grid;
+  place-items:start center;
+  padding:11vh 16px 24px;
+  background:rgba(15,17,20,.44);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.portalCommandPalette{
+  width:min(700px,100%);
+  overflow:hidden;
+  border:1px solid #d9dcd6;
+  border-radius:18px;
+  background:#fafbf8;
+  box-shadow:0 28px 90px rgba(12,14,17,.28);
+}
+.portalCommandPalette>header{
+  min-height:50px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+  border-bottom:1px solid #e5e7e2;
+}
+.portalCommandPalette>header>span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.11em;
+}
+.portalCommandPalette>header>button{
+  border:0;
+  border-radius:7px;
+  background:#eceee9;
+  color:#747b81;
+  padding:6px 8px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalCommandSearch{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  padding:12px;
+  border-bottom:1px solid #e7e9e4;
+  background:#fff;
+}
+.portalCommandSearch>span{color:#c94d00;font-size:20px}
+.portalCommandSearch input{
+  min-width:0;
+  min-height:46px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#17191d;
+  font-size:17px;
+}
+.portalCommandSearch>button{
+  min-height:34px;
+  border:0;
+  border-radius:8px;
+  background:#17191d;
+  color:#fff;
+  padding:0 10px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalCommandResults{
+  max-height:min(58vh,520px);
+  overflow:auto;
+  padding:8px;
+}
+.portalCommandResults>p{
+  margin:6px 8px 8px;
+  color:#9aa0a5;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.portalCommandResults>button{
+  width:100%;
+  min-height:58px;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  text-align:left;
+  border:0;
+  border-radius:11px;
+  background:transparent;
+  padding:8px 10px;
+  color:#30363b;
+  cursor:pointer;
+}
+.portalCommandResults>button:hover,
+.portalCommandResults>button.active{
+  background:#fff1e6;
+}
+.portalCommandResults>button>span{
+  width:42px;height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#edf0ea;
+  color:#c94d00;
+  font:900 8px ui-monospace,monospace;
+}
+.portalCommandResults>button>div{display:grid;gap:3px;min-width:0}
+.portalCommandResults>button b{font-size:11px}
+.portalCommandResults>button small{
+  color:#93999e;
+  font:800 7px ui-monospace,monospace;
+}
+.portalCommandResults>button i{
+  color:#a8ada9;
+  font:900 10px ui-monospace,monospace;
+  font-style:normal;
+}
+.portalCommandSearchAll{
+  margin-top:4px;
+  border-top:1px solid #eceee9!important;
+}
+.portalCommandPalette>footer{
+  display:flex;
+  gap:14px;
+  padding:10px 13px;
+  border-top:1px solid #e4e6e1;
+  color:#858c92;
+  font:800 7px ui-monospace,monospace;
+}
+.portalCommandPalette>footer span{display:flex;align-items:center;gap:5px}
+.portalCommandPalette>footer kbd{
+  padding:3px 5px;
+  border:1px solid #dadfd7;
+  border-radius:5px;
+  background:#fff;
+}
+
+@media(max-width:900px){
+  .portalCommandTrigger{display:none}
+}
+@media(max-width:620px){
+  .portalCommandBackdrop{padding:6vh 8px 10px}
+  .portalCommandPalette>footer{display:none}
+}
+
+
+/* =========================================================
+   CORE PORTAL V8 — TASK FILTERS
+   ========================================================= */
+
+.portalTaskFilters{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:stretch;
+  margin:0 0 14px;
+}
+.portalTaskFilters>form{
+  display:grid;
+  grid-template-columns:minmax(220px,1.6fr) repeat(3,minmax(130px,.7fr)) auto auto auto;
+  gap:7px;
+  align-items:end;
+  padding:11px;
+  border:1px solid var(--portal-line);
+  border-radius:12px;
+  background:#fff;
+}
+.portalTaskFilters label{
+  display:grid;
+  gap:5px;
+}
+.portalTaskFilters label>span{
+  color:#8a9197;
+  font:850 7px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.portalTaskFilters input[type="text"],
+.portalTaskFilters input:not([type]),
+.portalTaskFilters select{
+  width:100%;
+  min-height:40px;
+  border:1px solid #d9dcd6;
+  border-radius:8px;
+  background:#fafbf8;
+  padding:0 10px;
+  color:#24292e;
+  outline:0;
+}
+.portalTaskFilters input:focus,
+.portalTaskFilters select:focus{
+  border-color:#ff9d5d;
+  box-shadow:0 0 0 3px rgba(255,101,0,.08);
+}
+.portalTaskMine{
+  min-height:40px;
+  display:flex!important;
+  flex-direction:row;
+  align-items:center;
+  gap:7px!important;
+  padding:0 10px;
+  border:1px solid #d9dcd6;
+  border-radius:8px;
+  background:#fafbf8;
+  white-space:nowrap;
+}
+.portalTaskMine input{width:15px;height:15px;accent-color:#ff6500}
+.portalTaskMine span{color:#616970!important;font-size:8px!important;letter-spacing:0!important}
+.portalTaskFilters button,
+.portalTaskFilters>a{
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  padding:0 11px;
+  font:900 7px ui-monospace,monospace;
+  white-space:nowrap;
+}
+.portalTaskFilters button{
+  border:1px solid #17191d;
+  background:#17191d;
+  color:#fff;
+}
+.portalTaskFilters>a{
+  border:1px solid #e0e3dd;
+  background:#f5f6f2;
+  color:#767d83;
+}
+.portalTaskFilterSummary{
+  min-width:126px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:12px 15px;
+  border:1px solid var(--portal-line);
+  border-radius:12px;
+  background:#17191d;
+  color:#fff;
+}
+.portalTaskFilterSummary b{
+  color:#ff6500;
+  font-size:28px;
+  line-height:1;
+}
+.portalTaskFilterSummary span{
+  margin-top:5px;
+  color:#9ca3a9;
+  font:800 7px ui-monospace,monospace;
+  line-height:1.35;
+}
+
+@media(max-width:1250px){
+  .portalTaskFilters{grid-template-columns:1fr}
+  .portalTaskFilters>form{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .portalTaskSearch{grid-column:span 2}
+  .portalTaskFilterSummary{min-height:70px}
+}
+@media(max-width:760px){
+  .portalTaskFilters>form{grid-template-columns:1fr 1fr}
+  .portalTaskSearch{grid-column:1/-1}
+  .portalTaskMine{grid-column:1/-1}
+}
+html[data-core-native="native-v2"] .portalTaskFilters{
+  grid-template-columns:1fr;
+  margin-bottom:10px;
+}
+html[data-core-native="native-v2"] .portalTaskFilters>form{
+  grid-template-columns:1fr 1fr;
+  padding:9px;
+}
+html[data-core-native="native-v2"] .portalTaskSearch{grid-column:1/-1}
+html[data-core-native="native-v2"] .portalTaskMine{grid-column:1/-1}
+html[data-core-native="native-v2"] .portalTaskFilterSummary{
+  min-height:58px;
+  flex-direction:row;
+  justify-content:flex-start;
+  align-items:center;
+  gap:9px;
+}
+html[data-core-native="native-v2"] .portalTaskFilterSummary span{margin:0}
+
+
+/* CORE PORTAL V8 — notification controls */
+.portalNotificationToolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin:0 0 12px;
+  padding:8px;
+  border:1px solid var(--portal-line);
+  border-radius:12px;
+  background:#fff;
+}
+.portalNotificationToolbar nav{display:flex;gap:6px}
+.portalNotificationToolbar nav a{
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 11px;
+  border-radius:9px;
+  color:#777e84;
+  font:900 8px ui-monospace,monospace;
+}
+.portalNotificationToolbar nav a b{
+  min-width:19px;height:19px;
+  display:grid;place-items:center;
+  border-radius:999px;
+  background:#eceee9;
+  color:#7e858a;
+  font-size:7px;
+}
+.portalNotificationToolbar nav a.active{
+  background:#fff1e6;
+  color:#c94d00;
+}
+.portalNotificationToolbar nav a.active b{
+  background:#ff6500;
+  color:#111;
+}
+.portalNotificationToolbar form button{
+  min-height:38px;
+  border:0;
+  border-radius:9px;
+  background:#17191d;
+  color:#fff;
+  padding:0 12px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalNotificationToolbar>span{
+  color:#8c9398;
+  font:850 8px ui-monospace,monospace;
+  padding-right:8px;
+}
+@media(max-width:620px){
+  .portalNotificationToolbar{align-items:stretch;flex-direction:column}
+  .portalNotificationToolbar nav{display:grid;grid-template-columns:1fr 1fr}
+  .portalNotificationToolbar nav a{justify-content:center}
+  .portalNotificationToolbar form button{width:100%}
+}
