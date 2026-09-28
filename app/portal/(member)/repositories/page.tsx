@@ -13,10 +13,9 @@ export default async function PortalRepositoriesPage({
 }: {
   searchParams?: Promise<{ created?: string }>;
 }) {
-  const [member, externalRepositories, nativeRepositories, services] = await Promise.all([
+  const [member, externalRepositories, services] = await Promise.all([
     requirePortalMember(),
     listPortalRepositories(),
-    Promise.resolve(null),
     Promise.resolve(getEngineeringServiceStatus()),
   ]);
   const nativeRepositories = await listAccessibleNativeRepositories(member);
