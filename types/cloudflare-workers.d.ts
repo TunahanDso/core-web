@@ -83,6 +83,7 @@ declare module "cloudflare:workers" {
     PORTAL_MOBILE_APP_SCHEME?: string;
     PORTAL_MOBILE_APP_VERSION?: string;
     PORTAL_MOBILE_HANDOFF_ENABLED?: string;
+    PORTAL_PUSH_ENABLED?: string;
     PORTAL_ANDROID_PACKAGE?: string;
     PORTAL_ANDROID_PLAY_STORE_URL?: string;
     PORTAL_ANDROID_SHA256_CERT_FINGERPRINTS?: string;
