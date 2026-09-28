@@ -7,6 +7,7 @@ import {
   loadNativeRepositoryWorkspace,
   type RepoPackageManifest,
 } from "@/lib/portal/repositories";
+import { listPortalRepoReviewsForRepository } from "@/lib/portal/repository-reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -104,8 +105,11 @@ export default async function PortalRepositoryWorkspacePage({
   const repo = await getAccessibleNativeRepository(member, decodeURIComponent(slug));
   if (!repo) notFound();
 
-  const workspace = await loadNativeRepositoryWorkspace(repo, query);
-  const canManage = await canManageNativeRepository(member, repo);
+  const [workspace, canManage, recentReviews] = await Promise.all([
+    loadNativeRepositoryWorkspace(repo, query),
+    canManageNativeRepository(member, repo),
+    listPortalRepoReviewsForRepository(repo.id, 10),
+  ]);
   const branchNames = Array.from(new Set([
     workspace.ref,
     ...workspace.branches.map((branch) => String(branch.name)),
@@ -356,6 +360,33 @@ export default async function PortalRepositoryWorkspacePage({
           <p className="repoReviewHint">İki ref seçildiğinde dosya değişiklik özeti burada açılır; ardından CODE REVIEW ekranından gerçek hunks ve satır thread'lerine geçilir.</p>
         )}
       </section>
+
+      {recentReviews.length ? (
+        <section className="portalPanel repoRecentReviews">
+          <div className="portalPanelHead"><span>RECENT CODE REVIEWS</span><small>{recentReviews.length} SNAPSHOT</small></div>
+          <div>
+            {recentReviews.map((review) => (
+              <a
+                key={String(review.id)}
+                href={
+                  "/portal/repositories/" + encodeURIComponent(repo.slug) +
+                  "/review?base=" + encodeURIComponent(String(review.base_ref)) +
+                  "&head=" + encodeURIComponent(String(review.head_ref)) +
+                  "&view=split"
+                }
+              >
+                <span>{String(review.status).replaceAll("_"," ").toUpperCase()}</span>
+                <div>
+                  <b>{String(review.head_ref)} → {String(review.base_ref)}</b>
+                  <code>{shortSha(String(review.head_sha))} / {shortSha(String(review.base_sha))}</code>
+                </div>
+                <small>{Number(review.open_threads || 0)} open thread · {Number(review.submission_count || 0)} review</small>
+                <strong>OPEN →</strong>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {workspace.errors.length ? (
         <details className="repoDiagnostics">
