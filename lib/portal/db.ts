@@ -267,10 +267,28 @@ export async function sendPortalMessage(channelId: string, memberId: string, bod
   return id;
 }
 
-export async function listPortalMailThreads(memberId: string) {
-  const response = await database().prepare(
-    "SELECT t.id,t.subject,t.updated_at,(SELECT body FROM portal_mail_messages mm WHERE mm.thread_id=t.id ORDER BY mm.created_at DESC LIMIT 1) AS preview FROM portal_mail_threads t JOIN portal_mail_participants p ON p.thread_id=t.id WHERE p.member_id=? ORDER BY t.updated_at DESC LIMIT 100"
-  ).bind(memberId).all<Record<string, unknown>>();
+export async function listPortalMailThreads(
+  memberId: string,
+  view: "inbox" | "sent" | "starred" | "archive" = "inbox"
+) {
+  const db = database();
+  const filter =
+    view === "sent" ? "AND t.created_by=?" :
+    view === "starred" ? "AND s.starred_at IS NOT NULL AND s.archived_at IS NULL" :
+    view === "archive" ? "AND s.archived_at IS NOT NULL" :
+    "AND s.archived_at IS NULL";
+
+  const values = view === "sent" ? [memberId,memberId] : [memberId];
+  const response = await db.prepare(
+    "SELECT t.id,t.subject,t.created_by,t.updated_at,s.read_at,s.starred_at,s.archived_at," +
+    "(SELECT body FROM portal_mail_messages mm WHERE mm.thread_id=t.id ORDER BY mm.created_at DESC LIMIT 1) AS preview," +
+    "(SELECT m.full_name FROM portal_mail_messages mm JOIN portal_members m ON m.id=mm.author_id WHERE mm.thread_id=t.id ORDER BY mm.created_at DESC LIMIT 1) AS last_author," +
+    "(SELECT COUNT(*) FROM portal_mail_messages mm WHERE mm.thread_id=t.id) AS message_count," +
+    "(SELECT GROUP_CONCAT(m.full_name, ', ') FROM portal_mail_participants pp JOIN portal_members m ON m.id=pp.member_id WHERE pp.thread_id=t.id) AS participants " +
+    "FROM portal_mail_threads t JOIN portal_mail_participants p ON p.thread_id=t.id " +
+    "LEFT JOIN portal_mail_state s ON s.thread_id=t.id AND s.member_id=? " +
+    "WHERE p.member_id=? " + filter + " ORDER BY (s.read_at IS NULL) DESC,t.updated_at DESC LIMIT 150"
+  ).bind(...values).all<Record<string, unknown>>();
   return response.results ?? [];
 }
 
@@ -307,6 +325,7 @@ export async function createPortalMailThread(input: {
   body: string;
   senderId: string;
   participantIds: string[];
+  attachmentIds?: string[];
 }) {
   const db = database();
   const threadId = crypto.randomUUID();
@@ -321,6 +340,14 @@ export async function createPortalMailThread(input: {
     ...uniqueParticipants.map((memberId) =>
       db.prepare("INSERT OR IGNORE INTO portal_mail_participants (thread_id,member_id) VALUES (?,?)")
         .bind(threadId,memberId)
+    ),
+    ...uniqueParticipants.map((memberId) =>
+      db.prepare("INSERT OR IGNORE INTO portal_mail_state (thread_id,member_id,read_at) VALUES (?,?,CASE WHEN ?=? THEN CURRENT_TIMESTAMP ELSE NULL END)")
+        .bind(threadId,memberId,memberId,input.senderId)
+    ),
+    ...(input.attachmentIds || []).map((fileId) =>
+      db.prepare("INSERT OR IGNORE INTO portal_mail_attachments (message_id,file_id) VALUES (?,?)")
+        .bind(messageId,fileId)
     ),
   ];
   await db.batch(statements);
@@ -391,21 +418,59 @@ export async function getPortalAnalytics() {
 }
 
 export async function getPortalMailThread(threadId: string, memberId: string) {
-  const participant = await database().prepare(
+  const db = database();
+  const participant = await db.prepare(
     "SELECT 1 AS ok FROM portal_mail_participants WHERE thread_id=? AND member_id=? LIMIT 1"
   ).bind(threadId,memberId).first<{ ok: number }>();
   if (!participant) return null;
 
-  const thread = await database().prepare(
-    "SELECT * FROM portal_mail_threads WHERE id=? LIMIT 1"
+  const thread = await db.prepare(
+    "SELECT t.*,(SELECT GROUP_CONCAT(m.full_name, ', ') FROM portal_mail_participants p JOIN portal_members m ON m.id=p.member_id WHERE p.thread_id=t.id) AS participants FROM portal_mail_threads t WHERE t.id=? LIMIT 1"
   ).bind(threadId).first<Record<string, unknown>>();
   if (!thread) return null;
 
-  const messages = await database().prepare(
-    "SELECT mm.id,mm.body,mm.created_at,m.full_name,m.email FROM portal_mail_messages mm JOIN portal_members m ON m.id=mm.author_id WHERE mm.thread_id=? ORDER BY mm.created_at"
+  const messages = await db.prepare(
+    "SELECT mm.id,mm.body,mm.created_at,m.full_name,m.email," +
+    "(SELECT COUNT(*) FROM portal_mail_attachments a WHERE a.message_id=mm.id) AS attachment_count " +
+    "FROM portal_mail_messages mm JOIN portal_members m ON m.id=mm.author_id WHERE mm.thread_id=? ORDER BY mm.created_at"
   ).bind(threadId).all<Record<string, unknown>>();
 
-  return { thread, messages: messages.results ?? [] };
+  const attachments = await db.prepare(
+    "SELECT a.message_id,f.id AS file_id,f.name,f.mime_type,f.size_bytes,f.preview_kind FROM portal_mail_attachments a JOIN portal_files f ON f.id=a.file_id JOIN portal_mail_messages mm ON mm.id=a.message_id WHERE mm.thread_id=? ORDER BY f.name"
+  ).bind(threadId).all<Record<string, unknown>>();
+
+  await db.prepare(
+    "INSERT INTO portal_mail_state (thread_id,member_id,read_at) VALUES (?,?,CURRENT_TIMESTAMP) " +
+    "ON CONFLICT(thread_id,member_id) DO UPDATE SET read_at=CURRENT_TIMESTAMP"
+  ).bind(threadId,memberId).run();
+
+  return { thread, messages: messages.results ?? [], attachments: attachments.results ?? [] };
+}
+
+export async function setPortalMailThreadState(input: {
+  threadId: string;
+  memberId: string;
+  action: "star" | "unstar" | "archive" | "restore" | "read" | "unread";
+}) {
+  const db = database();
+  const participant = await db.prepare(
+    "SELECT 1 AS ok FROM portal_mail_participants WHERE thread_id=? AND member_id=? LIMIT 1"
+  ).bind(input.threadId,input.memberId).first<{ok:number}>();
+  if (!participant) throw new Error("Bu yazışmaya erişiminiz yok.");
+
+  await db.prepare(
+    "INSERT OR IGNORE INTO portal_mail_state (thread_id,member_id) VALUES (?,?)"
+  ).bind(input.threadId,input.memberId).run();
+
+  const column =
+    input.action === "star" || input.action === "unstar" ? "starred_at" :
+    input.action === "archive" || input.action === "restore" ? "archived_at" :
+    "read_at";
+  const enabled = ["star","archive","read"].includes(input.action);
+
+  await db.prepare(
+    "UPDATE portal_mail_state SET " + column + "=" + (enabled ? "CURRENT_TIMESTAMP" : "NULL") + " WHERE thread_id=? AND member_id=?"
+  ).bind(input.threadId,input.memberId).run();
 }
 
 
