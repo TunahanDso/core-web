@@ -185,7 +185,34 @@ jobs:
                 throw new Error(`${name} must stay pinned to reviewed version ${version}.`);
               }
             }
-            console.log("Native-first UX, camera-to-Vault and reviewed Capacitor plugins validated.");
+            for (const required of [
+              "nativeSearchSheet",
+              "core_recent_routes",
+              "core_favorite_routes",
+              "nativeTabBadge",
+              "counts.notifications",
+              "nativeRouteTitle"
+            ]) {
+              if (!nativeExperience.includes(required)) {
+                throw new Error(`Native V7 application shell missing required UX primitive: ${required}`);
+              }
+            }
+            const nativeLayout = fs.readFileSync("app/portal/(member)/layout.tsx", "utf8");
+            if (!nativeLayout.includes("getPortalMailboxCounts") || !nativeLayout.includes("listPortalChannelsForMember") || !nativeLayout.includes("counts={{")) {
+              throw new Error("Native shell must receive live mail/chat/task/notification counters.");
+            }
+            const taskPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
+            if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes('id="create-task"')) {
+              throw new Error("Tasks must expose the native mobile list and addressable create action.");
+            }
+            const nativeCss = fs.readFileSync("app/globals.css", "utf8");
+            if (!nativeCss.includes("CORE PORTAL V7") || !nativeCss.includes(".nativeSearchSheet") || !nativeCss.includes(".portalNativeTaskList")) {
+              throw new Error("Native V7 mobile layout rules are missing.");
+            }
+            if (mobileVars.PORTAL_MOBILE_APP_VERSION !== "0.2.0") {
+              throw new Error("Native application version must be 0.2.0 for the V7 UX release.");
+            }
+            console.log("Native-first V7 search, badges, favorites, recents and route layouts validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
