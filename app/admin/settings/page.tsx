@@ -1,5 +1,5 @@
-import { saveSiteSettingsAction } from "@/app/admin/extended-actions";
-import { listSiteSettings } from "@/lib/cms/extensions";
+import { saveSiteAyarlarAction } from "@/app/admin/extended-actions";
+import { listSiteAyarlar } from "@/lib/cms/extensions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +11,8 @@ function settingMap(rows: Record<string, unknown>[]) {
   return map;
 }
 
-export default async function AdminSettingsPage() {
-  const rows = await listSiteSettings();
+export default async function AdminAyarlarPage() {
+  const rows = await listSiteAyarlar();
   const settings = settingMap(rows);
   const recruitment = settings.get("recruitment") || {};
   const banner = settings.get("portal_banner") || {};
@@ -21,33 +21,33 @@ export default async function AdminSettingsPage() {
 
   return (
     <main className="admin adminLight">
-      <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">SITE + PORTAL SETTINGS</p></div><span className="cmsHealth online"><i />LIVE D1</span></div>
-      <h1>Settings</h1>
-      <p>Small high-impact controls for the public site and internal portal. Security secrets are never edited from this screen.</p>
+      <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">SİTE + PORTAL AYARLARI</p></div><span className="cmsHealth online"><i />CANLI D1</span></div>
+      <h1>Ayarlar</h1>
+      <p>Vitrin ve iç portal için küçük ama etkili kontroller. Güvenlik secret'ları bu ekrandan hiçbir zaman düzenlenmez.</p>
 
-      <form className="adminSettingsForm" action={saveSiteSettingsAction}>
+      <form className="adminAyarlarForm" action={saveSiteAyarlarAction}>
         <section>
-          <div><span>IDENTITY</span><h2>Slogan</h2></div>
+          <div><span>KİMLİK</span><h2>Slogan</h2></div>
           <label><span>TR</span><input name="sloganTr" defaultValue={String(identity.slogan_tr || "İnsan İçin Teknoloji.")} /></label>
           <label><span>EN</span><input name="sloganEn" defaultValue={String(identity.slogan_en || "Technology for People.")} /></label>
         </section>
         <section>
-          <div><span>RECRUITMENT</span><h2>Student intake</h2></div>
-          <label className="adminToggle"><input name="recruitmentOpen" type="checkbox" defaultChecked={Boolean(recruitment.open)} /><span>Recruitment open</span></label>
-          <label><span>Note · TR</span><input name="recruitmentNoteTr" defaultValue={String(recruitment.note_tr || "")} /></label>
-          <label><span>Note · EN</span><input name="recruitmentNoteEn" defaultValue={String(recruitment.note_en || "")} /></label>
+          <div><span>KATILIM</span><h2>Öğrenci alımı</h2></div>
+          <label className="adminToggle"><input name="recruitmentOpen" type="checkbox" defaultChecked={Boolean(recruitment.open)} /><span>Başvurular açık</span></label>
+          <label><span>Not · TR</span><input name="recruitmentNoteTr" defaultValue={String(recruitment.note_tr || "")} /></label>
+          <label><span>Not · EN</span><input name="recruitmentNoteEn" defaultValue={String(recruitment.note_en || "")} /></label>
         </section>
         <section>
-          <div><span>PORTAL BANNER</span><h2>Internal notice</h2></div>
-          <label className="adminToggle"><input name="portalBannerEnabled" type="checkbox" defaultChecked={Boolean(banner.enabled)} /><span>Show banner</span></label>
-          <label><span>Message</span><input name="portalBannerText" defaultValue={String(banner.text || "")} /></label>
+          <div><span>PORTAL DUYURUSU</span><h2>İç duyuru</h2></div>
+          <label className="adminToggle"><input name="portalBannerEnabled" type="checkbox" defaultChecked={Boolean(banner.enabled)} /><span>Duyuruyu göster</span></label>
+          <label><span>Mesaj</span><input name="portalBannerText" defaultValue={String(banner.text || "")} /></label>
         </section>
         <section>
-          <div><span>PUBLIC OPS</span><h2>Telemetry exposure</h2></div>
-          <label className="adminToggle"><input name="publicOpsEnabled" type="checkbox" defaultChecked={Boolean(ops.enabled)} /><span>Allow approved public read-only ops widgets</span></label>
-          <p>Vehicle command authority is not affected by this setting.</p>
+          <div><span>PUBLIC OPS</span><h2>Telemetri görünürlüğü</h2></div>
+          <label className="adminToggle"><input name="publicOpsEnabled" type="checkbox" defaultChecked={Boolean(ops.enabled)} /><span>Onaylı salt okunur public ops bileşenlerine izin ver</span></label>
+          <p>Araç komut otoritesi bu ayardan etkilenmez.</p>
         </section>
-        <button className="adminModernPrimary" type="submit">SAVE SETTINGS →</button>
+        <button className="adminModernPrimary" type="submit">AYARLARI KAYDET →</button>
       </form>
     </main>
   );
