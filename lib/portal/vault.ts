@@ -97,6 +97,7 @@ export async function listPortalVaultFiles(options: {
   query?: string;
   lifecycle?: "active" | "archived" | "trashed";
   limit?: number;
+  viewer?: { role: string; teams: string[] };
 } = {}) {
   const clauses = ["lifecycle_state=?"];
   const bindings: unknown[] = [options.lifecycle || "active"];
@@ -118,7 +119,21 @@ export async function listPortalVaultFiles(options: {
     const response = await database().prepare(
       `SELECT * FROM portal_vault_files WHERE ${clauses.join(" AND ")} ORDER BY updated_at DESC LIMIT ?`
     ).bind(...bindings).all<Record<string, unknown>>();
-    return response.results ?? [];
+    const rows = response.results ?? [];
+    if (!options.viewer) return rows;
+    const role = options.viewer.role;
+    const teams = new Set(options.viewer.teams.map((item) => item.trim().toUpperCase()));
+    return rows.filter((row) => {
+      const visibility = String(row.visibility || "members");
+      if (visibility === "members") return true;
+      if (visibility === "admins") return role === "admin";
+      if (visibility === "leads") return role === "admin" || role === "lead";
+      if (visibility === "team") {
+        const team = String(row.team_code || "").trim().toUpperCase();
+        return !team || role === "admin" || teams.has(team);
+      }
+      return false;
+    });
   } catch {
     // Backward compatibility: production can deploy before the additive V4 migration is applied.
     return [];
