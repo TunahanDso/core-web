@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS portal_code_run_execution (
   snapshot_ref TEXT NOT NULL,
   snapshot_sha TEXT,
   workflow_instance_id TEXT,
+  dispatch_token TEXT NOT NULL,
   attempt INTEGER NOT NULL DEFAULT 1,
   retry_of_run_id TEXT,
   cancel_requested_at TEXT,
