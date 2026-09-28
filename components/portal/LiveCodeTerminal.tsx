@@ -81,7 +81,10 @@ export default function LiveCodeTerminal({
         terminal.writeln("\x1b[33mTerminal oturumu bağlantıya açık değil.\x1b[0m");
         return;
       }
-      if (socketRef.current && [WebSocket.OPEN,WebSocket.CONNECTING].includes(socketRef.current.readyState)) return;
+      if (
+        socketRef.current &&
+        (socketRef.current.readyState === WebSocket.OPEN || socketRef.current.readyState === WebSocket.CONNECTING)
+      ) return;
 
       setConnection("connecting");
       const target = new URL(socketUrl);
