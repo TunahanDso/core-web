@@ -371,6 +371,12 @@ export async function markPortalNotificationRead(id: string, memberId: string) {
   ).bind(id,memberId).run();
 }
 
+export async function markAllPortalNotificationsRead(memberId: string) {
+  await database().prepare(
+    "UPDATE portal_notifications SET read_at=CURRENT_TIMESTAMP WHERE read_at IS NULL AND (member_id=? OR member_id IS NULL)"
+  ).bind(memberId).run();
+}
+
 export async function getPortalAnalytics() {
   const row = await database().prepare(
     "SELECT " +
