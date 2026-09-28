@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
-import { domains, projects, serviceUnits } from "@/lib/site-data";
+import { domains, serviceUnits } from "@/lib/site-data";
 import { isLocale, locales } from "@/lib/i18n";
 import { siteSlug } from "@/lib/site-slug";
+import { listPublicProjects } from "@/lib/cms/public-projects";
 
 const allTeams = [
   ...domains.map((team) => ({ ...team, kind: "domain" as const, slug: siteSlug(team.name) })),
@@ -34,6 +35,8 @@ export default async function TeamDetailPage({
 
   const team = allTeams.find((item) => item.slug === slug);
   if (!team) notFound();
+
+  const projects = await listPublicProjects(locale);
 
   const teamLabel = team.kind === "domain"
     ? locale === "tr" ? "ARAÇ / SAHA TAKIMI" : "VEHICLE / FIELD TEAM"
@@ -161,11 +164,11 @@ export default async function TeamDetailPage({
         {relatedProjects.length ? (
           <div className="teamProjectLinks">
             {relatedProjects.map((project) => (
-              <a data-reveal data-tilt href={`/${locale}/projects/${siteSlug(project.name)}`} key={project.name}>
+              <a data-reveal data-tilt href={`/${locale}/projects/${project.slug}`} key={project.name}>
                 <small>{project.owner}</small>
                 <h3>{project.name}</h3>
-                <p>{project.description[locale]}</p>
-                <div><span>{project.status[locale]}</span><b>{project.progress}%</b></div>
+                <p>{project.description}</p>
+                <div><span>{project.status}</span><b>{project.progress}%</b></div>
               </a>
             ))}
           </div>
