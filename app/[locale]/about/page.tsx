@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import PublicChrome from "@/components/PublicChrome";
 import PublicPageHero from "@/components/PublicPageHero";
 import { isLocale } from "@/lib/i18n";
+import { getPublicPage } from "@/lib/cms/db";
 
+export const dynamic = "force-dynamic";
 const copy = {
   tr: {
     eyebrow: "HAKKIMIZDA",
@@ -52,16 +54,22 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const c = copy[locale];
+  const cms = await getPublicPage("about", locale);
 
   return (
     <PublicChrome locale={locale}>
-      <PublicPageHero code="05" eyebrow={c.eyebrow} title={c.title} lead={c.lead} />
+      <PublicPageHero
+        code={cms?.code || "05"}
+        eyebrow={cms?.eyebrow || c.eyebrow}
+        title={cms?.title || c.title}
+        lead={cms?.summary || c.lead}
+      />
       <section className="aboutSplit">
         <article className="aboutAntiCard" data-reveal><span>NO / 01</span><h2>{c.notCompany}</h2><p>{c.notCompanyText}</p></article>
         <article className="aboutAntiCard" data-reveal><span>NO / 02</span><h2>{c.notSingle}</h2><p>{c.notSingleText}</p></article>
       </section>
       <section className="aboutMission">
-        <div data-reveal><p className="eyebrow">{c.mission.toUpperCase()}</p><h2>{c.missionText}</h2></div>
+        <div data-reveal><p className="eyebrow">{c.mission.toUpperCase()}</p><h2>{cms?.body || c.missionText}</h2></div>
         <div className="sloganPoster" data-reveal><span>YTÜ CORE</span><strong>{c.slogan}</strong><p>{c.sloganText}</p></div>
       </section>
       <section className="principlesSection">
