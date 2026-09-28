@@ -1,4 +1,5 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
+import { requirePortalMember } from "@/lib/portal/auth";
 import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
 
 export const dynamic = "force-dynamic";
@@ -6,7 +7,8 @@ export const dynamic = "force-dynamic";
 const CAD_EXTENSIONS = new Set(["stl","obj","3mf","gltf","glb","step","stp","iges","igs","sldprt","sldasm","f3d","ipt","iam"]);
 
 export default async function PortalMechanicalPage() {
-  const files = await listPortalVaultFiles({ lifecycle: "active", limit: 300 });
+  const member = await requirePortalMember();
+  const files = await listPortalVaultFiles({ lifecycle: "active", limit: 300, viewer: member });
   const mechanical = files.filter((item) =>
     ["mechanical","cad","drawing"].includes(String(item.kind)) ||
     CAD_EXTENSIONS.has(String(item.extension || "").toLowerCase())
