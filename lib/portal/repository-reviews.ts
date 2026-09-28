@@ -66,6 +66,23 @@ export type PortalRepoReviewSubmission = {
   reviewer_email: string;
 };
 
+
+export async function listPortalRepoReviewsForRepository(repositoryId: string, limit = 12) {
+  try {
+    const response = await database().prepare(
+      "SELECT r.*,m.full_name AS creator_name," +
+      "(SELECT COUNT(*) FROM portal_repo_review_threads t WHERE t.review_id=r.id AND t.resolved_at IS NULL) AS open_threads," +
+      "(SELECT COUNT(*) FROM portal_repo_review_submissions s WHERE s.review_id=r.id) AS submission_count," +
+      "(SELECT s.outcome FROM portal_repo_review_submissions s WHERE s.review_id=r.id ORDER BY s.created_at DESC LIMIT 1) AS last_outcome " +
+      "FROM portal_repo_reviews r JOIN portal_members m ON m.id=r.created_by_member_id " +
+      "WHERE r.repository_id=? ORDER BY r.updated_at DESC LIMIT ?"
+    ).bind(repositoryId, Math.min(Math.max(limit, 1), 50)).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function findPortalRepoReview(
   repositoryId: string,
   baseSha: string,
