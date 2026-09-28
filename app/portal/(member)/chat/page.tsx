@@ -17,7 +17,7 @@ export default async function PortalChatPage({
 
   return (
     <>
-      <PortalPageHeader code="CH / CHAT" title="Takım Sohbeti" lead="Mühendislik ve saha işleri için hızlı koordinasyon. Sohbetten daha uzun yaşaması gereken kararlar daha sonra göreve, dokümana veya rapora dönüştürülmeli." />
+      <PortalPageHeader code="CH / SOHBET" title="Takım Sohbeti" lead="Mühendislik ve saha işleri için hızlı koordinasyon. Sohbetten daha uzun yaşaması gereken kararlar daha sonra göreve, dokümana veya rapora dönüştürülmeli." />
       <section className="portalChatLayout">
         <aside>
           <span>KANALLAR</span>
