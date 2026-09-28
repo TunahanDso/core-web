@@ -39,7 +39,12 @@ export default async function Admin({
     getCmsStats(),
     getAdminIdentity(),
     portalBootstrapStatus(),
-    searchParams ?? Promise.resolve({}),
+    searchParams ?? Promise.resolve<{
+      seed?: "applied" | "failed";
+      seedError?: string;
+      portal?: "ready" | "failed";
+      portalError?: string;
+    }>({}),
   ]);
 
   const databaseOnline = stats.connection === "online";
