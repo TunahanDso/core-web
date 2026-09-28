@@ -5,7 +5,53 @@ import { useEffect, useMemo, useRef, useState } from "react";
 type Vec3 = [number, number, number];
 type Edge = [number, number];
 type Triangle = [number, number, number];
+type Mat4 = [
+  number,number,number,number,
+  number,number,number,number,
+  number,number,number,number,
+  number,number,number,number
+];
 type Model = { vertices: Vec3[]; edges: Edge[]; triangles: Triangle[] };
+
+type GltfBuffer = { uri?: string; byteLength?: number };
+type GltfBufferView = {
+  buffer: number;
+  byteOffset?: number;
+  byteLength: number;
+  byteStride?: number;
+};
+type GltfAccessor = {
+  bufferView?: number;
+  byteOffset?: number;
+  componentType: number;
+  count: number;
+  type: string;
+  sparse?: unknown;
+};
+type GltfPrimitive = {
+  attributes?: Record<string, number>;
+  indices?: number;
+  mode?: number;
+};
+type GltfMesh = { primitives?: GltfPrimitive[] };
+type GltfNode = {
+  mesh?: number;
+  children?: number[];
+  matrix?: number[];
+  translation?: number[];
+  rotation?: number[];
+  scale?: number[];
+};
+type GltfScene = { nodes?: number[] };
+type GltfDocument = {
+  buffers?: GltfBuffer[];
+  bufferViews?: GltfBufferView[];
+  accessors?: GltfAccessor[];
+  meshes?: GltfMesh[];
+  nodes?: GltfNode[];
+  scenes?: GltfScene[];
+  scene?: number;
+};
 
 function addEdge(edges: Edge[], seen: Set<string>, a: number, b: number) {
   const key = a < b ? a + ":" + b : b + ":" + a;
@@ -14,11 +60,20 @@ function addEdge(edges: Edge[], seen: Set<string>, a: number, b: number) {
   edges.push([a,b]);
 }
 
+function edgesFromTriangles(triangles: Triangle[]) {
+  const edges: Edge[] = [];
+  const seen = new Set<string>();
+  for (const [a,b,c] of triangles) {
+    addEdge(edges,seen,a,b);
+    addEdge(edges,seen,b,c);
+    addEdge(edges,seen,c,a);
+  }
+  return edges;
+}
+
 function parseObj(text: string): Model {
   const vertices: Vec3[] = [];
-  const edges: Edge[] = [];
   const triangles: Triangle[] = [];
-  const seen = new Set<string>();
 
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
@@ -37,23 +92,23 @@ function parseObj(text: string): Model {
       .filter((index) => index >= 0 && index < vertices.length);
 
     if (face.length < 3) continue;
-    for (let i=1;i<face.length-1;i+=1) triangles.push([face[0],face[i],face[i+1]]);
-    for (let i=0;i<face.length;i+=1) addEdge(edges,seen,face[i],face[(i+1)%face.length]);
+    for (let i=1;i<face.length-1;i+=1) {
+      if (triangles.length >= 80000) break;
+      triangles.push([face[0],face[i],face[i+1]]);
+    }
   }
-  return { vertices, edges, triangles };
+  return { vertices, triangles, edges: edgesFromTriangles(triangles) };
 }
 
 function parseStl(buffer: ArrayBuffer): Model {
   const view = new DataView(buffer);
   const vertices: Vec3[] = [];
-  const edges: Edge[] = [];
   const triangles: Triangle[] = [];
-  const seen = new Set<string>();
   const binaryCount = buffer.byteLength >= 84 ? view.getUint32(80, true) : 0;
   const looksBinary = binaryCount > 0 && 84 + binaryCount * 50 <= buffer.byteLength;
 
   if (looksBinary) {
-    const maxTriangles = Math.min(binaryCount, 45000);
+    const maxTriangles = Math.min(binaryCount, 80000);
     let offset = 84;
     for (let tri = 0; tri < maxTriangles; tri += 1) {
       offset += 12;
@@ -67,17 +122,14 @@ function parseStl(buffer: ArrayBuffer): Model {
         offset += 12;
       }
       triangles.push([base,base+1,base+2]);
-      addEdge(edges,seen,base,base+1);
-      addEdge(edges,seen,base+1,base+2);
-      addEdge(edges,seen,base+2,base);
       offset += 2;
     }
-    return { vertices, edges, triangles };
+    return { vertices, triangles, edges: edgesFromTriangles(triangles) };
   }
 
   const text = new TextDecoder().decode(buffer);
   const matches = [...text.matchAll(/vertex\s+([-+\deE.]+)\s+([-+\deE.]+)\s+([-+\deE.]+)/gi)];
-  const usable = matches.slice(0, 135000);
+  const usable = matches.slice(0, 240000);
   for (let i=0;i+2<usable.length;i+=3) {
     const base=vertices.length;
     for(let j=0;j<3;j+=1){
@@ -85,11 +137,228 @@ function parseStl(buffer: ArrayBuffer): Model {
       vertices.push([Number(match[1]),Number(match[2]),Number(match[3])]);
     }
     triangles.push([base,base+1,base+2]);
-    addEdge(edges,seen,base,base+1);
-    addEdge(edges,seen,base+1,base+2);
-    addEdge(edges,seen,base+2,base);
   }
-  return { vertices, edges, triangles };
+  return { vertices, triangles, edges: edgesFromTriangles(triangles) };
+}
+
+function identity(): Mat4 {
+  return [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+}
+
+function multiply(a: Mat4,b: Mat4): Mat4 {
+  const out = new Array<number>(16).fill(0);
+  for(let col=0;col<4;col+=1){
+    for(let row=0;row<4;row+=1){
+      for(let k=0;k<4;k+=1){
+        out[row+col*4]+=a[row+k*4]*b[k+col*4];
+      }
+    }
+  }
+  return out as Mat4;
+}
+
+function nodeMatrix(node: GltfNode): Mat4 {
+  if (Array.isArray(node.matrix) && node.matrix.length === 16) {
+    return node.matrix.map(Number) as Mat4;
+  }
+
+  const t = node.translation?.length === 3 ? node.translation : [0,0,0];
+  const r = node.rotation?.length === 4 ? node.rotation : [0,0,0,1];
+  const s = node.scale?.length === 3 ? node.scale : [1,1,1];
+  const [x,y,z,w] = r.map(Number);
+  const [sx,sy,sz] = s.map(Number);
+  const tx=Number(t[0]),ty=Number(t[1]),tz=Number(t[2]);
+
+  const xx=x*x,yy=y*y,zz=z*z;
+  const xy=x*y,xz=x*z,yz=y*z;
+  const wx=w*x,wy=w*y,wz=w*z;
+
+  return [
+    (1-2*(yy+zz))*sx, (2*(xy+wz))*sx, (2*(xz-wy))*sx, 0,
+    (2*(xy-wz))*sy, (1-2*(xx+zz))*sy, (2*(yz+wx))*sy, 0,
+    (2*(xz+wy))*sz, (2*(yz-wx))*sz, (1-2*(xx+yy))*sz, 0,
+    tx,ty,tz,1,
+  ];
+}
+
+function transformPoint(matrix: Mat4, point: Vec3): Vec3 {
+  const [x,y,z]=point;
+  const w=matrix[3]*x+matrix[7]*y+matrix[11]*z+matrix[15];
+  const d=w && w!==1 ? w : 1;
+  return [
+    (matrix[0]*x+matrix[4]*y+matrix[8]*z+matrix[12])/d,
+    (matrix[1]*x+matrix[5]*y+matrix[9]*z+matrix[13])/d,
+    (matrix[2]*x+matrix[6]*y+matrix[10]*z+matrix[14])/d,
+  ];
+}
+
+function componentBytes(componentType: number) {
+  if (componentType === 5120 || componentType === 5121) return 1;
+  if (componentType === 5122 || componentType === 5123) return 2;
+  if (componentType === 5125 || componentType === 5126) return 4;
+  throw new Error("Desteklenmeyen glTF componentType: " + componentType);
+}
+
+function componentCount(type: string) {
+  if (type === "SCALAR") return 1;
+  if (type === "VEC2") return 2;
+  if (type === "VEC3") return 3;
+  if (type === "VEC4") return 4;
+  throw new Error("Desteklenmeyen glTF accessor type: " + type);
+}
+
+function readComponent(view: DataView,offset: number,componentType: number) {
+  if(componentType===5120) return view.getInt8(offset);
+  if(componentType===5121) return view.getUint8(offset);
+  if(componentType===5122) return view.getInt16(offset,true);
+  if(componentType===5123) return view.getUint16(offset,true);
+  if(componentType===5125) return view.getUint32(offset,true);
+  if(componentType===5126) return view.getFloat32(offset,true);
+  throw new Error("Desteklenmeyen glTF componentType: "+componentType);
+}
+
+function accessorValues(
+  document: GltfDocument,
+  buffers: ArrayBuffer[],
+  accessorIndex: number
+) {
+  const accessor=document.accessors?.[accessorIndex];
+  if(!accessor) throw new Error("glTF accessor bulunamadı.");
+  if(accessor.sparse) throw new Error("Sparse glTF accessor henüz doğrudan görüntülenmiyor.");
+  if(accessor.bufferView == null) throw new Error("glTF accessor bufferView eksik.");
+  const bufferView=document.bufferViews?.[accessor.bufferView];
+  if(!bufferView) throw new Error("glTF bufferView bulunamadı.");
+  const buffer=buffers[bufferView.buffer];
+  if(!buffer) throw new Error("glTF binary buffer eksik.");
+
+  const count=componentCount(accessor.type);
+  const bytes=componentBytes(accessor.componentType);
+  const stride=bufferView.byteStride || count*bytes;
+  const base=(bufferView.byteOffset||0)+(accessor.byteOffset||0);
+  const data=new DataView(buffer);
+  const rows:number[][]=[];
+  for(let i=0;i<accessor.count;i+=1){
+    const row:number[]=[];
+    for(let j=0;j<count;j+=1){
+      row.push(readComponent(data,base+i*stride+j*bytes,accessor.componentType));
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function decodeDataUri(uri: string) {
+  const comma=uri.indexOf(",");
+  if(comma<0) throw new Error("Geçersiz glTF data URI.");
+  const meta=uri.slice(0,comma);
+  const payload=uri.slice(comma+1);
+  if(meta.includes(";base64")){
+    const binary=atob(payload);
+    const bytes=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i+=1) bytes[i]=binary.charCodeAt(i);
+    return bytes.buffer;
+  }
+  return new TextEncoder().encode(decodeURIComponent(payload)).buffer;
+}
+
+function buffersForGltf(document: GltfDocument, glbBin?: ArrayBuffer) {
+  return (document.buffers || []).map((buffer,index)=>{
+    if(buffer.uri){
+      if(!buffer.uri.startsWith("data:")){
+        throw new Error("Bu glTF ayrı .bin/texture dosyalarına bağlı. Tek dosyalı Vault önizlemesi için GLB veya embedded glTF kullan.");
+      }
+      return decodeDataUri(buffer.uri);
+    }
+    if(index===0 && glbBin) return glbBin;
+    throw new Error("glTF binary buffer eksik.");
+  });
+}
+
+function buildGltfModel(document: GltfDocument,buffers:ArrayBuffer[]):Model {
+  const vertices:Vec3[]=[];
+  const triangles:Triangle[]=[];
+  const nodes=document.nodes||[];
+  const meshes=document.meshes||[];
+
+  const appendMesh=(meshIndex:number,matrix:Mat4)=>{
+    const mesh=meshes[meshIndex];
+    if(!mesh) return;
+    for(const primitive of mesh.primitives||[]){
+      if((primitive.mode??4)!==4) continue;
+      const positionAccessor=primitive.attributes?.POSITION;
+      if(positionAccessor==null) continue;
+      const positions=accessorValues(document,buffers,positionAccessor);
+      const base=vertices.length;
+      for(const row of positions){
+        if(row.length<3) continue;
+        vertices.push(transformPoint(matrix,[Number(row[0]),Number(row[1]),Number(row[2])]));
+      }
+
+      const indices=primitive.indices!=null
+        ? accessorValues(document,buffers,primitive.indices).map((row)=>Number(row[0]))
+        : Array.from({length:positions.length},(_,index)=>index);
+      for(let i=0;i+2<indices.length;i+=3){
+        if(triangles.length>=80000) break;
+        triangles.push([base+indices[i],base+indices[i+1],base+indices[i+2]]);
+      }
+    }
+  };
+
+  if(nodes.length){
+    const childSet=new Set<number>();
+    nodes.forEach((node)=>node.children?.forEach((child)=>childSet.add(child)));
+    const scene=document.scenes?.[document.scene??0];
+    const roots=scene?.nodes?.length
+      ? scene.nodes
+      : nodes.map((_,index)=>index).filter((index)=>!childSet.has(index));
+
+    const visit=(index:number,parent:Mat4,depth:number)=>{
+      if(depth>64) return;
+      const node=nodes[index];
+      if(!node) return;
+      const world=multiply(parent,nodeMatrix(node));
+      if(node.mesh!=null) appendMesh(node.mesh,world);
+      for(const child of node.children||[]) visit(child,world,depth+1);
+    };
+    for(const root of roots) visit(root,identity(),0);
+  }else{
+    meshes.forEach((_,index)=>appendMesh(index,identity()));
+  }
+
+  if(!vertices.length) throw new Error("glTF içinde render edilebilir POSITION geometrisi bulunamadı.");
+  return {vertices,triangles,edges:edgesFromTriangles(triangles)};
+}
+
+function parseGlb(buffer:ArrayBuffer):Model {
+  const view=new DataView(buffer);
+  if(buffer.byteLength<20 || view.getUint32(0,true)!==0x46546c67){
+    throw new Error("Geçerli GLB başlığı bulunamadı.");
+  }
+  const version=view.getUint32(4,true);
+  if(version!==2) throw new Error("Yalnız glTF/GLB 2.0 destekleniyor.");
+
+  let offset=12;
+  let jsonText="";
+  let bin:ArrayBuffer|undefined;
+  while(offset+8<=buffer.byteLength){
+    const length=view.getUint32(offset,true);
+    const type=view.getUint32(offset+4,true);
+    const start=offset+8;
+    const end=start+length;
+    if(end>buffer.byteLength) break;
+    const chunk=buffer.slice(start,end);
+    if(type===0x4e4f534a) jsonText=new TextDecoder().decode(chunk).replace(/\u0000+$/g,"").trim();
+    if(type===0x004e4942) bin=chunk;
+    offset=end;
+  }
+  if(!jsonText) throw new Error("GLB JSON chunk bulunamadı.");
+  const document=JSON.parse(jsonText) as GltfDocument;
+  return buildGltfModel(document,buffersForGltf(document,bin));
+}
+
+function parseGltfText(text:string):Model {
+  const document=JSON.parse(text) as GltfDocument;
+  return buildGltfModel(document,buffersForGltf(document));
 }
 
 function extFromName(name: string) {
@@ -148,7 +417,9 @@ export default function VaultModelViewer({
         const ext=extFromName(filename);
         if(ext==="obj") return parseObj(await response.text());
         if(ext==="stl") return parseStl(await response.arrayBuffer());
-        throw new Error("Doğrudan 3B görüntüleyici STL ve OBJ destekliyor; diğer CAD formatları converter türevi ister.");
+        if(ext==="glb") return parseGlb(await response.arrayBuffer());
+        if(ext==="gltf") return parseGltfText(await response.text());
+        throw new Error("Doğrudan viewer STL, OBJ, GLB ve embedded glTF destekliyor; ağır CAD formatları converter türevi ister.");
       })
       .then((model)=>{
         if(cancelled) return;
@@ -234,7 +505,7 @@ export default function VaultModelViewer({
 
     if(renderMode==="solid"&&model.triangles.length){
       const sorted=model.triangles
-        .slice(0,50000)
+        .slice(0,80000)
         .map((triangle)=>({
           triangle,
           depth:(projected[triangle[0]][2]+projected[triangle[1]][2]+projected[triangle[2]][2])/3,
@@ -258,7 +529,7 @@ export default function VaultModelViewer({
     ctx.lineWidth=renderMode==="wire"?1.05:.65;
     ctx.strokeStyle=renderMode==="wire"?"rgba(27,31,35,.62)":"rgba(27,31,35,.30)";
     ctx.beginPath();
-    const maxEdges=Math.min(model.edges.length,70000);
+    const maxEdges=Math.min(model.edges.length,100000);
     for(let i=0;i<maxEdges;i+=1){
       const [a,b2]=model.edges[i];
       const pa=projected[a],pb=projected[b2];
@@ -328,7 +599,7 @@ export default function VaultModelViewer({
         {busy?<div className="vaultViewerOverlay">MODEL HAZIRLANIYOR…</div>:null}
         {error?<div className="vaultViewerOverlay error">{error}</div>:null}
       </div>
-      <footer>Orbit / pan / zoom · solid + wireframe · ortho / perspective · ölçüler dosyanın kendi model birimindedir</footer>
+      <footer>Orbit / pan / zoom · solid + wireframe · ortho / perspective · STL / OBJ / GLB / embedded glTF · ölçüler model birimindedir</footer>
     </section>
   );
 }
