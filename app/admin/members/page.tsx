@@ -5,6 +5,7 @@ import { listPortalMembers } from "@/lib/portal/db";
 import { setPortalMemberStatusAdminAction } from "@/app/admin/portal-actions";
 import { portalMemberStatusLabel, portalRoleLabel } from "@/lib/portal/labels";
 import { portalMailProviderStatus } from "@/lib/portal/mail";
+import MailDeliveryTestForm from "@/components/admin/MailDeliveryTestForm";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,31 @@ export default async function AdminMembersPage() {
           <b>{members.filter((member) => String(member.status) === "invited").length}</b>
           <small>aktivasyon bekliyor</small>
         </article>
+      </section>
+
+      <section className="adminMailOps">
+        <div>
+          <span>CORE TRANSACTIONAL MAIL</span>
+          <h2>portal@ytucore.com</h2>
+          <p>
+            Davetler portal hesabı oluşturulduğu anda bu gönderici kimliğiyle iletilir.
+            Aktivasyon bağlantısı öğrenci e-postasını hazır doldurur; tek kullanımlık kod
+            e-postada ayrı tutulur.
+          </p>
+          <div className="adminMailIdentity">
+            <small>GÖNDERİCİ</small><b>{mail.from}</b>
+            <small>YANIT ADRESİ</small><b>{mail.replyTo}</b>
+            <small>SAĞLAYICI</small><b>{mail.provider}</b>
+          </div>
+        </div>
+        <div>
+          <span>GERÇEK TESLİMAT TESTİ</span>
+          <p>
+            Binding görünmesi tek başına domain doğrulamasını kanıtlamaz. Bir test adresine
+            gerçek mesaj göndererek SPF/DKIM/domain onboarding durumunu doğrula.
+          </p>
+          <MailDeliveryTestForm />
+        </div>
       </section>
 
       {status.ready ? (
