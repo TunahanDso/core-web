@@ -21,6 +21,8 @@ on:
       - "capacitor.config.ts"
       - "mobile/**"
       - "components/portal/PortalMobileRuntime.tsx"
+      - "components/portal/PortalNativeExperience.tsx"
+      - "app/globals.css"
       - "app/portal/**"
       - "app/api/portal/mobile/**"
       - "app/.well-known/**"
