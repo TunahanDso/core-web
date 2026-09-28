@@ -279,9 +279,10 @@ export async function replyPortalRepoReviewThread(input: {
   if (!body) throw new Error("Yanıt boş olamaz.");
 
   const thread = await database().prepare(
-    "SELECT id FROM portal_repo_review_threads WHERE id=? AND review_id=? LIMIT 1"
-  ).bind(input.threadId, input.reviewId).first<{ id: string }>();
+    "SELECT id,resolved_at FROM portal_repo_review_threads WHERE id=? AND review_id=? LIMIT 1"
+  ).bind(input.threadId, input.reviewId).first<{ id: string; resolved_at: string | null }>();
   if (!thread) throw new Error("Review thread bulunamadı.");
+  if (thread.resolved_at) throw new Error("Çözülmüş thread'e yanıt eklenemez; önce REOPEN yap.");
 
   const id = crypto.randomUUID();
   await database().batch([
