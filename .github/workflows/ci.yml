@@ -354,16 +354,46 @@ jobs:
             console.log("Deliverability diagnostics, Command Center, task filters and notification controls validated.");
 
             const governance = fs.readFileSync("lib/portal/governance.ts", "utf8");
-            for (const required of ["portalMemberCapabilitySet", "canAccessPortalTeam", "canManagePortalTeam", "team.project.manage", "team.vehicle.manage"]) {
+            for (const required of ["portalMemberCapabilitySet", "canAccessPortalTeam", "canManagePortalTeam", "team.project.manage", "team.vehicle.manage", "portalRoleProfileCapabilities", "portal_role_profiles", "PORTAL_CAPABILITY_OPTIONS"]) {
               if (!governance.includes(required)) {
-                throw new Error(`V9 governance engine missing capability boundary: ${required}`);
+                throw new Error(`Governance engine missing capability boundary: ${required}`);
               }
             }
             const controlService = fs.readFileSync("lib/portal/control.ts", "utf8");
-            for (const required of ["createOrUpdatePortalProject", "createPortalVehicleControl", "upsertPortalTeamMembership", "createPortalMapEdge"]) {
+            for (const required of [
+              "createOrUpdatePortalProject",
+              "createPortalVehicleControl",
+              "upsertPortalTeamMembership",
+              "createPortalMapEdge",
+              "createOrUpdatePortalTeam",
+              "deletePortalTeam",
+              "removePortalTeamMembership",
+              "updatePortalRoleProfile",
+              "updatePortalMemberGlobalRole"
+            ]) {
               if (!controlService.includes(required)) {
-                throw new Error(`V9 control service missing: ${required}`);
+                throw new Error(`Control service missing: ${required}`);
               }
+            }
+            const teamDirectory = fs.readFileSync("app/portal/(member)/teams/page.tsx", "utf8");
+            const memberDirectory = fs.readFileSync("app/portal/(member)/members/page.tsx", "utf8");
+            const repositoryDirectory = fs.readFileSync("app/portal/(member)/repositories/page.tsx", "utf8");
+            const teamDetail = fs.readFileSync("app/portal/(member)/teams/[code]/page.tsx", "utf8");
+            const memberDetail = fs.readFileSync("app/portal/(member)/members/[id]/page.tsx", "utf8");
+            for (const required of ["createPortalTeamAction", "portalEntityCard"]) {
+              if (!teamDirectory.includes(required)) throw new Error(`GV-01 team directory missing: ${required}`);
+            }
+            for (const required of ["updatePortalRoleProfileAction", "portalRoleStudio", "portalEntityCard"]) {
+              if (!memberDirectory.includes(required)) throw new Error(`GV-01 member directory missing: ${required}`);
+            }
+            if (!repositoryDirectory.includes("portalRepositoryEntityCard") || !repositoryDirectory.includes("R2 SOURCE OF TRUTH")) {
+              throw new Error("GV-01 repository directory must use the refined native repository entity card.");
+            }
+            for (const required of ["updatePortalTeamAction", "deletePortalTeamAction", "removePortalTeamMembershipScopedAction"]) {
+              if (!teamDetail.includes(required)) throw new Error(`GV-01 team management surface missing: ${required}`);
+            }
+            if (!memberDetail.includes("updatePortalMemberGlobalRoleAction")) {
+              throw new Error("GV-01 member profile must expose global role management.");
             }
             const teamWorkspace = fs.readFileSync("app/portal/(member)/teams/[code]/page.tsx", "utf8");
             if (!teamWorkspace.includes("canAccessPortalTeam") || !teamWorkspace.includes("notFound()")) {
@@ -393,7 +423,7 @@ jobs:
             for (const required of ["segmentRe", "viaRe", "selectedNet", "F.Cu", "B.Cu"]) {
               if (!pcbViewer.includes(required)) throw new Error(`KiCad engineering viewer missing: ${required}`);
             }
-            console.log("V9 governance, private team/project access, project map, control plane and engineering viewers validated.");
+            console.log("GV-01 role-driven authorization, team CRUD, entity cards and V9 engineering controls validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
