@@ -1,9 +1,9 @@
 import { env } from "cloudflare:workers";
 import type { PortalMember } from "@/lib/portal/auth";
 import {
-  canAccessPortalTeam,
   canManageTeamProjects,
   memberHasPortalCapability,
+  portalTeamMembershipFor,
 } from "@/lib/portal/governance";
 import { getEngineeringServiceStatus } from "@/lib/portal/engineering-services";
 
@@ -203,7 +203,7 @@ export async function listAccessibleNativeRepositories(member: PortalMember) {
       result.push(repo);
       continue;
     }
-    if (repo.team_code && await canAccessPortalTeam(member, repo.team_code)) {
+    if (repo.team_code && await portalTeamMembershipFor(member, repo.team_code)) {
       result.push(repo);
     }
   }
@@ -223,7 +223,7 @@ export async function getAccessibleNativeRepository(member: PortalMember, repoSl
 
   if (repo.visibility === "internal" || repo.visibility === "public") return repo;
   if (member.role === "admin" || repo.created_by === member.email) return repo;
-  if (repo.team_code && await canAccessPortalTeam(member, repo.team_code)) return repo;
+  if (repo.team_code && await portalTeamMembershipFor(member, repo.team_code)) return repo;
   return null;
 }
 
