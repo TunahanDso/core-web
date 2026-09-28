@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import {
@@ -35,13 +35,12 @@ function normalizeInventoryCode(raw: string) {
   return value;
 }
 
-export default function PortalInventoryScanner() {
+export default function PortalInventoryScanner({ autoStart = false }: { autoStart?: boolean }) {
   const router = useRouter();
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState("");
+  const autoStarted = useRef(false);
   const native = Capacitor.isNativePlatform();
-
-  if (!native) return null;
 
   const scan = async () => {
     if (scanning) return;
@@ -77,8 +76,16 @@ export default function PortalInventoryScanner() {
     }
   };
 
+  useEffect(() => {
+    if (!native || !autoStart || autoStarted.current) return;
+    autoStarted.current = true;
+    void scan();
+  }, [autoStart, native]);
+
+  if (!native) return null;
+
   return (
-    <section className="nativeInventoryScanner">
+    <section className="nativeInventoryScanner" id="scanner">
       <button type="button" onClick={() => void scan()} disabled={scanning}>
         <span className="nativeScannerIcon" aria-hidden="true">
           <i /><i /><i /><i />
