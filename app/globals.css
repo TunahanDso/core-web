@@ -10761,3 +10761,448 @@ html[data-core-native="native-v2"] .portalDeviceActions{
   .liveTerminalState{display:none}
   .codeTerminalClose{align-items:flex-start;flex-direction:column}
 }
+
+
+/* =========================================================
+   CORE PORTAL GV-01 · ENTITY CARDS + GOVERNANCE STUDIO
+   ========================================================= */
+.portalEntityGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:15px;
+  margin:0 0 24px;
+}
+.portalEntityCard{
+  --entity-accent:#ff7600;
+  position:relative;
+  display:flex;
+  min-width:0;
+  min-height:280px;
+  flex-direction:column;
+  overflow:hidden;
+  padding:17px;
+  border:1px solid #e6ded6;
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(255,118,0,.06),transparent 28%),
+    linear-gradient(180deg,#fff 0%,#fffdfa 100%);
+  color:#1d1915;
+  text-decoration:none;
+  box-shadow:0 8px 26px rgba(40,30,20,.045);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.portalEntityCard::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:linear-gradient(180deg,var(--entity-accent),rgba(255,118,0,.12));
+  opacity:.85;
+}
+.portalEntityCard:hover{
+  transform:translateY(-3px);
+  border-color:#d8cdc2;
+  box-shadow:0 20px 48px rgba(45,31,20,.095);
+}
+.portalEntityHeader{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+}
+.portalEntityMark{
+  display:grid;
+  width:42px;
+  height:42px;
+  place-items:center;
+  border:1px solid #eadfd5;
+  border-radius:12px;
+  background:#fff7ef;
+  color:#df6700;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:-.02em;
+}
+.portalEntityMark.member{
+  border-radius:50%;
+  background:#171411;
+  color:#fff6ed;
+  border-color:#171411;
+}
+.portalEntityMark.repo{
+  background:#1c1916;
+  color:#ff8a24;
+  border-color:#1c1916;
+}
+.portalEntityIdentity{display:grid;gap:2px;min-width:0}
+.portalEntityIdentity b{
+  overflow:hidden;
+  color:#4d4640;
+  font-size:10px;
+  font-weight:750;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.portalEntityEyebrow{
+  color:#9a8f85;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.portalEntityState{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 7px;
+  border:1px solid #e2dbd4;
+  border-radius:999px;
+  background:#f5f2ef;
+  color:#716961;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.07em;
+}
+.portalEntityState.active{
+  border-color:#cdebd6;
+  background:#eefaf2;
+  color:#1f7440;
+}
+.portalEntityState.invited{
+  border-color:#f1dcb2;
+  background:#fff8e8;
+  color:#8a600b;
+}
+.portalEntityState.disabled{
+  border-color:#ebd0cd;
+  background:#fff1ef;
+  color:#a3473e;
+}
+.portalEntityBody{padding:23px 0 14px}
+.portalEntityBody h2{
+  margin:0 0 7px;
+  color:#171411;
+  font-size:21px;
+  line-height:1.08;
+  letter-spacing:-.035em;
+}
+.portalEntityBody p{
+  display:-webkit-box;
+  overflow:hidden;
+  margin:0;
+  color:#776e65;
+  font-size:11px;
+  line-height:1.55;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+}
+.portalEntityMono{
+  font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  font-size:10px!important;
+  -webkit-line-clamp:2!important;
+}
+.portalEntityTags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:0 0 15px;
+}
+.portalEntityTags>span{
+  display:inline-flex;
+  min-height:23px;
+  align-items:center;
+  padding:0 7px;
+  border:1px solid #e8e0d8;
+  border-radius:7px;
+  background:#faf7f4;
+  color:#625a52;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.045em;
+}
+.portalEntityMetrics{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  margin:auto 0 0;
+  overflow:hidden;
+  border:1px solid #ece5de;
+  border-radius:12px;
+  background:#fbf9f7;
+}
+.portalEntityMetrics>div{
+  display:grid;
+  gap:2px;
+  padding:10px;
+  border-left:1px solid #ece5de;
+}
+.portalEntityMetrics>div:first-child{border-left:0}
+.portalEntityMetrics b{font-size:18px;letter-spacing:-.04em}
+.portalEntityMetrics span{color:#9a9188;font-size:7px;font-weight:900;letter-spacing:.09em}
+.portalEntityInfoRow{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:auto 0 0;
+}
+.portalEntityInfoRow>div{
+  display:grid;
+  gap:4px;
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid #eee7e0;
+  border-radius:10px;
+  background:#fcfaf8;
+}
+.portalEntityInfoRow span{color:#a0968d;font-size:7px;font-weight:900;letter-spacing:.09em}
+.portalEntityInfoRow b{
+  overflow:hidden;
+  color:#4e4740;
+  font-size:9px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.portalEntityFooter{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:14px;
+  padding-top:13px;
+  border-top:1px solid #eee7e0;
+}
+.portalEntityFooter small{color:#91877f;font-size:8px}
+.portalEntityFooter strong{
+  color:#df6700;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.07em;
+}
+.portalRepositoryEntityCard{min-height:260px}
+.portalMemberEntityCard{min-height:285px}
+.portalTeamEntityCard{min-height:300px}
+
+.portalManagementStrip{
+  display:grid;
+  grid-template-columns:minmax(0,.78fr) minmax(420px,1.22fr);
+  gap:24px;
+  margin:0 0 22px;
+  padding:23px;
+  border:1px solid #e5ddd5;
+  border-radius:20px;
+  background:linear-gradient(135deg,#fff9f3,#fff 46%,#faf8f6);
+  box-shadow:0 10px 32px rgba(39,28,19,.055);
+}
+.portalManagementIntro>span,
+.portalRoleStudio>header span{
+  color:#e56a00;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.12em;
+}
+.portalManagementIntro h2,
+.portalRoleStudio>header h2{
+  margin:7px 0 8px;
+  color:#191613;
+  font-size:24px;
+  letter-spacing:-.035em;
+}
+.portalManagementIntro p,
+.portalRoleStudio>header p{
+  max-width:650px;
+  margin:0;
+  color:#736b63;
+  font-size:11px;
+  line-height:1.6;
+}
+.portalManagementForm{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  padding:15px;
+  border:1px solid #ebe3dc;
+  border-radius:15px;
+  background:rgba(255,255,255,.84);
+}
+.portalManagementForm label{display:grid;gap:5px}
+.portalManagementForm label.wide{grid-column:1/-1}
+.portalManagementForm label>span,
+.portalMembershipRemove label>span,
+.portalDangerZone label>span{
+  color:#7d746c;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.portalManagementForm input,
+.portalManagementForm select,
+.portalManagementForm textarea,
+.portalMembershipRemove select,
+.portalDangerZone input{
+  width:100%;
+  min-height:40px;
+  border:1px solid #ded6ce;
+  border-radius:9px;
+  background:#fff;
+  color:#24201c;
+  padding:8px 10px;
+  outline:none;
+}
+.portalManagementForm textarea{resize:vertical}
+.portalManagementForm input:focus,
+.portalManagementForm select:focus,
+.portalManagementForm textarea:focus,
+.portalMembershipRemove select:focus,
+.portalDangerZone input:focus{
+  border-color:#ff7600;
+  box-shadow:0 0 0 3px rgba(255,118,0,.08);
+}
+
+.portalRoleStudio{
+  margin:28px 0;
+  padding:22px;
+  border:1px solid #e3dcd4;
+  border-radius:21px;
+  background:#fbf9f7;
+}
+.portalRoleStudio>header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:17px;
+}
+.portalRoleStudio>header>small{
+  padding:6px 8px;
+  border-radius:7px;
+  background:#201d1a;
+  color:#fff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.portalRoleProfileGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.portalRoleProfileCard{
+  display:grid;
+  gap:13px;
+  padding:15px;
+  border:1px solid #e4dcd5;
+  border-radius:15px;
+  background:#fff;
+  box-shadow:0 7px 20px rgba(43,31,21,.035);
+}
+.portalRoleProfileHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.portalRoleProfileHead span{color:#9c9289;font-size:8px;font-weight:900;letter-spacing:.1em}
+.portalRoleProfileHead h3{margin:3px 0 0;font-size:16px;letter-spacing:-.025em}
+.portalRoleProfileHead em{
+  padding:4px 6px;
+  border-radius:6px;
+  background:#fff2e6;
+  color:#cf6000;
+  font-size:8px;
+  font-style:normal;
+  font-weight:900;
+}
+.portalRoleDescription{display:grid;gap:5px}
+.portalRoleDescription>span{color:#827970;font-size:8px;font-weight:900;letter-spacing:.08em}
+.portalRoleDescription textarea{
+  width:100%;
+  border:1px solid #e1dad3;
+  border-radius:9px;
+  background:#fdfbf9;
+  padding:9px;
+  color:#403a34;
+  resize:vertical;
+}
+.portalCapabilityMatrix{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:6px;
+}
+.portalCapabilityMatrix>label{
+  display:flex;
+  min-width:0;
+  align-items:center;
+  gap:7px;
+  padding:7px 8px;
+  border:1px solid #eee7e1;
+  border-radius:8px;
+  background:#fdfcfb;
+  cursor:pointer;
+}
+.portalCapabilityMatrix input{accent-color:#ff7600}
+.portalCapabilityMatrix span{
+  overflow:hidden;
+  color:#5f5750;
+  font-family:"SFMono-Regular",Consolas,monospace;
+  font-size:8px;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.portalInlineRoleEditor{
+  display:grid;
+  gap:7px;
+  margin-top:13px;
+  padding-top:12px;
+  border-top:1px solid #ebe4dd;
+}
+.portalInlineRoleEditor select{
+  width:100%;
+  min-height:38px;
+  border:1px solid #ded6cf;
+  border-radius:8px;
+  background:#fff;
+  padding:0 9px;
+}
+.portalMembershipRemove{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:8px;
+  margin-top:14px;
+  padding-top:13px;
+  border-top:1px dashed #ddd4cc;
+}
+.portalMembershipRemove label{display:grid;gap:5px}
+
+.portalDangerZone{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(300px,.65fr);
+  gap:22px;
+  align-items:center;
+  margin:20px 0;
+  padding:19px;
+  border:1px solid #efcfcb;
+  border-radius:17px;
+  background:linear-gradient(135deg,#fff9f8,#fff);
+}
+.portalDangerZone>div>span{color:#bd4036;font-size:8px;font-weight:950;letter-spacing:.12em}
+.portalDangerZone h3{margin:6px 0 6px;color:#702a25;font-size:17px}
+.portalDangerZone p{max-width:700px;margin:0;color:#816965;font-size:10px;line-height:1.55}
+.portalDangerZone form{display:grid;gap:8px}
+.portalDangerZone label{display:grid;gap:5px}
+
+@media (max-width:1180px){
+  .portalEntityGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .portalManagementStrip{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .portalEntityGrid{grid-template-columns:1fr}
+  .portalEntityCard{min-height:0}
+  .portalRoleStudio{padding:15px}
+  .portalRoleStudio>header{flex-direction:column}
+  .portalRoleProfileGrid{grid-template-columns:1fr}
+  .portalCapabilityMatrix{grid-template-columns:1fr}
+  .portalManagementForm{grid-template-columns:1fr}
+  .portalManagementForm label.wide{grid-column:auto}
+  .portalDangerZone{grid-template-columns:1fr}
+  .portalMembershipRemove{grid-template-columns:1fr}
+}
