@@ -49,6 +49,7 @@ ${marker}
 }
 
 function configureIos() {
+  const apsEnvironment = process.env.CORE_APS_ENVIRONMENT === "production" ? "production" : "development";
   const plist = "ios/App/App/Info.plist";
   const project = "ios/App/App.xcodeproj/project.pbxproj";
   if (!fs.existsSync(plist) || !fs.existsSync(project)) {
@@ -99,6 +100,8 @@ function configureIos() {
 	<array>
 		<string>applinks:ytucore.com</string>
 	</array>
+	<key>aps-environment</key>
+	<string>${apsEnvironment}</string>
 </dict>
 </plist>
 `;
@@ -112,7 +115,32 @@ function configureIos() {
     write(project, pbx);
   }
 
-  console.log("iOS custom URL scheme and Associated Domains entitlement configured.");
+  const appDelegate = "ios/App/App/AppDelegate.swift";
+  if (!fs.existsSync(appDelegate)) throw new Error("iOS AppDelegate.swift is missing.");
+
+  let appDelegateSource = read(appDelegate);
+  if (!appDelegateSource.includes("capacitorDidRegisterForRemoteNotifications")) {
+    const methods = `
+
+    // CORE_NATIVE_PUSH_BRIDGE
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+    }
+`;
+    const lastBrace = appDelegateSource.lastIndexOf("}");
+    if (lastBrace < 0) throw new Error("AppDelegate class closing brace was not found.");
+    appDelegateSource =
+      appDelegateSource.slice(0,lastBrace) +
+      methods +
+      appDelegateSource.slice(lastBrace);
+    write(appDelegate,appDelegateSource);
+  }
+
+  console.log("iOS custom URL scheme, Universal Links and APNs bridge configured for " + apsEnvironment + ".");
 }
 
 if (platform === "android") configureAndroid();

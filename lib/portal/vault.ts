@@ -32,9 +32,9 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 
 const IMAGE_EXTENSIONS = new Set(["png","jpg","jpeg","webp","gif"]);
-const MODEL_EXTENSIONS = new Set(["stl","obj"]);
+const MODEL_EXTENSIONS = new Set(["stl","obj","gltf","glb"]);
 const CAD_SOURCE_EXTENSIONS = new Set([
-  "step","stp","iges","igs","3mf","gltf","glb","sldprt","sldasm","f3d","ipt","iam",
+  "step","stp","iges","igs","3mf","sldprt","sldasm","f3d","ipt","iam",
 ]);
 const PCB_SOURCE_EXTENSIONS = new Set([
   "kicad_pcb","kicad_sch","gbr","ger","gerber","drl","pos","bom",

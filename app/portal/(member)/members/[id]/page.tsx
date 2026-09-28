@@ -6,6 +6,11 @@ import {
   portalTaskStatusLabel,
 } from "@/lib/portal/labels";
 import { notFound } from "next/navigation";
+import {
+  listPortalMemberCapabilities,
+  listPortalMemberTeamMemberships,
+  portalRoleLabelDetailed,
+} from "@/lib/portal/governance";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +20,12 @@ export default async function PortalMemberDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [data, tasks] = await Promise.all([
-    getPortalMemberProfile(decodeURIComponent(id)),
-    listMyPortalTasks(decodeURIComponent(id), 12),
+  const memberId = decodeURIComponent(id);
+  const [data, tasks, memberships, capabilities] = await Promise.all([
+    getPortalMemberProfile(memberId),
+    listMyPortalTasks(memberId, 12),
+    listPortalMemberTeamMemberships(memberId),
+    listPortalMemberCapabilities(memberId),
   ]);
   if (!data) notFound();
 
@@ -59,6 +67,37 @@ export default async function PortalMemberDetailPage({
           {profile.github_url ? <a href={String(profile.github_url)} target="_blank" rel="noreferrer">GitHub ↗</a> : null}
           {profile.linkedin_url ? <a href={String(profile.linkedin_url)} target="_blank" rel="noreferrer">LinkedIn ↗</a> : null}
         </aside>
+      </section>
+
+      <section className="portalMemberRoleGrid">
+        <article>
+          <span>GLOBAL ROLE</span>
+          <b>{portalRoleLabelDetailed(String(member.role))}</b>
+          <p>Portalın genel yetki katmanı. Takım içi rol bundan bağımsız olarak scope bazında atanabilir.</p>
+        </article>
+        <article>
+          <span>TEAM ROLES</span>
+          <div className="portalMemberTeamRoles">
+            {memberships.length ? memberships.map((membership) => (
+              <a href={"/portal/teams/" + encodeURIComponent(String(membership.team_code))} key={String(membership.team_code)}>
+                <b>{String(membership.team_code)}</b>
+                <span>{portalRoleLabelDetailed(String(membership.team_role))}</span>
+              </a>
+            )) : teams.length ? teams.map((team) => (
+              <a href={"/portal/teams/" + encodeURIComponent(team)} key={team}>
+                <b>{team}</b><span>Legacy üyelik</span>
+              </a>
+            )) : <small>Takım scope'u atanmadı.</small>}
+          </div>
+        </article>
+        <article>
+          <span>EXPLICIT CAPABILITIES</span>
+          <div className="portalMemberCapabilities">
+            {capabilities.length
+              ? capabilities.map((capability) => <code key={capability}>{capability}</code>)
+              : <small>Ek capability grant'i yok.</small>}
+          </div>
+        </article>
       </section>
 
       <section className="portalPanel">

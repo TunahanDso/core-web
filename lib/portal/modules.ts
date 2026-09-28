@@ -4,6 +4,8 @@ export const portalNavigation = [
     items: [
       ["Genel Bakış", "/portal", "OV"],
       ["Projeler", "/portal/projects", "PJ"],
+      ["Project Map", "/portal/project-map", "MAP"],
+      ["Takımlar", "/portal/teams", "TM"],
       ["Görevler", "/portal/tasks", "PM"],
       ["Takvim", "/portal/calendar", "CL"],
       ["Bildirimler", "/portal/notifications", "NT"],
@@ -37,12 +39,15 @@ export const portalNavigation = [
       ["Canlı Araç", "/portal/ops", "OP"],
       ["Etkinlik Geçmişi", "/portal/activity", "AC"],
       ["İstatistikler", "/portal/analytics", "AN"],
+      ["Ağır Kontrol", "/portal/control", "CTL"],
     ],
   },
 ] as const;
 
 export const portalModuleCards = [
   ["Projeler", "Her proje için görev, doküman, repo ve ilerleme çalışma alanı.", "/portal/projects", "PJ"],
+  ["Project Map", "Takım, proje, araç ve repo ilişkilerini engineering graph üzerinde gör.", "/portal/project-map", "MAP"],
+  ["Takımlar", "Erişim kontrollü takım çalışma alanları ve sahiplik sınırları.", "/portal/teams", "TM"],
   ["Görevler", "Atama, öncelik, yorum ve inceleme akışıyla gerçek iş kuyruğu.", "/portal/tasks", "PM"],
   ["Bilgi Merkezi", "Dokümanlar, raporlar, çizimler ve kurumsal teknik hafıza.", "/portal/library", "LB"],
   ["Depolar / Repo", "CORE native Git servis sınırı, sahiplik ve opsiyonel mirror kayıtları.", "/portal/repositories", "RP"],

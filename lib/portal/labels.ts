@@ -1,8 +1,8 @@
 export function portalRoleLabel(value: string) {
   return ({
     admin: "Yönetici",
-    lead: "Takım Lideri",
-    member: "Üye",
+    lead: "Program / Takım Lideri",
+    member: "Mühendis / Üye",
     alumni: "Mezun",
     viewer: "Görüntüleyici",
   } as Record<string,string>)[value] ?? value;

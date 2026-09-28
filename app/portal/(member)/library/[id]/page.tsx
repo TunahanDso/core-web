@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import VaultModelViewer from "@/components/portal/VaultModelViewer";
 import KiCadBoardPreview from "@/components/portal/KiCadBoardPreview";
+import VaultCodeReader from "@/components/portal/VaultCodeReader";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
   formatVaultBytes,
@@ -116,10 +117,12 @@ export default async function VaultFilePage({
         ) : null}
 
         {["text","pcb-source"].includes(previewKind) && textPreview ? (
-          <div className="vaultCodePreview">
-            <header><span>KAYNAK ÖNİZLEME</span><small>{textPreview.reason || "salt okunur"}</small></header>
-            <pre>{textPreview.text || "Önizleme boyut sınırını aşıyor; dosyayı indirerek aç."}</pre>
-          </div>
+          <VaultCodeReader
+            source={textPreview.text || "Önizleme boyut sınırını aşıyor; dosyayı indirerek aç."}
+            filename={String(file.original_name)}
+            extension={extension}
+            truncated={Boolean(textPreview.truncated)}
+          />
         ) : null}
 
         {previewKind === "cad-source" ? (

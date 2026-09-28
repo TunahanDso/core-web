@@ -3,6 +3,7 @@ import PortalNav from "@/components/portal/PortalNav";
 import { logoutPortalAction } from "@/app/portal/actions";
 import { getSiteSetting } from "@/lib/cms/extensions";
 import { portalRoleLabel } from "@/lib/portal/labels";
+import { portalMemberCapabilitySet } from "@/lib/portal/governance";
 import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
 
 export default async function PortalShell({
@@ -12,7 +13,12 @@ export default async function PortalShell({
   member: PortalMember;
   children: React.ReactNode;
 }) {
-  const banner = await getSiteSetting("portal_banner");
+  const [banner, capabilitySet] = await Promise.all([
+    getSiteSetting("portal_banner"),
+    portalMemberCapabilitySet(member),
+  ]);
+  const canControl = ["portal.admin","control.projects","control.vehicles","teams.manage","roles.manage"]
+    .some((capability) => capabilitySet.has(capability));
   const initials = member.fullName
     ? member.fullName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()
     : "CR";
@@ -28,7 +34,7 @@ export default async function PortalShell({
           </span>
         </a>
 
-        <PortalNav />
+        <PortalNav canControl={canControl} />
 
         <div className="portalSidebarFoot">
           <a href="/tr" className="portalPublicLink">← Vitrin sitesi</a>

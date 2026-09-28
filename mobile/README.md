@@ -32,7 +32,7 @@ Do not publish fake signing identities. Android App Links activate only after `P
 
 The web portal attempts native handoff on mobile only when `PORTAL_MOBILE_HANDOFF_ENABLED=true`. If the app is unavailable, the user remains in the browser and receives an app/PWA fallback instead of a redirect loop.
 
-## Current native product layer · 0.2.0
+## Current native product layer · 0.3.0
 
 The member app currently includes:
 - route-aware native app bar,
@@ -50,17 +50,22 @@ The member app currently includes:
 - single-column chat conversation UX,
 - mobile mailbox folder rail and thread cards,
 - mobile Vault/inventory/calendar layouts,
-- native-shaped login and activation screens.
+- native-shaped login and activation screens,
+- APNs / FCM permission + token registration into the authenticated device registry,
+- notification deep links back into safe `/portal` routes,
+- native iOS / Android Share Sheet,
+- access-aware Teams, Project Map and Control Plane navigation.
 
 The generated Android/iOS projects remain reproducible from source and are validated by CI.
 
 ## Next native layers
 
-The device registry is already prepared for the next signed-build wave:
-- real remote push notifications and notification deep links,
+The device registry now stores native push-provider/token state. The next signed-build wave is:
+- APNs server credentials + signed iOS Push Notifications capability,
+- Android Firebase `google-services.json` + FCM production sender,
 - biometric/trusted-device unlock,
 - QR/barcode inventory scanning,
-- secure native file picker / share sheet,
-- app-store signing and internal distribution.
+- secure native file picker,
+- app-store signing, TestFlight and Play Internal Testing.
 
-These should be layered onto the current 0.2.0 shell after release signing identities are available.
+CORE Mobile 0.3 remains a real Capacitor iOS/Android application, not a Safari/PWA launch shortcut. The UI is progressively native-first while authenticated engineering data continues to come from the same protected CORE APIs. Critical screens can be moved to SwiftUI/native API clients incrementally without changing the backend contract.

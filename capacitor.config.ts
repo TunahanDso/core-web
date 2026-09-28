@@ -20,6 +20,9 @@ const config: CapacitorConfig = {
       resizeOnFullScreen: true,
       autoBackdropColor: "dom",
     },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "banner", "list"],
+    },
   },
 };
 

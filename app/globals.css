@@ -8114,3 +8114,815 @@ html[data-core-native="native-v2"] .portalTaskFilterSummary span{margin:0}
   .portalNotificationToolbar nav a{justify-content:center}
   .portalNotificationToolbar form button{width:100%}
 }
+
+
+/* =========================================================
+   CORE PORTAL V9 — CONTROL PLANE / TEAMS / ENGINEERING VIEWERS
+   ========================================================= */
+
+.portalTeamGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.portalTeamCard{
+  min-height:285px;
+  display:flex;
+  flex-direction:column;
+  padding:18px;
+  border:1px solid var(--portal-line);
+  border-radius:14px;
+  background:#fff;
+  color:#20252a;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.portalTeamCard:hover{
+  transform:translateY(-3px);
+  border-color:#ffc096;
+  box-shadow:0 18px 42px rgba(22,24,27,.07);
+}
+.portalTeamCard header,
+.portalTeamCard footer{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+}
+.portalTeamCard header span,
+.portalTeamCard footer span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.portalTeamCard header b,
+.portalTeamCard footer b{
+  color:#858c92;
+  font:850 8px ui-monospace,monospace;
+}
+.portalTeamCard h2{margin:42px 0 9px;font-size:25px}
+.portalTeamCard p{margin:0;color:#747c82;font-size:11px;line-height:1.65}
+.portalTeamFacts{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin:auto 0 15px;
+}
+.portalTeamFacts>div{
+  padding:10px;
+  border:1px solid #eceee9;
+  border-radius:9px;
+  background:#fafbf8;
+}
+.portalTeamFacts b{display:block;color:#c84c00;font-size:20px}
+.portalTeamFacts span{color:#8c9398;font-size:8px}
+
+.portalTeamHeroFacts,
+.portalControlHealth{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:12px;
+}
+.portalTeamHeroFacts article,
+.portalControlHealth article{
+  min-height:105px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:13px;
+  border:1px solid var(--portal-line);
+  border-radius:11px;
+  background:#fff;
+}
+.portalTeamHeroFacts span,
+.portalControlHealth span{
+  color:#92999e;
+  font:850 7px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.portalTeamHeroFacts b,
+.portalControlHealth b{
+  color:#20252a;
+  font-size:25px;
+}
+.portalControlHealth b.text{font-size:14px;color:#c84c00}
+
+.portalTeamWorkspaceGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:10px;
+}
+.portalTeamProjectList,
+.portalTeamVehicleList,
+.portalTeamTaskList,
+.portalTeamMemberList,
+.portalTeamVaultList,
+.portalControlRegistry{
+  display:grid;
+}
+.portalTeamProjectList>a,
+.portalTeamVehicleList>article,
+.portalTeamTaskList>a,
+.portalTeamMemberList>a,
+.portalTeamVaultList>a,
+.portalControlRegistry>a,
+.portalControlRegistry>article{
+  min-height:61px;
+  display:grid;
+  grid-template-columns:80px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:9px 0;
+  border-bottom:1px solid #eceee9;
+}
+.portalTeamProjectList>a:last-child,
+.portalTeamVehicleList>article:last-child,
+.portalTeamTaskList>a:last-child,
+.portalTeamMemberList>a:last-child,
+.portalTeamVaultList>a:last-child,
+.portalControlRegistry>a:last-child,
+.portalControlRegistry>article:last-child{border-bottom:0}
+.portalTeamProjectList>a>span,
+.portalTeamVehicleList>article>span,
+.portalTeamVaultList>a>span,
+.portalControlRegistry>a>span,
+.portalControlRegistry>article>span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+}
+.portalTeamMemberList>a>span{
+  width:40px;height:40px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:#17191d;
+  color:#fff;
+  font:900 8px ui-monospace,monospace;
+}
+.portalTeamProjectList div,
+.portalTeamVehicleList div,
+.portalTeamTaskList div,
+.portalTeamMemberList div,
+.portalTeamVaultList div,
+.portalControlRegistry div{
+  display:grid;gap:3px;min-width:0;
+}
+.portalTeamProjectList div>b,
+.portalTeamVehicleList div>b,
+.portalTeamTaskList div>b,
+.portalTeamMemberList div>b,
+.portalTeamVaultList div>b,
+.portalControlRegistry div>b{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:11px;
+}
+.portalTeamProjectList small,
+.portalTeamVehicleList small,
+.portalTeamTaskList small,
+.portalTeamMemberList small,
+.portalTeamVaultList small,
+.portalControlRegistry small{
+  color:#8b9298;
+  font-size:8px;
+}
+.portalTeamProjectList em,
+.portalTeamVehicleList em,
+.portalTeamTaskList em,
+.portalTeamMemberList em,
+.portalControlRegistry em{
+  font:850 8px ui-monospace,monospace;
+  font-style:normal;
+  color:#737b81;
+}
+
+.portalControlBoundary{
+  display:grid;
+  gap:6px;
+  margin:0 0 12px;
+  padding:14px 16px;
+  border:1px solid #4f3020;
+  border-radius:10px;
+  background:#17191d;
+  color:#fff;
+}
+.portalControlBoundary span{
+  color:#ff6500;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.portalControlBoundary b{font-size:14px}
+.portalControlBoundary p{margin:0;color:#a7adb2;font-size:10px;line-height:1.55}
+.portalControlPanel{margin-bottom:12px}
+.portalFormGrid.controlDense{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.portalFormGrid.controlDense .portalFormWide{grid-column:1/-1}
+.portalControlRegistry{
+  margin-top:16px;
+  padding-top:8px;
+  border-top:1px solid #eceee9;
+}
+.portalRoleCatalog{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.portalRoleCatalog article{
+  min-height:180px;
+  display:flex;
+  flex-direction:column;
+  padding:14px;
+  border:1px solid #e0e3dd;
+  border-radius:11px;
+  background:#fafbf8;
+}
+.portalRoleCatalog header{
+  display:grid;gap:5px;
+}
+.portalRoleCatalog header span{
+  color:#c84c00;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.portalRoleCatalog header b{font-size:15px}
+.portalRoleCatalog p{color:#747c82;font-size:10px;line-height:1.55}
+.portalRoleCatalog article>div{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:auto;
+}
+.portalRoleCatalog code{
+  padding:5px 6px;
+  border-radius:6px;
+  background:#17191d;
+  color:#d6dbd6;
+  font-size:7px;
+}
+.portalCapabilityGrant{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid #eceee9;
+}
+
+.portalProjectSourceTag{
+  width:max-content;
+  margin:11px 0 -25px;
+  padding:5px 7px;
+  border-radius:5px;
+  background:#f1f2ee;
+  color:#8a9196;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.06em;
+}
+.portalInternalProjectStrip{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:7px;
+  margin-bottom:10px;
+}
+.portalInternalProjectStrip>div{
+  padding:10px 12px;
+  border:1px solid var(--portal-line);
+  border-radius:9px;
+  background:#fff;
+}
+.portalInternalProjectStrip span{
+  display:block;
+  margin-bottom:6px;
+  color:#949a9f;
+  font:850 7px ui-monospace,monospace;
+}
+.portalInternalProjectStrip b{font-size:10px}
+.portalInternalProjectStrip b.high,
+.portalInternalProjectStrip b.critical{color:#ad3d24}
+.portalInternalProjectStrip b.low{color:#28734b}
+.portalProjectMapSummary{
+  min-height:130px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:12px;
+  color:#777e84;
+}
+.portalProjectMapSummary b{
+  padding:10px 12px;
+  border:1px solid #e0e3dd;
+  border-radius:8px;
+  background:#fafbf8;
+  color:#33393e;
+  font:900 9px ui-monospace,monospace;
+}
+.portalProjectMapSummary span{color:#ff6500;font-size:22px}
+
+/* Project mapping */
+.projectMapShell{
+  overflow:hidden;
+  margin-bottom:12px;
+  border:1px solid var(--portal-line);
+  border-radius:14px;
+  background:#f7f8f5;
+}
+.projectMapToolbar{
+  min-height:66px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  padding:10px 13px;
+  border-bottom:1px solid #e0e3dd;
+  background:#fff;
+}
+.projectMapToolbar>div:first-child{display:grid;gap:4px}
+.projectMapToolbar span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.09em;
+}
+.projectMapToolbar b{font-size:11px}
+.projectMapFilters{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end}
+.projectMapFilters button{
+  min-height:31px;
+  border:1px solid #dde0da;
+  border-radius:7px;
+  background:#f6f7f3;
+  color:#858c91;
+  padding:0 8px;
+  font:900 7px ui-monospace,monospace;
+}
+.projectMapFilters button.active{
+  border-color:#ffb784;
+  background:#fff2e8;
+  color:#c84c00;
+}
+.projectMapViewport{
+  height:620px;
+  overflow:hidden;
+  touch-action:none;
+  cursor:grab;
+  background:
+    linear-gradient(rgba(32,37,42,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(32,37,42,.035) 1px,transparent 1px),
+    #f7f8f5;
+  background-size:24px 24px;
+}
+.projectMapViewport:active{cursor:grabbing}
+.projectMapViewport svg{
+  width:1540px;
+  height:auto;
+  min-height:780px;
+  overflow:visible;
+}
+.projectMapEdges path{
+  fill:none;
+  stroke:#b8beb9;
+  stroke-width:1.4;
+}
+.projectMapEdges marker path{fill:#aab0ac}
+.projectMapEdges text{
+  fill:#92999e;
+  font:7px ui-monospace,monospace;
+}
+.projectMapNode{cursor:pointer}
+.projectMapNode rect{
+  fill:#fff;
+  stroke:#d9ddd7;
+  stroke-width:1.2;
+  filter:drop-shadow(0 4px 8px rgba(15,18,20,.04));
+}
+.projectMapNode:hover rect{stroke:#ff8b3e}
+.projectMapNode.team rect{fill:#17191d;stroke:#17191d}
+.projectMapNode.team .label,
+.projectMapNode.team .subtitle{fill:#fff}
+.projectMapNode.project rect{stroke:#ffb481;fill:#fff8f2}
+.projectMapNode.vehicle rect{fill:#f3f5f1}
+.projectMapNode.repo rect{fill:#f9faf7}
+.projectMapNode .type{
+  fill:#c84c00;
+  font:900 7px ui-monospace,monospace;
+}
+.projectMapNode .label{
+  fill:#24292e;
+  font:900 11px Arial,sans-serif;
+}
+.projectMapNode .subtitle{
+  fill:#8b9298;
+  font:7px ui-monospace,monospace;
+}
+.projectMapNode circle.state{fill:#8f969a}
+.projectMapNode circle.state.operational,
+.projectMapNode circle.state.active,
+.projectMapNode circle.state.ready{fill:#2d8655}
+.projectMapNode circle.state.testing,
+.projectMapNode circle.state.prototype{fill:#dd7d2e}
+.projectMapNode circle.state.critical{fill:#bd402a}
+.projectMapShell>footer{
+  padding:10px 13px;
+  border-top:1px solid #e0e3dd;
+  background:#fff;
+  color:#8b9298;
+  font:800 7px ui-monospace,monospace;
+}
+.projectMapEdgeEditor{margin-bottom:12px}
+
+/* Code reader */
+.vaultCodeReader{
+  border:1px solid #dadeda;
+  border-radius:11px;
+  overflow:hidden;
+  background:#111418;
+}
+.vaultCodeReader>header{
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 12px;
+  background:#171b20;
+  color:#fff;
+}
+.vaultCodeIdentity{display:grid;gap:2px;min-width:0}
+.vaultCodeIdentity>span{color:#ff7a21;font:900 7px ui-monospace,monospace}
+.vaultCodeIdentity>b{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:11px;
+}
+.vaultCodeIdentity>small{color:#8f989f;font-size:8px}
+.vaultCodeTools{display:flex;align-items:center;gap:5px}
+.vaultCodeTools button{
+  min-height:32px;
+  border:1px solid #343b43;
+  border-radius:6px;
+  background:#20252b;
+  color:#b9c0c5;
+  padding:0 8px;
+  font:900 7px ui-monospace,monospace;
+}
+.vaultCodeTools button.active{border-color:#ff6500;color:#ff8a3d}
+.vaultCodeSearch,
+.vaultCodeGoto{
+  display:flex;
+  align-items:center;
+  min-height:34px;
+  border:1px solid #343b43;
+  border-radius:7px;
+  background:#0d1013;
+}
+.vaultCodeSearch>span{padding-left:8px;color:#ff6500}
+.vaultCodeSearch input,
+.vaultCodeGoto input{
+  width:150px;
+  min-height:32px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#e5e9e6;
+  padding:0 7px;
+  font-size:11px;
+}
+.vaultCodeGoto input{width:62px}
+.vaultCodeSearch b{padding:0 8px;color:#ff8a3d;font-size:8px}
+.vaultCodeViewport{
+  max-height:620px;
+  overflow:auto;
+  background:#0c0f12;
+}
+.vaultCodeViewport table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:auto;
+}
+.vaultCodeViewport td{
+  vertical-align:top;
+  border:0;
+}
+.vaultCodeViewport .lineNumber{
+  width:1%;
+  min-width:52px;
+  user-select:none;
+  text-align:right;
+  padding:2px 10px 2px 6px;
+  border-right:1px solid #23292f;
+  color:#59636c;
+  background:#101419;
+  font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.vaultCodeViewport .lineSource{
+  padding:2px 12px;
+  white-space:pre;
+  color:#d6ddd8;
+  font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.vaultCodeViewport.wrap .lineSource{white-space:pre-wrap;word-break:break-word}
+.vaultCodeViewport tr.match td{background:rgba(255,101,0,.12)}
+.vaultCodeViewport tr.flash td{animation:codeLineFlash .9s ease}
+@keyframes codeLineFlash{
+  0%,100%{background:transparent}
+  35%{background:rgba(255,101,0,.3)}
+}
+.vaultCodeReader>footer{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 11px;
+  border-top:1px solid #252b31;
+  color:#717b83;
+  font:800 7px ui-monospace,monospace;
+}
+
+/* Advanced 3D */
+.vaultModelViewer.advanced>header{align-items:flex-start}
+.vaultModelViewer.advanced>header>div:first-child{display:grid;gap:3px}
+.vaultModelViewer.advanced>header small{color:#8c949a;font-size:8px}
+.vaultModelStats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  border-left:1px solid #e0e3dd;
+  border-right:1px solid #e0e3dd;
+  background:#e0e3dd;
+}
+.vaultModelStats>div{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:8px 10px;
+  background:#fafbf8;
+}
+.vaultModelStats span{color:#969ca1;font:850 7px ui-monospace,monospace}
+.vaultModelStats b{font:900 9px ui-monospace,monospace}
+
+/* PCB advanced viewer */
+.pcbInspectorBar{
+  display:grid;
+  grid-template-columns:minmax(220px,1.5fr) repeat(4,minmax(80px,.5fr));
+  gap:1px;
+  border:1px solid #e0e3dd;
+  border-top:0;
+  background:#e0e3dd;
+}
+.pcbInspectorBar>label,
+.pcbInspectorBar>div{
+  min-height:52px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+  padding:8px 10px;
+  background:#fafbf8;
+}
+.pcbInspectorBar span{color:#93999e;font:850 7px ui-monospace,monospace}
+.pcbInspectorBar b{font:900 11px ui-monospace,monospace}
+.pcbInspectorBar select{
+  min-height:29px;
+  border:1px solid #d8dcd6;
+  border-radius:6px;
+  background:#fff;
+  font-size:9px;
+}
+.pcbCanvas.advanced{height:600px;cursor:grab}
+.pcbCanvas.advanced:active{cursor:grabbing}
+.pcbCanvas.advanced svg{width:100%;height:100%;touch-action:none}
+.pcbTracks line.front{stroke:#d85822}
+.pcbTracks line.back{stroke:#3367a8}
+.pcbTracks line{stroke-linecap:round;opacity:.72}
+.pcbTracks line.selected{stroke:#ff6500!important;opacity:1;filter:drop-shadow(0 0 1.8px #ff6500)}
+.pcbTracks line.muted{opacity:.08}
+.pcbVias circle{
+  fill:#f4c147;
+  stroke:#6c5a23;
+  stroke-width:.08;
+  opacity:.82;
+}
+.pcbVias circle.selected{fill:#ff6500;stroke:#8a3000;opacity:1}
+.pcbVias circle.muted{opacity:.08}
+
+/* Native 0.3 utility cards */
+.nativePushQuick>span,
+.nativeShareQuick>span{
+  background:#17191d!important;
+  color:#ff6500!important;
+}
+.nativePushQuick b,
+.nativeShareQuick b{color:#22272c}
+
+/* Responsive V9 */
+@media(max-width:1180px){
+  .portalTeamGrid{grid-template-columns:1fr 1fr}
+  .portalTeamHeroFacts,
+  .portalControlHealth{grid-template-columns:repeat(3,1fr)}
+  .portalFormGrid.controlDense{grid-template-columns:1fr 1fr}
+  .portalRoleCatalog{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+  .portalTeamGrid,
+  .portalTeamWorkspaceGrid{grid-template-columns:1fr}
+  .portalTeamHeroFacts,
+  .portalControlHealth{grid-template-columns:1fr 1fr}
+  .portalInternalProjectStrip{grid-template-columns:1fr 1fr}
+  .portalRoleCatalog{grid-template-columns:1fr}
+  .projectMapToolbar{align-items:flex-start;flex-direction:column}
+  .projectMapFilters{justify-content:flex-start}
+  .projectMapViewport{height:68dvh}
+  .vaultCodeReader>header{align-items:stretch;flex-direction:column}
+  .vaultCodeTools{overflow-x:auto;padding-bottom:2px}
+  .vaultCodeSearch{min-width:190px}
+  .pcbInspectorBar{grid-template-columns:1fr 1fr}
+  .pcbInspectorBar>label{grid-column:1/-1}
+  .pcbCanvas.advanced{height:68dvh}
+}
+html[data-core-native="native-v2"] .portalTeamGrid,
+html[data-core-native="native-v2"] .portalTeamWorkspaceGrid,
+html[data-core-native="native-v2"] .portalRoleCatalog{
+  grid-template-columns:1fr;
+}
+html[data-core-native="native-v2"] .portalTeamHeroFacts,
+html[data-core-native="native-v2"] .portalControlHealth{
+  grid-template-columns:1fr 1fr;
+}
+html[data-core-native="native-v2"] .portalFormGrid.controlDense{
+  grid-template-columns:1fr 1fr;
+}
+html[data-core-native="native-v2"] .projectMapViewport{
+  height:64dvh;
+}
+html[data-core-native="native-v2"] .vaultCodeViewport{max-height:66dvh}
+html[data-core-native="native-v2"] .pcbCanvas.advanced{height:62dvh}
+
+
+/* CORE PORTAL V9 — scoped role profile */
+.portalMemberRoleGrid{
+  display:grid;
+  grid-template-columns:1fr 1.25fr 1.25fr;
+  gap:9px;
+  margin:0 0 12px;
+}
+.portalMemberRoleGrid>article{
+  min-height:165px;
+  display:flex;
+  flex-direction:column;
+  padding:14px;
+  border:1px solid var(--portal-line);
+  border-radius:12px;
+  background:#fff;
+}
+.portalMemberRoleGrid>article>span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.09em;
+}
+.portalMemberRoleGrid>article>b{
+  margin-top:13px;
+  font-size:17px;
+}
+.portalMemberRoleGrid>article>p{
+  margin:8px 0 0;
+  color:#7a8288;
+  font-size:10px;
+  line-height:1.6;
+}
+.portalMemberTeamRoles{
+  display:grid;
+  gap:5px;
+  margin-top:10px;
+}
+.portalMemberTeamRoles>a{
+  min-height:39px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 9px;
+  border:1px solid #e5e7e2;
+  border-radius:8px;
+  background:#fafbf8;
+}
+.portalMemberTeamRoles>a>b{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+}
+.portalMemberTeamRoles>a>span{color:#686f75;font-size:9px}
+.portalMemberCapabilities{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:10px;
+  align-content:flex-start;
+}
+.portalMemberCapabilities code{
+  padding:5px 7px;
+  border-radius:6px;
+  background:#17191d;
+  color:#d9ddd9;
+  font-size:7px;
+}
+@media(max-width:900px){
+  .portalMemberRoleGrid{grid-template-columns:1fr}
+}
+
+
+/* CORE PORTAL V9 — team-local control */
+.portalTeamLocalControl{
+  margin:0 0 12px;
+  padding:14px;
+  border:1px solid #d9ddd7;
+  border-radius:13px;
+  background:#f8f9f6;
+}
+.portalTeamLocalControl>.portalPanelHead{padding:0 0 12px}
+.portalTeamLocalControlGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.portalTeamLocalControlGrid>section{
+  min-height:100%;
+  padding:13px;
+  border:1px solid #e0e3dd;
+  border-radius:11px;
+  background:#fff;
+}
+.portalTeamLocalControlGrid h3{
+  margin:0 0 12px;
+  font-size:16px;
+}
+.portalTeamLocalControlGrid .portalFormGrid.compact{
+  grid-template-columns:1fr 1fr;
+}
+.portalTeamLocalControlGrid .portalFormWide{grid-column:1/-1}
+@media(max-width:1180px){
+  .portalTeamLocalControlGrid{grid-template-columns:1fr}
+}
+html[data-core-native="native-v2"] .portalTeamLocalControlGrid,
+html[data-core-native="native-v2"] .portalTeamLocalControlGrid .portalFormGrid.compact{
+  grid-template-columns:1fr;
+}
+html[data-core-native="native-v2"] .portalTeamLocalControlGrid .portalFormWide{grid-column:1}
+
+
+/* CORE PORTAL V9 — auditable role grants */
+.portalCapabilityGrantList,
+.portalTeamAssignmentList{
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid #eceee9;
+}
+.portalCapabilityGrantList>article,
+.portalTeamAssignmentList>article{
+  min-height:54px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(150px,.8fr) minmax(110px,.5fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid #eceee9;
+}
+.portalCapabilityGrantList>article>div,
+.portalTeamAssignmentList>article>div{display:grid;gap:2px;min-width:0}
+.portalCapabilityGrantList>article b,
+.portalTeamAssignmentList>article b{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px;
+}
+.portalCapabilityGrantList>article small,
+.portalTeamAssignmentList>article small{color:#8c9398;font-size:8px}
+.portalCapabilityGrantList code{
+  width:max-content;
+  max-width:100%;
+  padding:6px 8px;
+  border-radius:6px;
+  background:#17191d;
+  color:#d9ddd9;
+  font-size:7px;
+  overflow-wrap:anywhere;
+}
+.portalCapabilityGrantList button{
+  min-height:32px;
+  border:1px solid #e1b1a7;
+  border-radius:7px;
+  background:#fff7f5;
+  color:#a73928;
+  padding:0 9px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalTeamAssignmentList>article{
+  grid-template-columns:70px minmax(0,1fr) auto;
+}
+.portalTeamAssignmentList>article>span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+}
+.portalTeamAssignmentList>article>em{
+  font:850 8px ui-monospace,monospace;
+  font-style:normal;
+  color:#6f777d;
+}
+@media(max-width:720px){
+  .portalCapabilityGrantList>article{grid-template-columns:1fr auto}
+  .portalCapabilityGrantList>article code{grid-column:1/-1}
+  .portalCapabilityGrantList>article>small{grid-column:1}
+}
