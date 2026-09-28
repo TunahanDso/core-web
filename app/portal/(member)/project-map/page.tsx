@@ -10,7 +10,8 @@ import {
   listPortalProjectRegistry,
   listPortalVehicleProfiles,
 } from "@/lib/portal/control";
-import { listPortalRepositories } from "@/lib/portal/db";
+import { listPortalRepositories, listPortalTasks } from "@/lib/portal/db";
+import { listPortalVaultFiles } from "@/lib/portal/vault";
 import { listNativeRepositories } from "@/lib/portal/engineering-services";
 import { memberHasPortalCapability } from "@/lib/portal/governance";
 import { createPortalMapEdgeAction } from "@/app/portal/control-actions";
@@ -23,13 +24,15 @@ function nodeId(type: string, ref: string) {
 
 export default async function PortalProjectMapPage() {
   const member = await requirePortalMember();
-  const [teams, projects, vehicles, repositories, nativeRepositories, storedEdges, canEdit] = await Promise.all([
+  const [teams, projects, vehicles, repositories, nativeRepositories, storedEdges, tasks, vaultFiles, canEdit] = await Promise.all([
     listAccessiblePortalTeams(member),
     listPortalProjectRegistry(),
     listPortalVehicleProfiles(),
     listPortalRepositories(),
     listNativeRepositories(),
     listPortalProjectMapEdges(),
+    listPortalTasks(500),
+    listPortalVaultFiles({ lifecycle: "active", limit: 500, viewer: member }),
     memberHasPortalCapability(member,"project.map.edit"),
   ]);
 
@@ -50,6 +53,13 @@ export default async function PortalProjectMapPage() {
     const projectSlug = String(vehicle.project_slug || "");
     return member.role === "admin" || accessibleTeamCodes.has(teamCode) || projectSlugs.has(projectSlug);
   });
+
+  const visibleTasks = tasks
+    .filter((task) => projectSlugs.has(String(task.project_slug || "")) && String(task.status) !== "done")
+    .slice(0,120);
+  const visibleVault = vaultFiles
+    .filter((file) => projectSlugs.has(String(file.project_slug || "")))
+    .slice(0,120);
 
   const allRepos = [
     ...repositories.map((repo) => ({
@@ -106,6 +116,22 @@ export default async function PortalProjectMapPage() {
       subtitle: repo.native ? "CORE native repo" : "external mirror",
       href: "/portal/repositories",
       state: repo.state,
+    })),
+    ...visibleVault.map((file) => ({
+      id: nodeId("vault",String(file.id)),
+      type: "vault" as const,
+      label: String(file.title),
+      subtitle: String(file.extension || file.kind || "FILE").toUpperCase() + " · R" + String(file.revision || 1),
+      href: "/portal/library/" + encodeURIComponent(String(file.id)),
+      state: String(file.approval_state || "draft"),
+    })),
+    ...visibleTasks.map((task) => ({
+      id: nodeId("task",String(task.id)),
+      type: "task" as const,
+      label: String(task.title),
+      subtitle: String(task.status).toUpperCase() + " · " + String(task.priority).toUpperCase(),
+      href: "/portal/tasks/" + encodeURIComponent(String(task.id)),
+      state: String(task.priority || "medium"),
     })),
   ];
 
@@ -171,6 +197,30 @@ export default async function PortalProjectMapPage() {
         label: "repo",
       });
     }
+  }
+
+  for (const file of visibleVault) {
+    const projectSlug = String(file.project_slug || "");
+    if (!projectSlug) continue;
+    add({
+      id: "inferred-project-vault-" + String(file.id),
+      source: nodeId("project",projectSlug),
+      target: nodeId("vault",String(file.id)),
+      relation: "artifact",
+      label: "dosya",
+    });
+  }
+
+  for (const task of visibleTasks) {
+    const projectSlug = String(task.project_slug || "");
+    if (!projectSlug) continue;
+    add({
+      id: "inferred-project-task-" + String(task.id),
+      source: nodeId("project",projectSlug),
+      target: nodeId("task",String(task.id)),
+      relation: "work",
+      label: "görev",
+    });
   }
 
   for (const edge of storedEdges) {
