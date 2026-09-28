@@ -61,7 +61,7 @@ export default async function PortalTasksPage() {
                   <form action={updateTaskStatusAction}>
                     <input type="hidden" name="id" value={String(task.id)} />
                     <select name="status" defaultValue={String(task.status)}>
-                      {statuses.map((item) => <option value={item} key={item}>{item}</option>)}
+                      {statuses.map((item) => <option value={item} key={item}>{portalTaskStatusLabel(item)}</option>)}
                     </select>
                     <button type="submit">TAŞI →</button>
                   </form>
