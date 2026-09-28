@@ -640,6 +640,7 @@ export async function getPublicPage(
   slug: string,
   locale: "tr" | "en"
 ): Promise<{
+  code: string;
   title: string;
   accent: string;
   summary: string;
@@ -693,6 +694,7 @@ export async function getPublicPage(
     const accentKey = locale === "tr" ? "accent_tr" : "accent_en";
 
     return {
+      code: typeof metadata.code === "string" ? String(metadata.code) : "",
       title: row.title,
       accent: typeof metadata[accentKey] === "string" ? String(metadata[accentKey]) : "",
       summary: row.summary,
