@@ -6,6 +6,7 @@ import { requirePortalMember, requirePortalRole } from "@/lib/portal/auth";
 import {
   createPortalVaultFile,
   createPortalVaultVersion,
+  getPortalVaultFile,
   queuePortalDesignDerivative,
   updatePortalVaultApproval,
   updatePortalVaultLifecycle,
@@ -78,6 +79,10 @@ export async function setPortalVaultLifecycleAction(formData: FormData) {
   if (!fileId || !["active","archived","trashed"].includes(lifecycle)) {
     throw new Error("Geçersiz Vault yaşam döngüsü isteği.");
   }
+  const file = await getPortalVaultFile(fileId);
+  if (!file) throw new Error("Vault kaydı bulunamadı.");
+  const canManage = member.role === "admin" || member.role === "lead" || String(file.created_by) === member.email;
+  if (!canManage) throw new Error("Bu Vault kaydının yaşam döngüsünü değiştirme yetkin yok.");
 
   await updatePortalVaultLifecycle({
     fileId,
