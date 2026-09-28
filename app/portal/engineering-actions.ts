@@ -11,7 +11,9 @@ import {
 } from "@/lib/portal/engineering-services";
 import {
   cancelPortalCodeRun,
+  closePortalCodeTerminal,
   createPortalCodeRun,
+  createPortalCodeTerminal,
   retryPortalCodeRun,
   RUNNER_TASKS,
   type RunnerLanguage,
@@ -191,4 +193,33 @@ export async function retryCodeRunAction(formData: FormData) {
   const nextId = await retryPortalCodeRun(member,runId);
   revalidatePath("/portal/code-lab");
   redirect("/portal/code-lab/" + encodeURIComponent(nextId) + "?retried=1");
+}
+
+
+export async function createCodeTerminalAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const repoSlugValue = repoSlug(textValue(formData,"repositoryRef"));
+  if (!repoSlugValue) throw new Error("Repository seçmelisin.");
+  const repo = await getAccessibleNativeRepository(member,repoSlugValue);
+  if (!repo) throw new Error("Repository bulunamadı veya erişimin yok.");
+
+  const terminalId = await createPortalCodeTerminal({
+    memberId:member.id,
+    actorEmail:member.email,
+    repo,
+    snapshotRef:textValue(formData,"snapshotRef") || repo.default_branch || "main",
+  });
+
+  revalidatePath("/portal/code-lab");
+  redirect("/portal/code-lab/terminal/" + encodeURIComponent(terminalId) + "?created=1");
+}
+
+export async function closeCodeTerminalAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const terminalId = textValue(formData,"terminalId");
+  if (!terminalId) throw new Error("Terminal oturum kimliği gerekli.");
+  await closePortalCodeTerminal(member,terminalId);
+  revalidatePath("/portal/code-lab");
+  revalidatePath("/portal/code-lab/terminal/" + terminalId);
+  redirect("/portal/code-lab/terminal/" + encodeURIComponent(terminalId) + "?closed=1");
 }
