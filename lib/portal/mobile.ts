@@ -86,6 +86,7 @@ export function portalMobilePublicConfig() {
     playStoreUrl: String(env.PORTAL_ANDROID_PLAY_STORE_URL || "").trim(),
     appVersion: String(env.PORTAL_MOBILE_APP_VERSION || "0.1.0"),
     handoffEnabled: String(env.PORTAL_MOBILE_HANDOFF_ENABLED || "false").toLowerCase() === "true",
+    pushEnabled: String(env.PORTAL_PUSH_ENABLED || "false").toLowerCase() === "true",
     baseUrl,
   };
 }
