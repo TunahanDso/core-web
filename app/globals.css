@@ -5845,3 +5845,182 @@ html,body{max-width:100%;overflow-x:clip}
   .portalSearchHero button{min-height:44px}
   .adminAccessHealth{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE PORTAL V4 — ENGINEERING OS / VAULT / MOBILE
+   ========================================================= */
+
+.vaultCapabilityRail,.portalHardwareRibbon{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 18px;
+  padding:12px 14px;border:1px solid var(--portal-line);background:#fff;
+  font:850 8px ui-monospace,monospace;letter-spacing:.07em;color:#5f666c
+}
+.vaultCapabilityRail i,.portalHardwareRibbon i{color:var(--portal-orange);font-style:normal}
+.vaultSearchBar{margin:16px 0}
+.vaultSearchBar form{display:grid;grid-template-columns:minmax(240px,1fr) 170px 140px auto;gap:8px}
+.vaultSearchBar input,.vaultSearchBar select,.vaultSearchBar button,
+.vaultGovernanceActions select,.vaultGovernanceActions button{
+  min-height:42px;border:1px solid #d7dad4;background:#fff;padding:0 11px;color:#25292d
+}
+.vaultSearchBar button,.vaultGovernanceActions button{font:850 8px ui-monospace,monospace;cursor:pointer}
+.vaultFileGrid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 28px
+}
+.vaultFileGrid>a{
+  min-height:235px;display:flex;flex-direction:column;padding:16px;border:1px solid var(--portal-line);
+  border-radius:10px;background:#fff;box-shadow:var(--portal-shadow);transition:transform .16s ease,border-color .16s ease
+}
+.vaultFileGrid>a:hover{transform:translateY(-2px);border-color:#f1a06d}
+.vaultFileGrid header,.vaultFileGrid footer{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.vaultFileGrid header span,.vaultFileGrid header small,.vaultFileGrid footer{
+  font:800 8px ui-monospace,monospace;color:#7c838a
+}
+.vaultFileGrid header span{color:#c94d00}
+.vaultFileIcon{
+  width:58px;height:58px;display:grid;place-items:center;margin:24px 0 16px;border:1px solid #dcded9;
+  background:#f7f8f4;font:900 8px ui-monospace,monospace;color:#444b51;overflow:hidden
+}
+.vaultFileGrid h3{margin:0 0 7px;font-size:17px;letter-spacing:-.02em}
+.vaultFileGrid p{margin:0 0 18px;color:#737b82;font-size:11px;line-height:1.55;flex:1}
+.vaultMetaStrip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0}
+.vaultMetaStrip article{display:grid;gap:7px;padding:14px;border:1px solid var(--portal-line);background:#fff}
+.vaultMetaStrip span,.vaultMetaStrip small{font:800 7px ui-monospace,monospace;color:#8d9398}
+.vaultMetaStrip b{font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.vaultChecksum{font-family:ui-monospace,monospace}
+.vaultPreviewShell{margin:14px 0;padding:14px;border:1px solid var(--portal-line);background:#fff;border-radius:10px}
+.vaultFileActions{display:flex;gap:7px}
+.vaultPdfPreview{width:100%;min-height:72vh;border:1px solid #e1e3df;background:#f7f7f4}
+.vaultImagePreview{min-height:360px;display:grid;place-items:center;padding:18px;background:#f1f2ee;border:1px solid #e1e3df}
+.vaultImagePreview img{max-width:100%;max-height:75vh;object-fit:contain}
+.vaultCodePreview{border:1px solid #dfe1dc;background:#17191d;color:#e8ebe5;overflow:hidden}
+.vaultCodePreview header{display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #32363b;font:800 8px ui-monospace,monospace}
+.vaultCodePreview pre{margin:0;max-height:70vh;overflow:auto;padding:18px;font:12px/1.55 ui-monospace,SFMono-Regular,monospace;white-space:pre}
+.vaultConversionPanel{min-height:270px;display:grid;align-content:center;gap:12px;padding:35px;border:1px dashed #cfd2cc;background:#f7f8f4}
+.vaultConversionPanel span{color:#c84c00;font:900 8px ui-monospace,monospace}
+.vaultConversionPanel h3{margin:0;max-width:760px;font-size:25px}
+.vaultConversionPanel p{margin:0;max-width:820px;color:#727980;line-height:1.65}
+.vaultDerivativeGrid{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px}
+.vaultDerivativeGrid h3{margin:0 0 6px}.vaultDerivativeGrid p{margin:0;color:#737b82}
+.vaultDerivativeHistory{display:grid;gap:5px;margin-top:14px}
+.vaultDerivativeHistory article,.runnerJobList article{
+  display:grid;grid-template-columns:100px 65px 110px 1fr;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #eceee9;font-size:10px
+}
+.vaultDerivativeHistory em,.runnerJobList em{font-style:normal;font:850 8px ui-monospace,monospace}
+.vaultDerivativeHistory .queued,.runnerJobList .queued{color:#a46a19}
+.vaultDerivativeHistory .ready,.runnerJobList .passed{color:#278451}
+.vaultDerivativeHistory .failed,.runnerJobList .failed,.runnerJobList .timed_out{color:#bd3f20}
+.vaultDetailGrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.5fr);gap:10px;margin:12px 0}
+.vaultVersionList{display:grid}
+.vaultVersionList article{display:grid;grid-template-columns:50px 1fr 130px auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #eceee9}
+.vaultVersionList article>b{color:#c84c00;font:900 9px ui-monospace,monospace}
+.vaultVersionList article div{display:grid;gap:3px}.vaultVersionList small{color:#858b91}
+.vaultVersionList code{font-size:9px;color:#777f85}.vaultVersionList a{font:850 8px ui-monospace,monospace}
+.vaultGovernance dl{display:grid;gap:0;margin:12px 0}
+.vaultGovernance dl div{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid #eceee9}
+.vaultGovernance dt{color:#8d9398;font:800 8px ui-monospace,monospace}.vaultGovernance dd{margin:0;font-size:10px;word-break:break-word}
+.vaultTagCloud{display:flex;gap:5px;flex-wrap:wrap}.vaultTagCloud span{padding:5px 7px;background:#f0f2ed;font-size:9px}
+.vaultGovernanceActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.vaultGovernanceActions form{display:flex;gap:6px}
+.vaultModelViewer,.pcbPreview{border:1px solid #dfe1dc;background:#f6f7f3}
+.vaultModelViewer>header,.pcbPreview>header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid #dfe1dc}
+.vaultModelViewer>header>div:first-child,.pcbPreview>header>div:first-child{display:grid;gap:3px}
+.vaultModelViewer>header span,.pcbPreview>header span{font:850 7px ui-monospace,monospace;color:#c84c00}
+.vaultModelViewer>footer,.pcbPreview>footer{padding:9px 12px;border-top:1px solid #dfe1dc;color:#8b9196;font-size:9px}
+.vaultViewerTools,.pcbLayerTools{display:flex;gap:5px;flex-wrap:wrap}
+.vaultViewerTools button,.pcbLayerTools button{min-height:32px;border:1px solid #d6d9d3;background:#fff;padding:0 8px;font:800 7px ui-monospace,monospace;cursor:pointer}
+.vaultViewerTools button.active,.pcbLayerTools button.active{border-color:var(--portal-orange);color:#c84c00}
+.vaultModelCanvas,.pcbCanvas{position:relative;min-height:520px;overflow:hidden;background:linear-gradient(rgba(20,24,28,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(20,24,28,.035) 1px,transparent 1px),#fff;background-size:24px 24px}
+.vaultModelCanvas canvas{width:100%;height:520px;display:block;touch-action:none}
+.vaultViewerOverlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(250,251,248,.86);font:850 9px ui-monospace,monospace;pointer-events:none}
+.vaultViewerOverlay.error{color:#b63d20}
+.pcbCanvas svg{width:100%;height:520px;padding:20px}.pcbOutline line{stroke:#15191d;stroke-width:.35}.pcbFootprints.front rect{fill:rgba(255,101,0,.8);stroke:#9f4104;stroke-width:.15}.pcbFootprints.back circle{fill:rgba(57,70,79,.62);stroke:#303a41;stroke-width:.15}
+.mechanicalFormatMatrix,.pcbCapabilityGrid,.repositoryBoundary,.runnerBoundary{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0
+}
+.mechanicalFormatMatrix article,.pcbCapabilityGrid article,.repositoryBoundary article,.runnerBoundary>div{
+  min-height:135px;display:grid;align-content:center;gap:8px;padding:16px;border:1px solid var(--portal-line);background:#fff
+}
+.mechanicalFormatMatrix span,.pcbCapabilityGrid span,.repositoryBoundary span,.runnerBoundary span{font:850 7px ui-monospace,monospace;color:#c84c00}
+.mechanicalFormatMatrix p,.pcbCapabilityGrid p,.repositoryBoundary small{margin:0;color:#7a8187;font-size:10px;line-height:1.5}
+.repositoryBoundary,.runnerBoundary{align-items:stretch;grid-template-columns:1fr auto 1fr auto 1fr}
+.repositoryBoundary>i,.runnerBoundary>i{align-self:center;color:var(--portal-orange);font-style:normal;font-weight:900}
+.repositoryBoundary .offline,.runnerBoundary .offline{border-style:dashed}.repositoryBoundary .ready,.runnerBoundary .ready{border-color:#9fceb0;background:#f7fbf8}
+.nativeRepoGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0}
+.nativeRepoGrid article{padding:16px;border:1px solid var(--portal-line);background:#fff;border-radius:8px}
+.nativeRepoGrid header,.nativeRepoGrid footer{display:flex;justify-content:space-between;gap:8px}.nativeRepoGrid header{font:800 7px ui-monospace,monospace;color:#868d92}.nativeRepoGrid h3{margin:20px 0 5px}.nativeRepoGrid p{color:#7a8187}.nativeRepoGrid code{font-size:9px}
+.externalRepoRegistry{margin-top:16px;opacity:.92}
+.runnerSafetyNote{margin:12px 0 0;color:#777f85;font-size:10px;line-height:1.55}
+.runnerTaskMatrix{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.runnerTaskMatrix article{display:grid;gap:7px;padding:13px;border:1px solid var(--portal-line);background:#fff}.runnerTaskMatrix span{font:850 7px ui-monospace,monospace;color:#c84c00}.runnerTaskMatrix code{padding:7px;background:#f2f3ef;font-size:9px;overflow:auto}
+.runnerJobList{display:grid}.runnerJobList article{grid-template-columns:70px minmax(0,1fr) 100px 150px}
+.mailboxShell{display:grid;grid-template-columns:190px minmax(0,1fr);gap:10px;margin:14px 0}
+.mailboxSidebar{padding:10px;border:1px solid var(--portal-line);background:#fff;border-radius:9px}
+.mailboxComposeJump{display:grid;place-items:center;min-height:43px;margin-bottom:10px;background:#17191d;color:#fff;font:900 8px ui-monospace,monospace}
+.mailboxSidebar nav{display:grid;gap:3px}.mailboxSidebar nav>a{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:7px;padding:10px;border-radius:5px;font-size:10px}.mailboxSidebar nav>a.active{background:#fff3ea;color:#bd4b05}.mailboxSidebar nav span{font:800 7px ui-monospace,monospace}.mailboxSidebar nav em{font-style:normal;color:#969ca2}
+.mailboxUnread{display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding:10px;border-top:1px solid #eceee9}.mailboxUnread span{font:800 7px ui-monospace,monospace}.mailboxUnread b{color:#c84c00}
+.mailboxMain{min-width:0}.mailboxSearch{display:grid;grid-template-columns:1fr auto;gap:6px;margin-bottom:8px}.mailboxSearch input{min-height:42px;border:1px solid #d9dcd6;padding:0 12px}.mailboxSearch button{border:1px solid #d9dcd6;background:#fff;padding:0 14px;font:850 8px ui-monospace,monospace}
+.mailboxThreadList{display:grid;gap:4px}.mailboxThreadList>article{display:grid;grid-template-columns:minmax(0,1fr) auto;border:1px solid var(--portal-line);background:#fff}.mailboxThreadList>article.unread{border-left:3px solid var(--portal-orange);background:#fffdf9}.mailboxOpenThread button,.mailboxThreadList>article.draft>a{width:100%;display:grid;grid-template-columns:28px minmax(0,1fr) 145px;gap:10px;align-items:center;padding:12px;border:0;background:transparent;text-align:left;cursor:pointer}.mailboxThreadState{font:900 8px ui-monospace,monospace;color:#c84c00}.mailboxOpenThread header{display:flex;gap:7px;align-items:center}.mailboxOpenThread header em{color:#e29828;font-style:normal}.mailboxOpenThread p,.mailboxThreadList>article.draft p{margin:3px 0;color:#737a81;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mailboxOpenThread small{color:#999ea3}.mailboxOpenThread time{font:8px ui-monospace,monospace;color:#8c9297}
+.mailboxRowActions{display:flex;align-items:center;gap:3px;padding:6px}.mailboxRowActions button,.mailboxThreadList>article.draft>form button{min-height:30px;border:1px solid #e0e2dd;background:#fff;padding:0 7px;font:800 7px ui-monospace,monospace;cursor:pointer}
+.mailboxCompose{scroll-margin-top:90px}.mailboxComposeActions{display:flex;gap:8px;flex-wrap:wrap}.mailboxAttachmentPicker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:260px;overflow:auto}.mailboxAttachmentPicker>label{display:flex;gap:8px;align-items:flex-start;padding:9px;border:1px solid #e1e3de;background:#fafbf8}.mailboxAttachmentPicker input{width:auto;min-height:auto;margin-top:2px}.mailboxAttachmentPicker span{display:grid;gap:3px}.mailboxAttachmentPicker b{font-size:9px}.mailboxAttachmentPicker small{font-size:7px;color:#8d9398}
+.mailThreadToolbar{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin:12px 0;padding:13px;border:1px solid var(--portal-line);background:#fff}.mailThreadParticipants>span{font:850 7px ui-monospace,monospace;color:#8e9499}.mailThreadParticipants>div{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.mailThreadParticipants b{padding:5px 7px;background:#f0f2ed;font-size:9px}.mailThreadActions{display:flex;gap:5px;flex-wrap:wrap}.mailThreadActions a,.mailThreadActions button{min-height:32px;display:inline-flex;align-items:center;border:1px solid #daddd7;background:#fff;padding:0 9px;font:850 7px ui-monospace,monospace;cursor:pointer}
+.mailboxConversation article.mine{border-left:3px solid var(--portal-orange)}.mailboxConversation article>header>div:first-child{display:flex;align-items:center;gap:9px}.mailboxConversation article>header>div:first-child>span{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#17191d;color:#fff;font:850 8px ui-monospace,monospace}.mailboxConversation article>header>div:first-child>div{display:grid}.mailMessageAttachments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:12px}.mailMessageAttachments a{display:flex;gap:8px;align-items:center;padding:9px;border:1px solid #e0e2dc;background:#fafbf8}.mailMessageAttachments a>span{width:38px;height:30px;display:grid;place-items:center;background:#eceee9;font:850 7px ui-monospace,monospace}.mailMessageAttachments a>div{display:grid}.mailMessageAttachments small{color:#8b9196}.mailReplyAttachments{margin:10px 0}.mailReplyAttachments summary{cursor:pointer;font:850 8px ui-monospace,monospace;color:#c84c00}
+.portalMobileNav,.portalInstallButton{display:none}
+
+/* Public header: keep Portal / Join / language beside the primary navigation instead of the far-right edge. */
+.navInlineUtility{display:flex;align-items:center;gap:9px;margin-left:4px;padding-left:12px;border-left:1px solid rgba(17,19,23,.14)}
+.navInlineUtility .portalNavLink,.navInlineUtility .joinNav{padding:7px 9px;border:1px solid rgba(17,19,23,.16)}
+.navInlineUtility .joinNav{border-color:var(--orange)}
+.navInlineUtility .lang{padding-left:0!important}
+.navAdminUtility{margin-left:8px!important}
+
+@media(max-width:1380px){
+  .vaultFileGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .navPrimary{gap:10px!important}
+  .navInlineUtility{gap:5px;padding-left:8px}
+  .navAdminUtility{display:none!important}
+}
+@media(max-width:1080px){
+  .vaultFileGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .vaultMetaStrip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .vaultDetailGrid{grid-template-columns:1fr}
+  .mechanicalFormatMatrix,.pcbCapabilityGrid{grid-template-columns:1fr}
+  .repositoryBoundary,.runnerBoundary{grid-template-columns:1fr}
+  .repositoryBoundary>i,.runnerBoundary>i{transform:rotate(90deg);justify-self:center}
+  .nativeRepoGrid,.runnerTaskMatrix{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mailboxShell{grid-template-columns:160px minmax(0,1fr)}
+}
+@media(max-width:900px){
+  .portalApp{display:block;min-height:100dvh;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+  .portalSidebar{display:none}
+  .portalWorkspace{min-width:0}
+  .portalTopbar{position:sticky;top:0;min-height:62px;padding:9px 12px;grid-template-columns:minmax(0,1fr) auto!important}
+  .portalTopActions .portalTopChip{display:none}.portalIdentity>div{display:none}
+  .portalContent{padding-left:14px!important;padding-right:14px!important}
+  .portalMobileNav{
+    position:fixed;z-index:95;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-top:1px solid #daddd7;background:rgba(250,251,248,.96);backdrop-filter:blur(18px)
+  }
+  .portalMobileNav a{display:grid;place-items:center;gap:3px;min-height:48px;color:#727980}.portalMobileNav span{font:900 7px ui-monospace,monospace}.portalMobileNav b{font-size:8px}.portalMobileNav a.active{color:#c84c00}
+  .portalInstallButton{display:block;position:fixed;z-index:94;right:10px;bottom:calc(68px + env(safe-area-inset-bottom));min-height:36px;border:1px solid #e29969;background:#fff7ef;padding:0 10px;font:850 7px ui-monospace,monospace}
+  .vaultSearchBar form{grid-template-columns:1fr 1fr}.vaultSearchBar input{grid-column:1/-1}.vaultSearchBar button{grid-column:1/-1}
+  .mailboxShell{grid-template-columns:1fr}.mailboxSidebar{overflow:auto}.mailboxSidebar nav{display:flex;min-width:max-content}.mailboxSidebar nav>a{grid-template-columns:24px auto auto;min-width:115px}.mailboxUnread{display:none}
+  .mailboxOpenThread button,.mailboxThreadList>article.draft>a{grid-template-columns:22px minmax(0,1fr)}.mailboxOpenThread time{grid-column:2}
+}
+@media(max-width:640px){
+  .vaultFileGrid{grid-template-columns:1fr}.vaultMetaStrip{grid-template-columns:1fr 1fr}
+  .vaultModelCanvas,.pcbCanvas{min-height:360px}.vaultModelCanvas canvas,.pcbCanvas svg{height:360px}
+  .vaultDerivativeGrid{grid-template-columns:1fr}.vaultVersionList article{grid-template-columns:40px 1fr}.vaultVersionList code,.vaultVersionList a{grid-column:2}
+  .nativeRepoGrid,.runnerTaskMatrix{grid-template-columns:1fr}
+  .mailboxThreadList>article{grid-template-columns:1fr}.mailboxRowActions{border-top:1px solid #eceee9}
+  .mailboxAttachmentPicker,.mailMessageAttachments{grid-template-columns:1fr}
+  .mailThreadToolbar{align-items:stretch;flex-direction:column}
+  .vaultMetaStrip article:last-child{grid-column:1/-1}
+  .navInlineUtility{display:flex;flex-wrap:wrap;border-left:0;padding-left:0;margin-left:0}
+}
+
+
+/* V4 public-nav mobile override: Portal / Katıl / language remain visible. */
+@media(max-width:800px){
+  .publicHeader .joinNav{display:inline-flex!important}
+  .navInlineUtility{display:flex!important;align-items:center;gap:5px}
+}

@@ -124,12 +124,14 @@ export default async function PublicChrome({
             <a href={`/${locale}/research`}>{l.research}</a>
             <a href={`/${locale}/competitions`}>{l.competitions}</a>
             <a href={`/${locale}/about`}>{l.about}</a>
+            <div className="navInlineUtility">
+              <a className="portalNavLink" href="/portal">{l.portal}</a>
+              <a className="joinNav" href={`/${locale}/join`}>{l.join}</a>
+              <LanguageSwitcher locale={locale} />
+            </div>
           </div>
 
-          <div className="navUtility">
-            <a className="portalNavLink" href="/portal">{l.portal}</a>
-            <a className="joinNav" href={`/${locale}/join`}>{l.join}</a>
-            <LanguageSwitcher locale={locale} />
+          <div className="navUtility navAdminUtility">
             <a className="adminLink" href="/admin">ADMIN</a>
           </div>
         </nav>

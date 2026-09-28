@@ -45,7 +45,7 @@ export default async function PortalShell({
           </div>
           <form className="portalGlobalSearch" action="/portal/search" method="get">
             <span>⌕</span>
-            <input name="q" placeholder="Görev, doküman, repo, stok veya üye ara..." aria-label="Portal genel arama" />
+            <input name="q" placeholder="Görev, Vault, repo, stok veya üye ara..." aria-label="Portal genel arama" />
             <kbd>ENTER</kbd>
           </form>
           <div className="portalTopActions">

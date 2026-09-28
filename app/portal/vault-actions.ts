@@ -1,0 +1,143 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { requirePortalMember, requirePortalRole } from "@/lib/portal/auth";
+import {
+  createPortalVaultFile,
+  createPortalVaultVersion,
+  getPortalVaultFile,
+  queuePortalDesignDerivative,
+  updatePortalVaultApproval,
+  updatePortalVaultLifecycle,
+} from "@/lib/portal/vault";
+
+function textValue(formData: FormData, key: string) {
+  return String(formData.get(key) ?? "").trim();
+}
+
+function parseTags(value: string) {
+  return Array.from(new Set(
+    value.split(",").map((item) => item.trim().toLowerCase()).filter(Boolean)
+  )).slice(0, 30);
+}
+
+export async function uploadPortalVaultAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const file = formData.get("file");
+  if (!(file instanceof File)) throw new Error("Dosya seçilmedi.");
+
+  const visibilityRaw = textValue(formData, "visibility");
+  const visibility = ["members","team","leads","admins"].includes(visibilityRaw)
+    ? visibilityRaw as "members" | "team" | "leads" | "admins"
+    : "members";
+
+  const fileId = await createPortalVaultFile({
+    file,
+    title: textValue(formData, "title"),
+    description: textValue(formData, "description"),
+    kind: textValue(formData, "kind"),
+    teamCode: textValue(formData, "teamCode") || null,
+    projectSlug: textValue(formData, "projectSlug") || null,
+    tags: parseTags(textValue(formData, "tags")),
+    visibility,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/library");
+  revalidatePath("/portal/documents");
+  revalidatePath("/portal/mechanical");
+  revalidatePath("/portal/electronics");
+  redirect("/portal/library/" + encodeURIComponent(fileId) + "?uploaded=1");
+}
+
+export async function uploadPortalVaultVersionAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const fileId = textValue(formData, "fileId");
+  const file = formData.get("file");
+  if (!fileId) throw new Error("Vault dosya kimliği eksik.");
+  if (!(file instanceof File)) throw new Error("Yeni sürüm dosyası seçilmedi.");
+  const current = await getPortalVaultFile(fileId);
+  if (!current) throw new Error("Vault kaydı bulunamadı.");
+  const canManage = member.role === "admin" || member.role === "lead" || String(current.created_by) === member.email;
+  if (!canManage) throw new Error("Bu Vault kaydına yeni revision ekleme yetkin yok.");
+
+  await createPortalVaultVersion({
+    fileId,
+    file,
+    note: textValue(formData, "note"),
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/library");
+  revalidatePath("/portal/library/" + fileId);
+  revalidatePath("/portal/mechanical");
+  revalidatePath("/portal/electronics");
+  redirect("/portal/library/" + encodeURIComponent(fileId) + "?versioned=1");
+}
+
+export async function setPortalVaultLifecycleAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const fileId = textValue(formData, "fileId");
+  const lifecycle = textValue(formData, "lifecycle");
+  if (!fileId || !["active","archived","trashed"].includes(lifecycle)) {
+    throw new Error("Geçersiz Vault yaşam döngüsü isteği.");
+  }
+  const file = await getPortalVaultFile(fileId);
+  if (!file) throw new Error("Vault kaydı bulunamadı.");
+  const canManage = member.role === "admin" || member.role === "lead" || String(file.created_by) === member.email;
+  if (!canManage) throw new Error("Bu Vault kaydının yaşam döngüsünü değiştirme yetkin yok.");
+
+  await updatePortalVaultLifecycle({
+    fileId,
+    lifecycle: lifecycle as "active" | "archived" | "trashed",
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/library");
+  revalidatePath("/portal/library/" + fileId);
+  redirect("/portal/library?state=" + encodeURIComponent(lifecycle));
+}
+
+export async function setPortalVaultApprovalAction(formData: FormData) {
+  const member = await requirePortalRole(["admin","lead"]);
+  const fileId = textValue(formData, "fileId");
+  const approval = textValue(formData, "approval");
+  if (!fileId || !["draft","review","approved","rejected"].includes(approval)) {
+    throw new Error("Geçersiz Vault onay durumu.");
+  }
+
+  await updatePortalVaultApproval({
+    fileId,
+    approval: approval as "draft" | "review" | "approved" | "rejected",
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/library");
+  revalidatePath("/portal/library/" + fileId);
+  redirect("/portal/library/" + encodeURIComponent(fileId) + "?approval=" + encodeURIComponent(approval));
+}
+
+
+export async function queuePortalDesignDerivativeAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const fileId = textValue(formData, "fileId");
+  const derivativeType = textValue(formData, "derivativeType");
+  const allowed = ["gltf","glb","preview-svg","preview-png","pcb-3d","thumbnail","pdf"];
+  if (!fileId || !allowed.includes(derivativeType)) {
+    throw new Error("Geçersiz türev isteği.");
+  }
+  const current = await getPortalVaultFile(fileId);
+  if (!current) throw new Error("Vault kaydı bulunamadı.");
+  const canManage = member.role === "admin" || member.role === "lead" || String(current.created_by) === member.email;
+  if (!canManage) throw new Error("Bu dosya için dönüştürme işi oluşturma yetkin yok.");
+
+  await queuePortalDesignDerivative({
+    fileId,
+    derivativeType: derivativeType as "gltf" | "glb" | "preview-svg" | "preview-png" | "pcb-3d" | "thumbnail" | "pdf",
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/library/" + fileId);
+  redirect("/portal/library/" + encodeURIComponent(fileId) + "?derivative=queued");
+}
