@@ -7,6 +7,7 @@ import {
   portalTeamMembershipFor,
 } from "@/lib/portal/governance";
 import { getEngineeringServiceStatus } from "@/lib/portal/engineering-services";
+import { embeddedRepoServiceRead } from "@/lib/portal/native-repo-engine";
 
 function database() {
   if (!env.DB) throw new Error("Portal database binding is not available.");
@@ -152,14 +153,32 @@ export type RepoDiff = {
   files: RepoDiffFile[];
 };
 
+export type RepoRelease = {
+  id: string;
+  tag: string;
+  name: string;
+  ref: string;
+  commitSha: string;
+  notes: string;
+  createdBy: string;
+  createdAt: string;
+};
+
 type ServiceResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; status?: number };
 
 async function serviceGet<T>(pathname: string): Promise<ServiceResult<T>> {
   const service = getEngineeringServiceStatus().repository;
-  if (!service.configured || !service.url) {
+  if (!service.configured) {
     return { ok: false, error: "CORE Repo Service bağlı değil." };
+  }
+
+  if (!service.url) {
+    const embedded = await embeddedRepoServiceRead(pathname);
+    return embedded.ok
+      ? { ok: true, data: embedded.data as T }
+      : { ok: false, error: embedded.error, status: embedded.status };
   }
 
   const token = repoServiceToken();
@@ -329,6 +348,7 @@ export async function loadNativeRepositoryWorkspace(
       tree: [] as RepoTreeEntry[],
       commits: [] as RepoCommit[],
       manifests: [] as RepoPackageManifest[],
+      releases: [] as RepoRelease[],
       blob: null as RepoBlob | null,
       compare: null as RepoCompare | null,
       errors,
@@ -343,15 +363,17 @@ export async function loadNativeRepositoryWorkspace(
     Promise<ServiceResult<unknown>>,
     Promise<ServiceResult<unknown>>,
     Promise<ServiceResult<unknown>>,
+    Promise<ServiceResult<unknown>>,
     Promise<ServiceResult<unknown>>
   ] = [
     serviceGet<unknown>(`/v1/repositories/${serviceId}/branches`),
     serviceGet<unknown>(`/v1/repositories/${serviceId}/tree?ref=${refParam}&path=${pathParam}`),
     serviceGet<unknown>(`/v1/repositories/${serviceId}/commits?ref=${refParam}&limit=30`),
     serviceGet<unknown>(`/v1/repositories/${serviceId}/manifests?ref=${refParam}`),
+    serviceGet<unknown>(`/v1/repositories/${serviceId}/releases`),
   ];
 
-  const [branchesResult, treeResult, commitsResult, manifestsResult] = await Promise.all(requests);
+  const [branchesResult, treeResult, commitsResult, manifestsResult, releasesResult] = await Promise.all(requests);
 
   const collectError = (label: string, result: ServiceResult<unknown>) => {
     if (!result.ok) errors.push(`${label}: ${result.error}`);
@@ -360,6 +382,7 @@ export async function loadNativeRepositoryWorkspace(
   collectError("Tree", treeResult);
   collectError("Commits", commitsResult);
   collectError("Packages", manifestsResult);
+  collectError("Releases", releasesResult);
 
   let blob: RepoBlob | null = null;
   if (file) {
@@ -379,7 +402,7 @@ export async function loadNativeRepositoryWorkspace(
     else errors.push(`Compare: ${compareResult.error}`);
   }
 
-  const coreReads = [branchesResult, treeResult, commitsResult, manifestsResult];
+  const coreReads = [branchesResult, treeResult, commitsResult, manifestsResult, releasesResult];
   const reachable = coreReads.some((result) => result.ok);
 
   return {
@@ -394,6 +417,7 @@ export async function loadNativeRepositoryWorkspace(
     tree: treeResult.ok ? listPayload<RepoTreeEntry>(treeResult.data, "entries") : [],
     commits: commitsResult.ok ? listPayload<RepoCommit>(commitsResult.data, "commits") : [],
     manifests: manifestsResult.ok ? listPayload<RepoPackageManifest>(manifestsResult.data, "manifests") : [],
+    releases: releasesResult.ok ? listPayload<RepoRelease>(releasesResult.data, "releases") : [],
     blob,
     compare,
     errors,
