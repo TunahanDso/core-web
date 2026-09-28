@@ -62,13 +62,13 @@ export async function updateProjectAction(formData: FormData) {
   const integrationsRaw = String(formData.get("integrations") ?? "");
   const progressRaw = Number(formData.get("progress"));
 
-  if (!id) throw new Error("Project id is required.");
+  if (!id) throw new Error("Proje kimliği gerekli.");
   if (!titleTr) throw new Error("Turkish project title is required.");
   if (!["draft", "published", "archived"].includes(status)) {
-    throw new Error("Invalid publication status.");
+    throw new Error("Geçersiz yayın durumu.");
   }
   if (!Number.isFinite(progressRaw) || progressRaw < 0 || progressRaw > 100) {
-    throw new Error("Progress must be between 0 and 100.");
+    throw new Error("İlerleme 0 ile 100 arasında olmalı.");
   }
 
   const integrations = integrationsRaw
@@ -116,13 +116,13 @@ export async function updateCompetitionAction(formData: FormData) {
   const locationTr = String(formData.get("locationTr") ?? "").trim();
   const locationEn = String(formData.get("locationEn") ?? "").trim();
 
-  if (!id) throw new Error("Competition id is required.");
+  if (!id) throw new Error("Yarışma kimliği gerekli.");
   if (!titleTr) throw new Error("Turkish competition title is required.");
   if (!["draft", "published", "archived"].includes(status)) {
-    throw new Error("Invalid publication status.");
+    throw new Error("Geçersiz yayın durumu.");
   }
   if (!["confirmed", "target", "evaluation"].includes(targetStatus)) {
-    throw new Error("Invalid target status.");
+    throw new Error("Geçersiz hedef durumu.");
   }
 
   await updateCompetition(
@@ -171,10 +171,10 @@ export async function updatePageAction(formData: FormData) {
   const seoDescriptionTr = String(formData.get("seoDescriptionTr") ?? "").trim();
   const seoDescriptionEn = String(formData.get("seoDescriptionEn") ?? "").trim();
 
-  if (!id) throw new Error("Page id is required.");
-  if (!titleTr) throw new Error("Turkish page title is required.");
+  if (!id) throw new Error("Sayfa kimliği gerekli.");
+  if (!titleTr) throw new Error("Türkçe sayfa başlığı gerekli.");
   if (!["draft", "published", "archived"].includes(status)) {
-    throw new Error("Invalid publication status.");
+    throw new Error("Geçersiz yayın durumu.");
   }
 
   await updatePage(
