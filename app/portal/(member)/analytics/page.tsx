@@ -11,7 +11,7 @@ export default async function PortalAnalyticsPage() {
     listPortalInventory(),
   ]);
   const totalTasks = Number(analytics.tasks_total || 0);
-  const tamamlandıTasks = Number(analytics.tasks_done || 0);
+  const doneTasks = Number(analytics.tasks_done || 0);
   const completion = totalTasks ? Math.round(doneTasks / totalTasks * 100) : 0;
   const low = inventory.filter((item) => Number(item.available_quantity) <= Number(item.minimum_quantity)).length;
 
