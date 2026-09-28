@@ -15,23 +15,23 @@ export default async function PortalNotificationsPage() {
 
   return (
     <>
-      <PortalPageHeader code="NT / NOTIFICATIONS" title="Notification Center" lead="Actionable team notices, stock alerts, test changes and member-specific reminders." />
+      <PortalPageHeader code="NT / NOTIFICATIONS" title="Bildirim Merkezi" lead="Takım duyuruları, stok uyarıları, test değişiklikleri ve üyeye özel hatırlatmalar." />
       {canWrite ? (
         <section className="portalPanel portalCreatePanel">
-          <div className="portalPanelHead"><span>NEW NOTIFICATION</span><small>LEAD / ADMIN</small></div>
+          <div className="portalPanelHead"><span>YENİ BİLDİRİM</span><small>LİDER / ADMİN</small></div>
           <form className="portalFormGrid" action={createNotificationAction}>
-            <label><span>Title</span><input name="title" required /></label>
-            <label><span>Kind</span><select name="kind"><option>info</option><option>warning</option><option>action</option><option>success</option></select></label>
+            <label><span>Başlık</span><input name="title" required /></label>
+            <label><span>Tür</span><select name="kind"><option>info</option><option>warning</option><option>action</option><option>success</option></select></label>
             <label>
-              <span>Recipient</span>
+              <span>Alıcı</span>
               <select name="memberId" defaultValue="">
-                <option value="">All members</option>
+                <option value="">Tüm üyeler</option>
                 {members.filter((item) => String(item.status) === "active").map((item) => <option value={String(item.id)} key={String(item.id)}>{String(item.full_name || item.email)}</option>)}
               </select>
             </label>
-            <label><span>Link</span><input name="href" placeholder="/portal/tasks" /></label>
-            <label className="portalFormWide"><span>Message</span><textarea name="body" rows={3} /></label>
-            <button className="portalPrimaryButton" type="submit">PUBLISH NOTICE →</button>
+            <label><span>Bağlantı</span><input name="href" placeholder="/portal/tasks" /></label>
+            <label className="portalFormWide"><span>Mesaj</span><textarea name="body" rows={3} /></label>
+            <button className="portalPrimaryButton" type="submit">BİLDİRİMİ YAYINLA →</button>
           </form>
         </section>
       ) : null}
@@ -41,17 +41,17 @@ export default async function PortalNotificationsPage() {
             <article className={item.read_at ? "read" : ""} key={String(item.id)}>
               <span>{String(item.kind).toUpperCase()}</span>
               <div><h3>{String(item.title)}</h3><p>{String(item.body || "")}</p><small>{String(item.created_at)}</small></div>
-              {item.href ? <a href={String(item.href)}>OPEN →</a> : null}
+              {item.href ? <a href={String(item.href)}>AÇ →</a> : null}
               {!item.read_at ? (
                 <form action={markNotificationReadAction}>
                   <input type="hidden" name="id" value={String(item.id)} />
-                  <button type="submit">MARK READ</button>
+                  <button type="submit">OKUNDU İŞARETLE</button>
                 </form>
-              ) : <small>READ</small>}
+              ) : <small>OKUNDU</small>}
             </article>
           ))}
         </div>
-      ) : <PortalEmpty title="No notifications." text="You are all caught up." />}
+      ) : <PortalEmpty title="Bildirim yok." text="Güncelsin." />}
     </>
   );
 }
