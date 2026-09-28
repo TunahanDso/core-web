@@ -52,12 +52,12 @@ export default async function PortalTasksPage() {
               {bucket.map((task) => (
                 <article className="portalTaskCard" key={String(task.id)}>
                   <div className="portalTaskMeta">
-                    <span className={"portalÖncelik " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
+                    <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                     <small>{String(task.project_slug || task.team_code || "CORE")}</small>
                   </div>
                   <h3>{String(task.title)}</h3>
                   <p>{String(task.description || "")}</p>
-                  <small>{task.due_at ? "DUE " + String(task.due_at) : "SON TARİH YOK"}</small>
+                  <small>{task.due_at ? "SON TARİH " + String(task.due_at) : "SON TARİH YOK"}</small>
                   <form action={updateTaskStatusAction}>
                     <input type="hidden" name="id" value={String(task.id)} />
                     <select name="status" defaultValue={String(task.status)}>
