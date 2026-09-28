@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { portalNavigation } from "@/lib/portal/modules";
 
-export default function PortalNav() {
+export default function PortalNav({ role }: { role: string }) {
   const pathname = usePathname();
 
   return (
@@ -11,7 +11,9 @@ export default function PortalNav() {
       {portalNavigation.map((group) => (
         <section key={group.label}>
           <p>{group.label}</p>
-          {group.items.map(([label, href, code]) => {
+          {group.items
+            .filter(([, href]) => href !== "/portal/control" || role === "admin" || role === "lead")
+            .map(([label, href, code]) => {
             const active =
               href === "/portal"
                 ? pathname === href
