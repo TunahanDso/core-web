@@ -1,4 +1,5 @@
 import { PortalPageHeader } from "@/components/portal/PortalPage";
+import { replyMailThreadAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { getPortalMailThread } from "@/lib/portal/db";
 import { notFound } from "next/navigation";
@@ -26,6 +27,14 @@ export default async function PortalMailThreadPage({
           </article>
         ))}
       </div>
+      <section className="portalPanel portalMailReply">
+        <div className="portalPanelHead"><span>YANIT YAZ</span><small>THREAD DEVAMI</small></div>
+        <form action={replyMailThreadAction}>
+          <input type="hidden" name="threadId" value={String(data.thread.id)} />
+          <textarea name="body" rows={5} placeholder="Karar, durum güncellemesi veya devir teslim notu..." required />
+          <button className="portalPrimaryButton" type="submit">YANITI GÖNDER →</button>
+        </form>
+      </section>
       <a className="portalBackLink" href="/portal/mail">← İç yazışmalara dön</a>
     </>
   );

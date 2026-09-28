@@ -43,6 +43,21 @@ declare module "cloudflare:workers" {
     delete(key: string): Promise<void>;
   }
 
+  export interface EmailSendResult {
+    messageId?: string;
+  }
+
+  export interface EmailBinding {
+    send(message: {
+      from: string;
+      to: string | string[];
+      subject: string;
+      text?: string;
+      html?: string;
+      replyTo?: string;
+    }): Promise<EmailSendResult>;
+  }
+
   export const env: {
     DB?: D1Database;
     MEDIA?: R2Bucket;
@@ -50,6 +65,10 @@ declare module "cloudflare:workers" {
     TEAM_DOMAIN?: string;
     PORTAL_ALLOWED_EMAIL_DOMAINS?: string;
     PORTAL_TELEMETRY_INGEST_KEY?: string;
+    PORTAL_BASE_URL?: string;
+    PORTAL_MAIL_FROM?: string;
+    RESEND_API_KEY?: string;
+    EMAIL?: EmailBinding;
     [key: string]: unknown;
   };
 }

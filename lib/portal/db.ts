@@ -45,10 +45,22 @@ export async function getPortalMetrics(memberId: string) {
 }
 
 export async function listPortalMembers() {
-  const response = await database().prepare(
-    "SELECT id,email,full_name,role,status,teams_json,activated_at,last_login_at,created_at FROM portal_members ORDER BY CASE status WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,full_name,email"
-  ).all<Record<string, unknown>>();
-  return response.results ?? [];
+  const db = database();
+  try {
+    const response = await db.prepare(
+      "SELECT m.id,m.email,m.full_name,m.role,m.status,m.teams_json,m.activated_at,m.last_login_at,m.created_at," +
+      "(SELECT d.status FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_status," +
+      "(SELECT d.provider FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_provider," +
+      "(SELECT d.attempted_at FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_at " +
+      "FROM portal_members m ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,m.full_name,m.email"
+    ).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    const fallback = await db.prepare(
+      "SELECT id,email,full_name,role,status,teams_json,activated_at,last_login_at,created_at FROM portal_members ORDER BY CASE status WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,full_name,email"
+    ).all<Record<string, unknown>>();
+    return fallback.results ?? [];
+  }
 }
 
 export async function createPortalInvite(input: {
@@ -90,7 +102,14 @@ export async function createPortalInvite(input: {
       .bind(input.createdBy, effectiveMemberId, JSON.stringify({ email, role: input.role, teams: input.teams })),
   ]);
 
-  return { code, email, expiresAt };
+  return {
+    inviteId,
+    memberId: effectiveMemberId,
+    code,
+    email,
+    fullName: input.fullName.trim(),
+    expiresAt,
+  };
 }
 
 export async function listPortalTasks(limit = 100) {
@@ -107,14 +126,15 @@ export async function createPortalTask(input: {
   teamCode: string | null;
   priority: "low" | "medium" | "high" | "critical";
   dueAt: string | null;
+  assigneeId?: string | null;
   actorId: string;
   actorEmail: string;
 }) {
   const id = crypto.randomUUID();
   const db = database();
   await db.batch([
-    db.prepare("INSERT INTO portal_tasks (id,title,description,project_slug,team_code,status,priority,due_at,created_by) VALUES (?,?,?,?,?,'todo',?,?,?)")
-      .bind(id,input.title,input.description,input.projectSlug,input.teamCode,input.priority,input.dueAt,input.actorId),
+    db.prepare("INSERT INTO portal_tasks (id,title,description,project_slug,team_code,assignee_id,status,priority,due_at,created_by) VALUES (?,?,?,?,?,?,'todo',?,?,?)")
+      .bind(id,input.title,input.description,input.projectSlug,input.teamCode,input.assigneeId ?? null,input.priority,input.dueAt,input.actorId),
     db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'task.create','task',?,?)")
       .bind(input.actorEmail,id,JSON.stringify({ title: input.title, projectSlug: input.projectSlug })),
   ]);
@@ -401,4 +421,274 @@ export async function setPortalMemberStatus(
     statements.push(db.prepare("DELETE FROM portal_sessions WHERE member_id=?").bind(memberId));
   }
   await db.batch(statements);
+}
+
+
+export async function recordPortalInviteDelivery(input: {
+  inviteId: string;
+  recipient: string;
+  provider: string;
+  status: "pending" | "sent" | "failed" | "not_configured";
+  messageId?: string;
+  error?: string;
+}) {
+  await database().prepare(
+    "INSERT INTO portal_invite_deliveries (id,invite_id,recipient,provider,status,message_id,error) VALUES (?,?,?,?,?,?,?)"
+  ).bind(
+    crypto.randomUUID(),
+    input.inviteId,
+    input.recipient,
+    input.provider,
+    input.status,
+    input.messageId ?? null,
+    input.error ?? null
+  ).run();
+}
+
+export async function getPortalMemberById(memberId: string) {
+  return database().prepare(
+    "SELECT id,email,full_name,role,status,teams_json,activated_at,last_login_at,created_at FROM portal_members WHERE id=? LIMIT 1"
+  ).bind(memberId).first<Record<string, unknown>>();
+}
+
+export async function reissuePortalInvite(memberId: string, createdBy: string) {
+  const member = await getPortalMemberById(memberId);
+  if (!member) throw new Error("Üye bulunamadı.");
+  let teams: string[] = [];
+  try {
+    const parsed = JSON.parse(String(member.teams_json || "[]"));
+    if (Array.isArray(parsed)) teams = parsed.filter((item): item is string => typeof item === "string");
+  } catch {
+    teams = [];
+  }
+  return createPortalInvite({
+    email: String(member.email),
+    fullName: String(member.full_name || member.email),
+    role: String(member.role) as PortalRole,
+    teams,
+    createdBy,
+  });
+}
+
+export async function getPortalTask(taskId: string) {
+  const task = await database().prepare(
+    "SELECT t.*,m.full_name AS assignee_name,m.email AS assignee_email,c.full_name AS creator_name,c.email AS creator_email " +
+    "FROM portal_tasks t LEFT JOIN portal_members m ON m.id=t.assignee_id LEFT JOIN portal_members c ON c.id=t.created_by WHERE t.id=? LIMIT 1"
+  ).bind(taskId).first<Record<string, unknown>>();
+  if (!task) return null;
+
+  const comments = await database().prepare(
+    "SELECT c.id,c.body,c.created_at,m.full_name,m.email,m.role FROM portal_task_comments c JOIN portal_members m ON m.id=c.author_id WHERE c.task_id=? ORDER BY c.created_at"
+  ).bind(taskId).all<Record<string, unknown>>();
+
+  return { task, comments: comments.results ?? [] };
+}
+
+export async function addPortalTaskComment(input: {
+  taskId: string;
+  authorId: string;
+  actorEmail: string;
+  body: string;
+}) {
+  const db = database();
+  await db.batch([
+    db.prepare("INSERT INTO portal_task_comments (id,task_id,author_id,body) VALUES (?,?,?,?)")
+      .bind(crypto.randomUUID(),input.taskId,input.authorId,input.body),
+    db.prepare("UPDATE portal_tasks SET updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(input.taskId),
+    db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'task.comment','task',?,?)")
+      .bind(input.actorEmail,input.taskId,JSON.stringify({ length: input.body.length })),
+  ]);
+}
+
+export async function updatePortalTaskDetails(input: {
+  taskId: string;
+  status: string;
+  priority: string;
+  assigneeId: string | null;
+  dueAt: string | null;
+  actorEmail: string;
+}) {
+  const statuses = ["backlog","todo","doing","review","blocked","done"];
+  const priorities = ["low","medium","high","critical"];
+  if (!statuses.includes(input.status)) throw new Error("Geçersiz görev durumu.");
+  if (!priorities.includes(input.priority)) throw new Error("Geçersiz öncelik.");
+
+  const db = database();
+  await db.batch([
+    db.prepare("UPDATE portal_tasks SET status=?,priority=?,assignee_id=?,due_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(input.status,input.priority,input.assigneeId,input.dueAt,input.taskId),
+    db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'task.update','task',?,?)")
+      .bind(input.actorEmail,input.taskId,JSON.stringify({
+        status: input.status,
+        priority: input.priority,
+        assigneeId: input.assigneeId,
+        dueAt: input.dueAt,
+      })),
+  ]);
+}
+
+export async function listMyPortalTasks(memberId: string, limit = 12) {
+  const response = await database().prepare(
+    "SELECT t.*,m.full_name AS assignee_name FROM portal_tasks t LEFT JOIN portal_members m ON m.id=t.assignee_id " +
+    "WHERE t.assignee_id=? AND t.status!='done' ORDER BY CASE t.priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,datetime(t.due_at) IS NULL,datetime(t.due_at),t.updated_at DESC LIMIT ?"
+  ).bind(memberId,limit).all<Record<string, unknown>>();
+  return response.results ?? [];
+}
+
+export async function listPortalInventoryMovements(limit = 100) {
+  const response = await database().prepare(
+    "SELECT mv.id,mv.delta,mv.reason,mv.project_slug,mv.created_at,i.sku,i.name,i.unit,m.full_name AS member_name,m.email AS member_email " +
+    "FROM portal_inventory_movements mv JOIN portal_inventory_items i ON i.id=mv.item_id LEFT JOIN portal_members m ON m.id=mv.member_id " +
+    "ORDER BY mv.created_at DESC LIMIT ?"
+  ).bind(limit).all<Record<string, unknown>>();
+  return response.results ?? [];
+}
+
+export async function createPortalInventoryMovement(input: {
+  itemId: string;
+  delta: number;
+  reason: string;
+  projectSlug: string | null;
+  memberId: string;
+  actorEmail: string;
+}) {
+  const db = database();
+  const item = await db.prepare("SELECT id,quantity,name,sku FROM portal_inventory_items WHERE id=? LIMIT 1")
+    .bind(input.itemId)
+    .first<{ id: string; quantity: number; name: string; sku: string }>();
+  if (!item) throw new Error("Envanter ürünü bulunamadı.");
+  const next = Number(item.quantity) + input.delta;
+  if (next < 0) throw new Error("Stok miktarı sıfırın altına düşemez.");
+
+  await db.batch([
+    db.prepare("UPDATE portal_inventory_items SET quantity=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(next,input.itemId),
+    db.prepare("INSERT INTO portal_inventory_movements (id,item_id,member_id,delta,reason,project_slug) VALUES (?,?,?,?,?,?)")
+      .bind(crypto.randomUUID(),input.itemId,input.memberId,input.delta,input.reason,input.projectSlug),
+    db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'inventory.movement','inventory',?,?)")
+      .bind(input.actorEmail,input.itemId,JSON.stringify({ delta: input.delta, reason: input.reason, projectSlug: input.projectSlug })),
+  ]);
+}
+
+export async function getPortalMemberProfile(memberId: string) {
+  const member = await database().prepare(
+    "SELECT id,email,full_name,role,status,teams_json,activated_at,last_login_at FROM portal_members WHERE id=? LIMIT 1"
+  ).bind(memberId).first<Record<string, unknown>>();
+  if (!member) return null;
+  let profile: Record<string, unknown> | null = null;
+  try {
+    profile = await database().prepare(
+      "SELECT * FROM portal_member_profiles WHERE member_id=? LIMIT 1"
+    ).bind(memberId).first<Record<string, unknown>>();
+  } catch {
+    profile = null;
+  }
+  return { member, profile };
+}
+
+export async function savePortalMemberProfile(input: {
+  memberId: string;
+  headline: string;
+  bio: string;
+  skills: string[];
+  githubUrl: string | null;
+  linkedinUrl: string | null;
+  phone: string | null;
+  availability: string;
+  actorEmail: string;
+}) {
+  const db = database();
+  await db.batch([
+    db.prepare(
+      "INSERT INTO portal_member_profiles (member_id,headline,bio,skills_json,github_url,linkedin_url,phone,availability,updated_at) " +
+      "VALUES (?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP) ON CONFLICT(member_id) DO UPDATE SET headline=excluded.headline,bio=excluded.bio,skills_json=excluded.skills_json,github_url=excluded.github_url,linkedin_url=excluded.linkedin_url,phone=excluded.phone,availability=excluded.availability,updated_at=CURRENT_TIMESTAMP"
+    ).bind(input.memberId,input.headline,input.bio,JSON.stringify(input.skills),input.githubUrl,input.linkedinUrl,input.phone,input.availability),
+    db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'profile.update','member',?,'{}')")
+      .bind(input.actorEmail,input.memberId),
+  ]);
+}
+
+export async function searchPortal(query: string) {
+  const q = "%" + query.trim().slice(0, 80) + "%";
+  if (q === "%%") return { tasks: [], resources: [], repositories: [], inventory: [], members: [] };
+  const db = database();
+  const [tasks, resources, repositories, inventory, members] = await Promise.all([
+    db.prepare("SELECT id,title,description,project_slug,status,priority FROM portal_tasks WHERE title LIKE ? OR description LIKE ? OR project_slug LIKE ? LIMIT 20").bind(q,q,q).all<Record<string, unknown>>(),
+    db.prepare("SELECT id,kind,title,description,project_slug,external_url FROM portal_resources WHERE title LIKE ? OR description LIKE ? OR tags_json LIKE ? LIMIT 20").bind(q,q,q).all<Record<string, unknown>>(),
+    db.prepare("SELECT id,name,repo_url,project_slug,team_code,health FROM portal_repositories WHERE name LIKE ? OR project_slug LIKE ? OR team_code LIKE ? LIMIT 20").bind(q,q,q).all<Record<string, unknown>>(),
+    db.prepare("SELECT id,sku,name,category,location,quantity,unit FROM portal_inventory_items WHERE sku LIKE ? OR name LIKE ? OR category LIKE ? OR location LIKE ? LIMIT 20").bind(q,q,q,q).all<Record<string, unknown>>(),
+    db.prepare("SELECT id,full_name,email,role,status,teams_json FROM portal_members WHERE full_name LIKE ? OR email LIKE ? OR teams_json LIKE ? LIMIT 20").bind(q,q,q).all<Record<string, unknown>>(),
+  ]);
+  return {
+    tasks: tasks.results ?? [],
+    resources: resources.results ?? [],
+    repositories: repositories.results ?? [],
+    inventory: inventory.results ?? [],
+    members: members.results ?? [],
+  };
+}
+
+export async function sendPortalMailReply(input: {
+  threadId: string;
+  authorId: string;
+  body: string;
+}) {
+  const db = database();
+  const participant = await db.prepare(
+    "SELECT 1 AS ok FROM portal_mail_participants WHERE thread_id=? AND member_id=? LIMIT 1"
+  ).bind(input.threadId,input.authorId).first<{ ok: number }>();
+  if (!participant) throw new Error("Bu yazışmaya yanıt verme yetkiniz yok.");
+
+  await db.batch([
+    db.prepare("INSERT INTO portal_mail_messages (id,thread_id,author_id,body) VALUES (?,?,?,?)")
+      .bind(crypto.randomUUID(),input.threadId,input.authorId,input.body),
+    db.prepare("UPDATE portal_mail_threads SET updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(input.threadId),
+  ]);
+}
+
+export async function markPortalChannelRead(channelId: string, memberId: string) {
+  try {
+    await database().prepare(
+      "INSERT INTO portal_channel_reads (channel_id,member_id,last_read_at) VALUES (?,?,CURRENT_TIMESTAMP) " +
+      "ON CONFLICT(channel_id,member_id) DO UPDATE SET last_read_at=CURRENT_TIMESTAMP"
+    ).bind(channelId,memberId).run();
+  } catch {
+    // V1 compatibility: read tracking becomes active after the V2 schema upgrade.
+  }
+}
+
+export async function listPortalChannelsForMember(memberId: string) {
+  const db = database();
+  try {
+    const response = await db.prepare(
+      "SELECT ch.*," +
+      "(SELECT COUNT(*) FROM portal_messages msg WHERE msg.channel_id=ch.id AND datetime(msg.created_at)>datetime(COALESCE((SELECT cr.last_read_at FROM portal_channel_reads cr WHERE cr.channel_id=ch.id AND cr.member_id=?),'1970-01-01'))) AS unread_count," +
+      "(SELECT msg.body FROM portal_messages msg WHERE msg.channel_id=ch.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message " +
+      "FROM portal_channels ch ORDER BY CASE ch.slug WHEN 'announcements' THEN 0 WHEN 'general' THEN 1 ELSE 2 END,ch.name"
+    ).bind(memberId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    const fallback = await db.prepare(
+      "SELECT ch.*,0 AS unread_count,(SELECT msg.body FROM portal_messages msg WHERE msg.channel_id=ch.id ORDER BY msg.created_at DESC LIMIT 1) AS last_message FROM portal_channels ch ORDER BY CASE ch.slug WHEN 'announcements' THEN 0 WHEN 'general' THEN 1 ELSE 2 END,ch.name"
+    ).all<Record<string, unknown>>();
+    return fallback.results ?? [];
+  }
+}
+
+
+export async function getPortalProjectWorkspace(slug: string) {
+  const db = database();
+  const [tasks, resources, repositories] = await Promise.all([
+    db.prepare("SELECT t.*,m.full_name AS assignee_name FROM portal_tasks t LEFT JOIN portal_members m ON m.id=t.assignee_id WHERE t.project_slug=? ORDER BY CASE t.status WHEN 'doing' THEN 0 WHEN 'review' THEN 1 WHEN 'todo' THEN 2 WHEN 'blocked' THEN 3 WHEN 'backlog' THEN 4 ELSE 5 END,t.updated_at DESC")
+      .bind(slug).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM portal_resources WHERE project_slug=? ORDER BY updated_at DESC")
+      .bind(slug).all<Record<string, unknown>>(),
+    db.prepare("SELECT * FROM portal_repositories WHERE project_slug=? ORDER BY name")
+      .bind(slug).all<Record<string, unknown>>(),
+  ]);
+  return {
+    tasks: tasks.results ?? [],
+    resources: resources.results ?? [],
+    repositories: repositories.results ?? [],
+  };
 }

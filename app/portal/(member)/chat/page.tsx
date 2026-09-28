@@ -1,6 +1,7 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
-import { sendChatMessageAction } from "@/app/portal/actions";
-import { listPortalChannels, listPortalMessages } from "@/lib/portal/db";
+import { openChatChannelAction, sendChatMessageAction } from "@/app/portal/actions";
+import { listPortalChannelsForMember, listPortalMessages } from "@/lib/portal/db";
+import { requirePortalMember } from "@/lib/portal/auth";
 import { portalRoleLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,8 @@ export default async function PortalChatPage({
   searchParams?: Promise<{ channel?: string }>;
 }) {
   const query = searchParams ? await searchParams : {};
-  const channels = await listPortalChannels();
+  const member = await requirePortalMember();
+  const channels = await listPortalChannelsForMember(member.id);
   const selectedId = query.channel || String(channels[0]?.id || "");
   const messages = selectedId ? await listPortalMessages(selectedId) : [];
   const selected = channels.find((channel) => String(channel.id) === selectedId);
@@ -23,10 +25,13 @@ export default async function PortalChatPage({
         <aside>
           <span>KANALLAR</span>
           {channels.map((channel) => (
-            <a className={String(channel.id) === selectedId ? "active" : ""} href={"/portal/chat?channel=" + encodeURIComponent(String(channel.id))} key={String(channel.id)}>
-              <b># {String(channel.name)}</b>
-              <small>{String(channel.description || "")}</small>
-            </a>
+            <form action={openChatChannelAction} key={String(channel.id)}>
+              <input type="hidden" name="channelId" value={String(channel.id)} />
+              <button className={String(channel.id) === selectedId ? "active" : ""} type="submit">
+                <div><b># {String(channel.name)}</b>{Number(channel.unread_count || 0) > 0 ? <em>{String(channel.unread_count)}</em> : null}</div>
+                <small>{String(channel.last_message || channel.description || "")}</small>
+              </button>
+            </form>
           ))}
         </aside>
         <div className="portalChatRoom">

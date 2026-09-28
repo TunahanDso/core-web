@@ -3,8 +3,11 @@ import { portalPriorityLabel, portalTaskStatusLabel, portalVehicleStatusLabel } 
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
   getPortalMetrics,
+  listMyPortalTasks,
   listPortalActivity,
-  listPortalTasks,
+  listPortalCalendar,
+  listPortalInventory,
+  listPortalNotifications,
   listPortalVehicles,
 } from "@/lib/portal/db";
 
@@ -12,12 +15,18 @@ export const dynamic = "force-dynamic";
 
 export default async function PortalDashboard() {
   const member = await requirePortalMember();
-  const [metrics, tasks, vehicles, activity] = await Promise.all([
+  const [metrics, tasks, vehicles, activity, calendar, notifications, inventory] = await Promise.all([
     getPortalMetrics(member.id),
-    listPortalTasks(6),
+    listMyPortalTasks(member.id, 8),
     listPortalVehicles(),
     listPortalActivity(7),
+    listPortalCalendar(),
+    listPortalNotifications(member.id),
+    listPortalInventory(),
   ]);
+  const lowStock = inventory.filter((item) => Number(item.available_quantity) <= Number(item.minimum_quantity)).slice(0, 6);
+  const unreadNotifications = notifications.filter((item) => !item.read_at).slice(0, 5);
+  const upcoming = calendar.slice(0, 5);
 
   return (
     <>
@@ -26,8 +35,8 @@ export default async function PortalDashboard() {
           <span>CORE / ANA SAYFA</span>
           <h1>İyi mühendislik<br />hafıza ister.</h1>
           <p>
-            One operating surface for the work students usually scatter across
-            drives, chats, spreadsheets, repositories and notebooks.
+            Görevleri, teknik hafızayı, stokları, haberleşmeyi ve saha görünürlüğünü
+            farklı araçlara dağıtmak yerine CORE'un kendi çalışma sisteminde bir araya getiriyoruz.
           </p>
         </div>
         <div className="portalHeroStatus">
@@ -63,31 +72,69 @@ export default async function PortalDashboard() {
         </div>
       </section>
 
-      <section className="portalSplit">
+      <section className="portalDashboardFocus">
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>İŞ KUYRUĞU</span><a href="/portal/tasks">Tüm görevler →</a></div>
+          <div className="portalPanelHead"><span>BANA ATANAN İŞLER</span><a href="/portal/tasks">Görev panosu →</a></div>
           <div className="portalCompactList">
             {tasks.length ? tasks.map((task) => (
               <div key={String(task.id)}>
                 <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
-                <div><b>{String(task.title)}</b><small>{String(task.project_slug || task.team_code || "CORE")}</small></div>
+                <div><a href={"/portal/tasks/" + encodeURIComponent(String(task.id))}><b>{String(task.title)}</b></a><small>{String(task.project_slug || task.team_code || "CORE")}</small></div>
                 <em>{portalTaskStatusLabel(String(task.status))}</em>
               </div>
-            )) : <p className="portalMuted">Henüz görev yok. İlk mühendislik işini oluştur.</p>}
+            )) : <p className="portalMuted">Şu anda sana atanmış açık görev yok.</p>}
           </div>
         </div>
 
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>ARAÇ KATMANI</span><a href="/portal/ops">Canlı görünüm →</a></div>
-          <div className="portalCompactList">
-            {vehicles.map((vehicle) => (
-              <div key={String(vehicle.id)}>
-                <span className={"portalVehicleDot " + String(vehicle.status)} />
-                <div><b>{String(vehicle.name)}</b><small>{String(vehicle.domain)}</small></div>
-                <em>{portalVehicleStatusLabel(String(vehicle.status))}</em>
-              </div>
-            ))}
+          <div className="portalPanelHead"><span>YAKLAŞAN TAKVİM</span><a href="/portal/calendar">Takvim →</a></div>
+          <div className="portalAgendaList">
+            {upcoming.length ? upcoming.map((event) => (
+              <article key={String(event.id)}>
+                <span>{String(event.starts_at).slice(0,16).replace("T"," ")}</span>
+                <div><b>{String(event.title)}</b><small>{String(event.location || event.team_code || "CORE")}</small></div>
+              </article>
+            )) : <p className="portalMuted">Yaklaşan etkinlik bulunmuyor.</p>}
           </div>
+        </div>
+
+        <div className="portalPanel">
+          <div className="portalPanelHead"><span>DÜŞÜK STOK</span><a href="/portal/inventory">Envanter →</a></div>
+          <div className="portalAlertList">
+            {lowStock.length ? lowStock.map((item) => (
+              <article key={String(item.id)}>
+                <span>{String(item.sku)}</span>
+                <div><b>{String(item.name)}</b><small>{String(item.location || "Konum yok")}</small></div>
+                <strong>{String(item.available_quantity)} {String(item.unit)}</strong>
+              </article>
+            )) : <p className="portalMuted">Minimum seviyenin altında stok yok.</p>}
+          </div>
+        </div>
+
+        <div className="portalPanel">
+          <div className="portalPanelHead"><span>BİLDİRİMLER</span><a href="/portal/notifications">Tümü →</a></div>
+          <div className="portalAlertList">
+            {unreadNotifications.length ? unreadNotifications.map((item) => (
+              <article key={String(item.id)}>
+                <span>{String(item.kind).toUpperCase()}</span>
+                <div><b>{String(item.title)}</b><small>{String(item.body || "")}</small></div>
+                {item.href ? <a href={String(item.href)}>AÇ →</a> : null}
+              </article>
+            )) : <p className="portalMuted">Okunmamış bildirim yok.</p>}
+          </div>
+        </div>
+      </section>
+
+      <section className="portalPanel portalVehicleStrip">
+        <div className="portalPanelHead"><span>ARAÇ KATMANI</span><a href="/portal/ops">Canlı görünüm →</a></div>
+        <div className="portalVehicleStripGrid">
+          {vehicles.map((vehicle) => (
+            <article key={String(vehicle.id)}>
+              <span className={"portalVehicleDot " + String(vehicle.status)} />
+              <div><b>{String(vehicle.name)}</b><small>{String(vehicle.domain)}</small></div>
+              <em>{portalVehicleStatusLabel(String(vehicle.status))}</em>
+            </article>
+          ))}
         </div>
       </section>
 

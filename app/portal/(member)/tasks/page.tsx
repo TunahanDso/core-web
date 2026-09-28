@@ -1,6 +1,6 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createTaskAction, updateTaskStatusAction } from "@/app/portal/actions";
-import { listPortalTasks } from "@/lib/portal/db";
+import { listPortalMembers, listPortalTasks } from "@/lib/portal/db";
 import { listProjects } from "@/lib/cms/db";
 import { portalPriorityLabel, portalTaskStatusLabel } from "@/lib/portal/labels";
 
@@ -9,7 +9,12 @@ export const dynamic = "force-dynamic";
 const statuses = ["backlog","todo","doing","review","blocked","done"];
 
 export default async function PortalTasksPage() {
-  const [tasks, projects] = await Promise.all([listPortalTasks(), listProjects()]);
+  const [tasks, projects, members] = await Promise.all([
+    listPortalTasks(),
+    listProjects(),
+    listPortalMembers(),
+  ]);
+  const activeMembers = members.filter((member) => String(member.status) === "active");
 
   return (
     <>
@@ -38,6 +43,17 @@ export default async function PortalTasksPage() {
               <option value="high">Yüksek</option><option value="critical">Kritik</option>
             </select>
           </label>
+          <label>
+            <span>Sorumlu</span>
+            <select name="assigneeId" defaultValue="">
+              <option value="">Atanmamış</option>
+              {activeMembers.map((member) => (
+                <option value={String(member.id)} key={String(member.id)}>
+                  {String(member.full_name || member.email)}
+                </option>
+              ))}
+            </select>
+          </label>
           <label><span>Son tarih</span><input name="dueAt" type="datetime-local" /></label>
           <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={3} /></label>
           <button type="submit" className="portalPrimaryButton">GÖREV OLUŞTUR →</button>
@@ -56,9 +72,14 @@ export default async function PortalTasksPage() {
                     <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                     <small>{String(task.project_slug || task.team_code || "CORE")}</small>
                   </div>
-                  <h3>{String(task.title)}</h3>
-                  <p>{String(task.description || "")}</p>
-                  <small>{task.due_at ? "SON TARİH " + String(task.due_at) : "SON TARİH YOK"}</small>
+                  <a className="portalTaskOpen" href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
+                    <h3>{String(task.title)}</h3>
+                    <p>{String(task.description || "")}</p>
+                  </a>
+                  <div className="portalTaskCardFacts">
+                    <small>{String(task.assignee_name || "Atanmamış")}</small>
+                    <small>{task.due_at ? "SON TARİH " + String(task.due_at) : "SON TARİH YOK"}</small>
+                  </div>
                   <form action={updateTaskStatusAction}>
                     <input type="hidden" name="id" value={String(task.id)} />
                     <select name="status" defaultValue={String(task.status)}>

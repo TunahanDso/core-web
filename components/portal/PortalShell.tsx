@@ -43,15 +43,20 @@ export default async function PortalShell({
             <span className="portalTopLabel">CORE AĞI</span>
             <b>Öğrenci mühendislik çalışma alanı</b>
           </div>
+          <form className="portalGlobalSearch" action="/portal/search" method="get">
+            <span>⌕</span>
+            <input name="q" placeholder="Görev, doküman, repo, stok veya üye ara..." aria-label="Portal genel arama" />
+            <kbd>ENTER</kbd>
+          </form>
           <div className="portalTopActions">
             <a href="/portal/notifications" className="portalTopChip">Bildirimler</a>
-            <div className="portalIdentity">
+            <a href="/portal/profile" className="portalIdentity">
               <span>{initials}</span>
               <div>
                 <b>{member.fullName || member.email}</b>
                 <small>{portalRoleLabel(member.role)} · {member.teams.length ? member.teams.join(" / ") : "CORE"}</small>
               </div>
-            </div>
+            </a>
           </div>
         </header>
         {banner?.enabled && banner.text ? (

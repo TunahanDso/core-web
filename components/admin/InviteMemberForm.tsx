@@ -38,11 +38,23 @@ export default function InviteMemberForm() {
       {state.error ? <div className="adminInviteError">{state.error}</div> : null}
 
       {state.code ? (
-        <div className="adminInviteResult">
-          <span>BU KODU YALNIZCA BİR KEZ GÖSTER</span>
+        <div className={"adminInviteResult " + (state.deliveryStatus || "")}>
+          <span>
+            {state.deliveryStatus === "sent"
+              ? "DAVET E-POSTASI GÖNDERİLDİ"
+              : state.deliveryStatus === "not_configured"
+                ? "DAVET OLUŞTU · E-POSTA SERVİSİ HAZIR DEĞİL"
+                : state.deliveryStatus === "failed"
+                  ? "DAVET OLUŞTU · E-POSTA GÖNDERİLEMEDİ"
+                  : "BU KODU YALNIZCA BİR KEZ GÖSTER"}
+          </span>
           <b>{state.code}</b>
           <p>{state.email}</p>
-          <small>Son geçerlilik: {state.expiresAt}</small>
+          <small>
+            Son geçerlilik: {state.expiresAt}
+            {state.deliveryProvider ? " · " + state.deliveryProvider : ""}
+          </small>
+          {state.deliveryError ? <em>{state.deliveryError}</em> : null}
         </div>
       ) : null}
     </div>

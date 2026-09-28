@@ -69,8 +69,8 @@ export default async function Admin({
           <span>KONTROL / 01</span>
           <h1>CORE'un yürüttüğü her şey,<br />tek ve berrak bir yerde.</h1>
           <p>
-            Manage the public showcase and the private student engineering
-            workspace without mixing them with vehicle command authority.
+            Vitrin sitesini ve özel öğrenci mühendislik çalışma alanını, araç komut
+            otoritesiyle birbirine karıştırmadan yönet.
           </p>
         </div>
         <div className="adminIdentityCard">
@@ -95,7 +95,7 @@ export default async function Admin({
         <span><b>DB</b> core-web-cms · {databaseOnline ? "bağlı" : "kullanılamıyor"}</span>
         <span><b>MEDYA</b> {stats.mediaBinding ? "core-web-media · bağlı" : "kullanılamıyor"}</span>
         <span><b>ACCESS</b> {identity.authenticated ? "JWT DOĞRULANDI" : "DOĞRULANMADI"}</span>
-        <span><b>PORTAL</b> {portal.ready ? "ŞEMA HAZIR" : "KURULUM GEREKLİ"}</span>
+        <span><b>PORTAL</b> {portal.ready ? "V2 HAZIR" : (portal.tableCount ?? 0) > 0 ? "V2 YÜKSELTME GEREKLİ" : "KURULUM GEREKLİ"}</span>
         <span><b>KOMUT KATMANI</b> İZOLE</span>
       </section>
 
@@ -107,12 +107,16 @@ export default async function Admin({
       {writeEnabled && !portal.ready ? (
         <section className="adminSetupPanel">
           <div>
-            <span>TEK SEFERLİK ALTYAPI</span>
-            <h2>İç CORE Portalını Kur</h2>
-            <p>Davet tabanlı üye erişimi, oturumlar, görevler, bilgi merkezi, repo kayıtları, envanter, sohbet, iç yazışma, takvim, bildirimler, araç telemetrisi ve güvenlik cihazı altyapısını oluşturur.</p>
+            <span>{(portal.tableCount ?? 0) > 0 ? "PORTAL V2 YÜKSELTMESİ" : "TEK SEFERLİK ALTYAPI"}</span>
+            <h2>{(portal.tableCount ?? 0) > 0 ? "CORE Portalı profesyonel çalışma katmanına yükselt" : "İç CORE Portalını Kur"}</h2>
+            <p>
+              {(portal.tableCount ?? 0) > 0
+                ? "Mevcut üyeleri ve verileri koruyarak davet-mail teslimatı, üye profilleri ve profesyonel çalışma akışlarının yeni tablolarını ekler."
+                : "Davet tabanlı üye erişimi, oturumlar, görevler, bilgi merkezi, repo kayıtları, envanter, sohbet, iç yazışma, takvim, bildirimler, araç telemetrisi ve güvenlik cihazı altyapısını oluşturur."}
+            </p>
           </div>
           <form action={initializePortalAction}>
-            <button className="adminModernPrimary" type="submit">PORTALI KUR →</button>
+            <button className="adminModernPrimary" type="submit">{(portal.tableCount ?? 0) > 0 ? "PORTAL V2'YE YÜKSELT →" : "PORTALI KUR →"}</button>
           </form>
         </section>
       ) : null}

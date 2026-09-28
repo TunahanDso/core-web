@@ -59,7 +59,27 @@ jobs:
             if (!portalBootstrap.includes("db.batch(")) {
               throw new Error("Portal bootstrap must execute prepared statements through D1 batch().");
             }
-            console.log("Portal bootstrap uses prepared D1 batch() with quote-aware SQL parsing.");
+            const portalV2Tables = [
+              "portal_invite_deliveries",
+              "portal_member_profiles",
+              "portal_channel_reads"
+            ];
+            for (const table of portalV2Tables) {
+              if (!portalBootstrap.includes(table)) {
+                throw new Error(`Portal V2 schema missing required table: ${table}`);
+              }
+            }
+            console.log("Portal bootstrap uses prepared D1 batch() and includes V2 workspace tables.");
+
+            const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
+            if (!mailSource.includes("not_configured")) {
+              throw new Error("Invitation mail service must fail safely when no provider is configured.");
+            }
+            const wrangler = fs.readFileSync("wrangler.jsonc", "utf8");
+            if (wrangler.includes("RESEND_API_KEY")) {
+              throw new Error("RESEND_API_KEY must never be committed to wrangler.jsonc.");
+            }
+            console.log("Invitation email service keeps provider secrets out of source control.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
@@ -89,11 +109,13 @@ jobs:
             const cfg = JSON.parse(fs.readFileSync("dist/server/wrangler.json", "utf8"));
             if (!cfg.vars?.POLICY_AUD) throw new Error("POLICY_AUD missing from generated config");
             if (!cfg.vars?.TEAM_DOMAIN) throw new Error("TEAM_DOMAIN missing from generated config");
+            if (!cfg.vars?.PORTAL_BASE_URL) throw new Error("PORTAL_BASE_URL missing from generated config");
+            if (!cfg.vars?.PORTAL_MAIL_FROM) throw new Error("PORTAL_MAIL_FROM missing from generated config");
             const d1 = (cfg.d1_databases ?? []).some((x) => x.binding === "DB");
             const r2 = (cfg.r2_buckets ?? []).some((x) => x.binding === "MEDIA");
             if (!d1) throw new Error("DB binding missing from generated config");
             if (!r2) throw new Error("MEDIA binding missing from generated config");
-            console.log("Generated Cloudflare config contains DB, MEDIA, POLICY_AUD and TEAM_DOMAIN.");
+            console.log("Generated Cloudflare config contains DB, MEDIA, Access config and portal mail metadata.");
           '
 
       - name: Validate Worker package

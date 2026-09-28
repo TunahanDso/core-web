@@ -3,7 +3,8 @@ export const portalNavigation = [
     label: "ÇALIŞMA ALANI",
     items: [
       ["Genel Bakış", "/portal", "OV"],
-      ["Projeler & Görevler", "/portal/tasks", "PM"],
+      ["Projeler", "/portal/projects", "PJ"],
+      ["Görevler", "/portal/tasks", "PM"],
       ["Takvim", "/portal/calendar", "CL"],
       ["Bildirimler", "/portal/notifications", "NT"],
     ],
@@ -39,7 +40,8 @@ export const portalNavigation = [
 ] as const;
 
 export const portalModuleCards = [
-  ["Projeler", "Görevler, kilometre taşları, sorumluluklar ve inceleme akışı.", "/portal/tasks", "PM"],
+  ["Projeler", "Her proje için görev, doküman, repo ve ilerleme çalışma alanı.", "/portal/projects", "PJ"],
+  ["Görevler", "Atama, öncelik, yorum ve inceleme akışıyla gerçek iş kuyruğu.", "/portal/tasks", "PM"],
   ["Bilgi Merkezi", "Dokümanlar, raporlar, çizimler ve kurumsal teknik hafıza.", "/portal/library", "LB"],
   ["Depolar / Repo", "Proje depoları, sahiplik ve entegrasyon kayıtları.", "/portal/repositories", "RP"],
   ["Elektronik", "PCB, BOM, çizimler ve donanım dokümantasyonu.", "/portal/electronics", "PCB"],

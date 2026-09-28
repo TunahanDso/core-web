@@ -10,14 +10,20 @@ import {
   requirePortalRole,
 } from "@/lib/portal/auth";
 import {
+  addPortalTaskComment,
   createPortalCalendarEvent,
+  createPortalInventoryMovement,
   createPortalMailThread,
   createPortalNotification,
   createPortalRepository,
   createPortalResource,
   createPortalTask,
+  markPortalChannelRead,
   markPortalNotificationRead,
+  savePortalMemberProfile,
+  sendPortalMailReply,
   sendPortalMessage,
+  updatePortalTaskDetails,
   updatePortalTaskStatus,
   upsertPortalInventoryItem,
 } from "@/lib/portal/db";
@@ -85,6 +91,7 @@ export async function createTaskAction(formData: FormData) {
     teamCode: textValue(formData, "teamCode") || null,
     priority,
     dueAt: textValue(formData, "dueAt") || null,
+    assigneeId: textValue(formData, "assigneeId") || null,
     actorId: member.id,
     actorEmail: member.email,
   });
@@ -258,4 +265,120 @@ export async function markNotificationReadAction(formData: FormData) {
   if (!id) throw new Error("Bildirim kimliği gerekli.");
   await markPortalNotificationRead(id, member.id);
   revalidatePath("/portal/notifications");
+}
+
+
+export async function addTaskCommentAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const taskId = textValue(formData, "taskId");
+  const body = textValue(formData, "body");
+  if (!taskId || !body) throw new Error("Görev ve yorum metni gerekli.");
+  if (body.length > 4000) throw new Error("Yorum çok uzun.");
+
+  await addPortalTaskComment({
+    taskId,
+    authorId: member.id,
+    actorEmail: member.email,
+    body,
+  });
+
+  revalidatePath("/portal/tasks");
+  revalidatePath("/portal/tasks/" + taskId);
+  redirect("/portal/tasks/" + encodeURIComponent(taskId) + "?commented=1");
+}
+
+export async function updateTaskDetailsAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const taskId = textValue(formData, "taskId");
+  if (!taskId) throw new Error("Görev kimliği gerekli.");
+
+  await updatePortalTaskDetails({
+    taskId,
+    status: textValue(formData, "status") || "todo",
+    priority: textValue(formData, "priority") || "medium",
+    assigneeId: textValue(formData, "assigneeId") || null,
+    dueAt: textValue(formData, "dueAt") || null,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal");
+  revalidatePath("/portal/tasks");
+  revalidatePath("/portal/tasks/" + taskId);
+  redirect("/portal/tasks/" + encodeURIComponent(taskId) + "?saved=1");
+}
+
+export async function createInventoryMovementAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const itemId = textValue(formData, "itemId");
+  const direction = textValue(formData, "direction");
+  const amount = Number(formData.get("amount") ?? 0);
+  const reason = textValue(formData, "reason");
+  if (!itemId || !Number.isFinite(amount) || amount <= 0 || !reason) {
+    throw new Error("Ürün, miktar ve hareket nedeni gerekli.");
+  }
+
+  await createPortalInventoryMovement({
+    itemId,
+    delta: direction === "out" ? -amount : amount,
+    reason,
+    projectSlug: textValue(formData, "projectSlug") || null,
+    memberId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal");
+  revalidatePath("/portal/inventory");
+  redirect("/portal/inventory?movement=1");
+}
+
+export async function saveProfileAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const skills = textValue(formData, "skills")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 30);
+
+  await savePortalMemberProfile({
+    memberId: member.id,
+    headline: textValue(formData, "headline"),
+    bio: textValue(formData, "bio"),
+    skills,
+    githubUrl: textValue(formData, "githubUrl") || null,
+    linkedinUrl: textValue(formData, "linkedinUrl") || null,
+    phone: textValue(formData, "phone") || null,
+    availability: textValue(formData, "availability"),
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal/profile");
+  revalidatePath("/portal/members");
+  redirect("/portal/profile?saved=1");
+}
+
+export async function replyMailThreadAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const threadId = textValue(formData, "threadId");
+  const body = textValue(formData, "body");
+  if (!threadId || !body) throw new Error("Yazışma ve mesaj gerekli.");
+
+  await sendPortalMailReply({
+    threadId,
+    authorId: member.id,
+    body,
+  });
+
+  revalidatePath("/portal/mail");
+  revalidatePath("/portal/mail/" + threadId);
+  redirect("/portal/mail/" + encodeURIComponent(threadId) + "?replied=1");
+}
+
+
+export async function openChatChannelAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const channelId = textValue(formData, "channelId");
+  if (!channelId) throw new Error("Kanal kimliği gerekli.");
+  await markPortalChannelRead(channelId, member.id);
+  revalidatePath("/portal/chat");
+  redirect("/portal/chat?channel=" + encodeURIComponent(channelId));
 }
