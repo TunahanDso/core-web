@@ -79,7 +79,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
       <section className="integrationSection publicIntegration">
         <div className="sectionHeading" data-reveal>
           <div><p className="eyebrow">{c.map}</p><h2>{c.mapTitle}</h2></div>
-          <p>Hydronom ↔ Hydronom AI ↔ CORE Runtime ↔ Gateway ↔ Ground Station ↔ OPS Screens</p>
+          <p>{projects.length ? projects.slice(0,6).map((project) => project.name).join(" ↔ ") : (locale === "tr" ? "Proje kataloğu henüz boş." : "The project catalog is currently empty.")}</p>
         </div>
         <div className="systemConstellation" data-reveal>
           <svg className="constellationLines" viewBox="0 0 1000 620" aria-hidden="true">
@@ -103,7 +103,7 @@ export default async function ProjectsPage({ params }: { params: Promise<{ local
             <span>shared architecture</span>
           </div>
 
-          {projects.map((project, index) => (
+          {projects.slice(0,6).map((project, index) => (
             <a
               className={`constellationNode constellationNode${index + 1}`}
               href={`/${locale}/projects/${project.slug}`}
