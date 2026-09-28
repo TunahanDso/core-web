@@ -28,7 +28,7 @@ export default async function PortalShell({
           </span>
         </a>
 
-        <PortalNav />
+        <PortalNav role={member.role} />
 
         <div className="portalSidebarFoot">
           <a href="/tr" className="portalPublicLink">← Vitrin sitesi</a>
