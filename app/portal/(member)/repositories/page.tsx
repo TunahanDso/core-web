@@ -33,7 +33,8 @@ export default async function PortalRepositoriesPage({
         action={<a className="portalOutlineButton" href="/portal/code-lab">CODE LAB →</a>}
       />
 
-      {query.created === "native" ? <div className="portalSuccess">Native repository CORE Repo Service üzerinde oluşturuldu.</div> : null}
+      {query.created === "native" ? <div className="portalSuccess">Native repository CORE Repo Engine üzerinde oluşturuldu.</div> : null}
+      {query.created === "1" ? <div className="portalSuccess">Harici mirror / legacy repository kaydı eklendi.</div> : null}
 
       <section className="repositoryBoundary">
         <article>
