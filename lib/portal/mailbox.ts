@@ -189,3 +189,38 @@ export async function listPortalMailParticipants(threadId: string) {
   ).bind(threadId).all<Record<string, unknown>>();
   return response.results ?? [];
 }
+
+
+export async function attachPortalVaultFilesToLatestMessage(input: {
+  threadId: string;
+  authorId: string;
+  vaultFileIds: string[];
+}) {
+  const ids = Array.from(new Set(input.vaultFileIds.filter(Boolean))).slice(0, 12);
+  if (!ids.length) return;
+
+  const db = database();
+  const message = await db.prepare(
+    "SELECT id FROM portal_mail_messages WHERE thread_id=? AND author_id=? ORDER BY created_at DESC LIMIT 1"
+  ).bind(input.threadId,input.authorId).first<{ id: string }>();
+  if (!message) throw new Error("Eklenecek mail mesajı bulunamadı.");
+
+  await db.batch(ids.map((fileId) =>
+    db.prepare(
+      "INSERT OR IGNORE INTO portal_mail_attachments (id,message_id,vault_file_id) VALUES (?,?,?)"
+    ).bind(crypto.randomUUID(),message.id,fileId)
+  ));
+}
+
+export async function listPortalMailAttachments(threadId: string) {
+  try {
+    const response = await database().prepare(
+      "SELECT a.id,a.message_id,a.vault_file_id,v.title,v.original_name,v.extension,v.mime_type,v.size_bytes,v.revision " +
+      "FROM portal_mail_attachments a JOIN portal_vault_files v ON v.id=a.vault_file_id " +
+      "JOIN portal_mail_messages mm ON mm.id=a.message_id WHERE mm.thread_id=? ORDER BY mm.created_at,a.created_at"
+    ).bind(threadId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
+}
