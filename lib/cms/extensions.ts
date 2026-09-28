@@ -116,3 +116,22 @@ export async function saveSiteSetting(key: string, value: unknown, actor: string
       .bind(actor,key,JSON.stringify({ value })),
   ]);
 }
+
+
+export async function listPublishedPublications(locale: "tr" | "en") {
+  const response = await db().prepare(
+    "SELECT c.id,c.slug,c.domain,c.metadata_json,c.published_at,l.title,l.summary,l.body " +
+    "FROM content_items c JOIN content_localizations l ON l.content_id=c.id " +
+    "WHERE c.type='publication' AND c.status='published' AND l.locale=? AND l.publication_status='published' " +
+    "ORDER BY c.published_at DESC,c.updated_at DESC LIMIT 100"
+  ).bind(locale).all<Record<string, unknown>>();
+  return response.results ?? [];
+}
+
+export async function getSiteSetting(key: string) {
+  const row = await db().prepare("SELECT value_json FROM site_settings WHERE setting_key=? LIMIT 1")
+    .bind(key)
+    .first<{ value_json: string }>();
+  if (!row) return null;
+  try { return JSON.parse(row.value_json) as Record<string, unknown>; } catch { return null; }
+}
