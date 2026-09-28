@@ -86,7 +86,9 @@ export async function createNativeRepositoryBranchAction(formData: FormData) {
 export async function commitNativeRepositoryFileAction(formData: FormData) {
   const { member,repo } = await managedRepositoryFromForm(formData);
   const branch = textValue(formData,"branch") || repo.default_branch;
-  const path = textValue(formData,"filePath").replace(/\\/g,"/");
+  const rawPath = textValue(formData,"filePath").replace(/\\/g,"/");
+  if (rawPath.split("/").includes("..")) throw new Error("Dosya yolunda '..' kullanılamaz.");
+  const path = rawPath.replace(/^\/+|\/+$/g,"");
   const message = textValue(formData,"message");
   const expectedHead = textValue(formData,"expectedHead") || null;
   const deleting = textValue(formData,"operation") === "delete";
@@ -114,7 +116,7 @@ export async function commitNativeRepositoryFileAction(formData: FormData) {
   redirect(
     "/portal/repositories/" + encodeURIComponent(repo.slug)
     + "?ref=" + encodeURIComponent(branch)
-    + "&file=" + encodeURIComponent(path)
+    + (deleting ? "" : "&file=" + encodeURIComponent(path))
     + "&committed=1"
   );
 }
