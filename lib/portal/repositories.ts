@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import type { PortalMember } from "@/lib/portal/auth";
 import {
   canManageTeamProjects,
+  listPortalMemberTeamMemberships,
   memberHasPortalCapability,
   portalTeamMembershipFor,
 } from "@/lib/portal/governance";
@@ -193,21 +194,19 @@ export async function listAccessibleNativeRepositories(member: PortalMember) {
     return [];
   }
 
-  const result: NativeRepositoryRecord[] = [];
-  for (const repo of rows) {
-    if (repo.visibility === "internal" || repo.visibility === "public") {
-      result.push(repo);
-      continue;
-    }
-    if (member.role === "admin" || repo.created_by === member.email) {
-      result.push(repo);
-      continue;
-    }
-    if (repo.team_code && await portalTeamMembershipFor(member, repo.team_code)) {
-      result.push(repo);
-    }
-  }
-  return result;
+  if (member.role === "admin") return rows;
+
+  const memberships = await listPortalMemberTeamMemberships(member.id);
+  const teamCodes = new Set([
+    ...member.teams.map((item) => String(item).trim().toUpperCase()),
+    ...memberships.map((item) => String(item.team_code || "").trim().toUpperCase()).filter(Boolean),
+  ]);
+
+  return rows.filter((repo) => {
+    if (repo.visibility === "internal" || repo.visibility === "public") return true;
+    if (repo.created_by === member.email) return true;
+    return Boolean(repo.team_code && teamCodes.has(String(repo.team_code).trim().toUpperCase()));
+  });
 }
 
 export async function getAccessibleNativeRepository(member: PortalMember, repoSlug: string) {
@@ -317,13 +316,16 @@ export async function loadNativeRepositoryWorkspace(
     else errors.push(`Compare: ${compareResult.error}`);
   }
 
+  const coreReads = [branchesResult, treeResult, commitsResult, manifestsResult];
+  const reachable = coreReads.some((result) => result.ok);
+
   return {
     ref,
     path,
     service: {
-      available: true,
+      available: reachable,
       configured: true,
-      reason: null as string | null,
+      reason: reachable ? null : "Repo Service yapılandırılmış ancak workspace endpointlerine ulaşılamadı.",
     },
     branches: branchesResult.ok ? listPayload<RepoBranch>(branchesResult.data, "branches") : [],
     tree: treeResult.ok ? listPayload<RepoTreeEntry>(treeResult.data, "entries") : [],
