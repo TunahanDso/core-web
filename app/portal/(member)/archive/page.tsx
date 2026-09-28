@@ -7,7 +7,7 @@ export default async function PortalArchivePage() {
   const resources = await listPortalResources("archive");
   return (
     <>
-      <PortalPageHeader code="AR / ARCHIVE" title="Engineering Archive" lead="Retired designs, historical reports, test evidence and decisions that should never disappear with a graduating member." />
+      <PortalPageHeader code="AR / ARCHIVE" title="Mühendislik Arşivi" lead="Emekli tasarımlar, tarihsel raporlar, test kanıtları ve mezun olan bir üyeyle birlikte kaybolmaması gereken kararlar." />
       {resources.length ? (
         <div className="portalArchiveStack">
           {resources.map((item, index) => (
@@ -15,11 +15,11 @@ export default async function PortalArchivePage() {
               <span>{String(index + 1).padStart(3, "0")}</span>
               <div><h3>{String(item.title)}</h3><p>{String(item.description || "")}</p></div>
               <small>{String(item.project_slug || item.team_code || "CORE")}</small>
-              {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">RETRIEVE →</a> : null}
+              {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">AÇ →</a> : null}
             </article>
           ))}
         </div>
-      ) : <PortalEmpty title="Archive shelves are empty." text="Historical records can be moved into the archive through the Library registry." />}
+      ) : <PortalEmpty title="Arşiv rafları boş." text="Tarihsel kayıtlar Kütüphane üzerinden arşive alınabilir." />}
     </>
   );
 }
