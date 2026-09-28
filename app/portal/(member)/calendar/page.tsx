@@ -8,7 +8,7 @@ export default async function PortalCalendarPage() {
   const events = await listPortalCalendar();
   return (
     <>
-      <PortalPageHeader code="CL / CALENDAR" title="Operasyon Takvimi" lead="Toplantılar, saha testleri, incelemeler, son tarihler ve yarışma kilometre taşları tek mühendislik zaman çizgisinde." />
+      <PortalPageHeader code="CL / TAKVİM" title="Operasyon Takvimi" lead="Toplantılar, saha testleri, incelemeler, son tarihler ve yarışma kilometre taşları tek mühendislik zaman çizgisinde." />
       <section className="portalPanel portalCreatePanel">
         <div className="portalPanelHead"><span>YENİ ETKİNLİK</span><small>TAKIM TAKVİMİ</small></div>
         <form className="portalFormGrid" action={createCalendarEventAction}>
