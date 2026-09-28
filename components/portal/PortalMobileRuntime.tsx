@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { Preferences } from "@capacitor/preferences";
+import { PushNotifications } from "@capacitor/push-notifications";
 
 type MobileConfig = {
   appScheme: string;
@@ -14,6 +15,7 @@ type MobileConfig = {
   playStoreUrl: string;
   appVersion: string;
   handoffEnabled: boolean;
+  pushEnabled: boolean;
   baseUrl: string;
 };
 
@@ -111,25 +113,64 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
       cache: "no-store",
     }).catch(() => null);
 
+    const nativeHandles: Array<{ remove: () => Promise<void> }> = [];
+
     if (isNative || isStandalone) {
       document.documentElement.dataset.coreNative = isNative ? "native-v2" : "pwa";
       void promote.then(async () => {
         const platform = isNative
           ? Capacitor.getPlatform()
           : "pwa";
-        await fetch("/api/portal/mobile/register", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            installId: await installId(),
-            platform,
-            appVersion: config.appVersion,
-            deviceLabel: (navigator.platform || "CORE device") + " · " + navigator.userAgent.slice(0,90),
-            lastPath: currentPortalPath(),
-          }),
-        }).catch(() => undefined);
-      });
+        const deviceInstallId = await installId();
+        const deviceLabel = (navigator.platform || "CORE device") + " · " + navigator.userAgent.slice(0,90);
+
+        const syncDevice = async (push?: { provider: string; token: string }) => {
+          return fetch("/api/portal/mobile/register", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              installId: deviceInstallId,
+              platform,
+              appVersion: config.appVersion,
+              deviceLabel,
+              lastPath: currentPortalPath(),
+              pushProvider: push?.provider,
+              pushToken: push?.token,
+            }),
+          }).catch(() => null);
+        };
+
+        const registration = await syncDevice();
+        if (!isNative || !config.pushEnabled || !registration?.ok) return;
+
+        const provider = platform === "ios" ? "apns" : "fcm";
+
+        const tokenHandle = await PushNotifications.addListener("registration", (token) => {
+          void syncDevice({ provider, token: token.value });
+        });
+        nativeHandles.push(tokenHandle);
+
+        const errorHandle = await PushNotifications.addListener("registrationError", (error) => {
+          console.warn("CORE push registration failed", error);
+        });
+        nativeHandles.push(errorHandle);
+
+        const actionHandle = await PushNotifications.addListener("pushNotificationActionPerformed", (event) => {
+          const href = String(event.notification.data?.href || "");
+          if (!href.startsWith("/portal")) return;
+          window.location.assign(href);
+        });
+        nativeHandles.push(actionHandle);
+
+        const permission = await PushNotifications.checkPermissions();
+        const result = permission.receive === "prompt" || permission.receive === "prompt-with-rationale"
+          ? await PushNotifications.requestPermissions()
+          : permission;
+        if (result.receive === "granted") {
+          await PushNotifications.register();
+        }
+      }).catch(() => undefined);
     }
 
     let deepLinkHandle: { remove: () => Promise<void> } | null = null;
@@ -162,11 +203,13 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
       return () => {
         window.clearTimeout(timer);
         if (deepLinkHandle) void deepLinkHandle.remove();
+        for (const handle of nativeHandles) void handle.remove();
       };
     }
 
     return () => {
       if (deepLinkHandle) void deepLinkHandle.remove();
+      for (const handle of nativeHandles) void handle.remove();
     };
   }, [config, pathname]);
 
