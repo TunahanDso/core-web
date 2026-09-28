@@ -60,7 +60,7 @@ export default async function Admin({
         <div className="adminQuickActions">
           <a href="/tr">VİTRİN ↗</a>
           <a href="/portal">PORTALI AÇ →</a>
-          <span className={"cmsHealth " + (databaseOnline ? "online" : "offline")}><i />D1 {databaseOnline ? "ONLINE" : stats.connection.toUpperCase()}</span>
+          <span className={"cmsHealth " + (databaseOnline ? "online" : "offline")}><i />D1 {databaseOnline ? "ÇEVRİMİÇİ" : stats.connection.toUpperCase()}</span>
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export default async function Admin({
       </section>
 
       <section className="adminModernStats">
-        <article><span>VİTRİN İÇERİĞİ</span><b>{stats.contentCount}</b><small>{stats.pageCount} pages</small></article>
+        <article><span>VİTRİN İÇERİĞİ</span><b>{stats.contentCount}</b><small>{stats.pageCount} sayfa</small></article>
         <article><span>PROJELER</span><b>{stats.projectCount}</b><small>vitrin kayıtları</small></article>
         <article><span>YARIŞMALAR</span><b>{stats.competitionCount}</b><small>saha hedefleri</small></article>
         <article><span>ÜYELER</span><b>{portal.memberCount}</b><small>{portal.ready ? "portal kayıtları" : "portal kurulmadı"}</small></article>
@@ -93,7 +93,7 @@ export default async function Admin({
 
       <section className="adminHealthBar">
         <span><b>DB</b> core-web-cms · {databaseOnline ? "bağlı" : "kullanılamıyor"}</span>
-        <span><b>MEDYA</b> {stats.mediaBinding ? "core-web-media · bound" : "kullanılamıyor"}</span>
+        <span><b>MEDYA</b> {stats.mediaBinding ? "core-web-media · bağlı" : "kullanılamıyor"}</span>
         <span><b>ACCESS</b> {identity.authenticated ? "JWT DOĞRULANDI" : "DOĞRULANMADI"}</span>
         <span><b>PORTAL</b> {portal.ready ? "ŞEMA HAZIR" : "KURULUM GEREKLİ"}</span>
         <span><b>KOMUT KATMANI</b> İZOLE</span>
@@ -135,7 +135,7 @@ export default async function Admin({
         <div className="adminModernGrid">
           {publicModules.map(([name, description, href, enabled, code]) => (
             <a className={"adminModernCard " + (enabled ? "" : "future")} href={enabled ? href : "#"} key={name}>
-              <span>{code}</span><h3>{name}</h3><p>{description}</p><small>{enabled ? "OPEN →" : "ALTYAPI SONRA"}</small>
+              <span>{code}</span><h3>{name}</h3><p>{description}</p><small>{enabled ? "AÇ →" : "ALTYAPI SONRA"}</small>
             </a>
           ))}
         </div>
@@ -146,7 +146,7 @@ export default async function Admin({
         <div className="adminModernGrid">
           {portalModules.map(([name, description, href, enabled, code]) => (
             <a className={"adminModernCard " + (!portal.ready && name !== "Portalı Aç" ? "future" : "")} href={portal.ready || name === "Portalı Aç" ? href : "#"} key={name}>
-              <span>{code}</span><h3>{name}</h3><p>{description}</p><small>{portal.ready || name === "Portalı Aç" ? "OPEN →" : "ÖNCE KURULUM"}</small>
+              <span>{code}</span><h3>{name}</h3><p>{description}</p><small>{portal.ready || name === "Portalı Aç" ? "AÇ →" : "ÖNCE KURULUM"}</small>
             </a>
           ))}
         </div>
