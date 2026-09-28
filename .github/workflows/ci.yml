@@ -92,7 +92,18 @@ jobs:
             if (wrangler.includes("RESEND_API_KEY")) {
               throw new Error("RESEND_API_KEY must never be committed to wrangler.jsonc.");
             }
-            console.log("Invitation email service keeps provider secrets out of source control.");
+            const wranglerJson = JSON.parse(wrangler);
+            const emailBinding = (wranglerJson.send_email ?? []).find((x) => x.name === "EMAIL");
+            if (!emailBinding) {
+              throw new Error("Cloudflare Email Service binding EMAIL is missing.");
+            }
+            if (!(emailBinding.allowed_sender_addresses ?? []).includes("portal@ytucore.com")) {
+              throw new Error("EMAIL binding must restrict sender identity to portal@ytucore.com.");
+            }
+            if (!mailSource.includes("sendPortalTestEmail") || !mailSource.includes("replyTo")) {
+              throw new Error("Portal mail service must support delivery testing and Reply-To.");
+            }
+            console.log("Invitation email service has a restricted Cloudflare binding and keeps fallback secrets out of source control.");
 
             const serviceWorker = fs.readFileSync("public/portal-sw.js", "utf8");
             if (!serviceWorker.includes("url.pathname.startsWith(\"/portal\")") || !serviceWorker.includes("url.pathname.startsWith(\"/api/portal\")")) {
@@ -165,14 +176,17 @@ jobs:
             if (!cfg.vars?.TEAM_DOMAIN) throw new Error("TEAM_DOMAIN missing from generated config");
             if (!cfg.vars?.PORTAL_BASE_URL) throw new Error("PORTAL_BASE_URL missing from generated config");
             if (!cfg.vars?.PORTAL_MAIL_FROM) throw new Error("PORTAL_MAIL_FROM missing from generated config");
+            if (!cfg.vars?.PORTAL_MAIL_REPLY_TO) throw new Error("PORTAL_MAIL_REPLY_TO missing from generated config");
             if (!cfg.vars?.PORTAL_MOBILE_APP_SCHEME) throw new Error("PORTAL_MOBILE_APP_SCHEME missing from generated config");
             if (!cfg.vars?.PORTAL_ANDROID_PACKAGE) throw new Error("PORTAL_ANDROID_PACKAGE missing from generated config");
             if (!cfg.vars?.PORTAL_IOS_BUNDLE_ID) throw new Error("PORTAL_IOS_BUNDLE_ID missing from generated config");
             const d1 = (cfg.d1_databases ?? []).some((x) => x.binding === "DB");
             const r2 = (cfg.r2_buckets ?? []).some((x) => x.binding === "MEDIA");
+            const email = (cfg.send_email ?? []).some((x) => x.name === "EMAIL");
             if (!d1) throw new Error("DB binding missing from generated config");
             if (!r2) throw new Error("MEDIA binding missing from generated config");
-            console.log("Generated Cloudflare config contains DB, MEDIA, portal mail and mobile application identity.");
+            if (!email) throw new Error("EMAIL send binding missing from generated config");
+            console.log("Generated Cloudflare config contains DB, MEDIA, transactional email and mobile application identity.");
           '
 
       - name: Validate Worker package
