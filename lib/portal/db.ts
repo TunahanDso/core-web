@@ -384,3 +384,21 @@ export async function getPortalMailThread(threadId: string, memberId: string) {
 
   return { thread, messages: messages.results ?? [] };
 }
+
+
+export async function setPortalMemberStatus(
+  memberId: string,
+  status: "active" | "suspended" | "archived",
+  actorEmail: string
+) {
+  const db = database();
+  const statements = [
+    db.prepare("UPDATE portal_members SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(status,memberId),
+    db.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'member.status','member',?,?)")
+      .bind(actorEmail,memberId,JSON.stringify({ status })),
+  ];
+  if (status !== "active") {
+    statements.push(db.prepare("DELETE FROM portal_sessions WHERE member_id=?").bind(memberId));
+  }
+  await db.batch(statements);
+}
