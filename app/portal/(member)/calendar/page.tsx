@@ -8,18 +8,18 @@ export default async function PortalCalendarPage() {
   const events = await listPortalCalendar();
   return (
     <>
-      <PortalPageHeader code="CL / CALENDAR" title="Operating Calendar" lead="Meetings, field tests, reviews, deadlines and competition milestones on one engineering timeline." />
+      <PortalPageHeader code="CL / CALENDAR" title="Operasyon Takvimi" lead="Toplantılar, saha testleri, incelemeler, son tarihler ve yarışma kilometre taşları tek mühendislik zaman çizgisinde." />
       <section className="portalPanel portalCreatePanel">
-        <div className="portalPanelHead"><span>NEW EVENT</span><small>TEAM CALENDAR</small></div>
+        <div className="portalPanelHead"><span>YENİ ETKİNLİK</span><small>TAKIM TAKVİMİ</small></div>
         <form className="portalFormGrid" action={createCalendarEventAction}>
-          <label><span>Title</span><input name="title" required /></label>
-          <label><span>Location</span><input name="location" /></label>
-          <label><span>Starts</span><input name="startsAt" type="datetime-local" required /></label>
-          <label><span>Ends</span><input name="endsAt" type="datetime-local" /></label>
-          <label><span>Team</span><input name="teamCode" /></label>
-          <label><span>Project</span><input name="projectSlug" /></label>
-          <label className="portalFormWide"><span>Description</span><textarea name="description" rows={3} /></label>
-          <button className="portalPrimaryButton" type="submit">ADD EVENT →</button>
+          <label><span>Başlık</span><input name="title" required /></label>
+          <label><span>Konum</span><input name="location" /></label>
+          <label><span>Başlangıç</span><input name="startsAt" type="datetime-local" required /></label>
+          <label><span>Bitiş</span><input name="endsAt" type="datetime-local" /></label>
+          <label><span>Takım</span><input name="teamCode" /></label>
+          <label><span>Proje</span><input name="projectSlug" /></label>
+          <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={3} /></label>
+          <button className="portalPrimaryButton" type="submit">ETKİNLİK EKLE →</button>
         </form>
       </section>
       {events.length ? (
@@ -32,7 +32,7 @@ export default async function PortalCalendarPage() {
             </article>
           ))}
         </div>
-      ) : <PortalEmpty title="Calendar is open." text="Add the first meeting, test or deadline above." />}
+      ) : <PortalEmpty title="Takvim boş." text="İlk toplantıyı, testi veya son tarihi yukarıdan ekle." />}
     </>
   );
 }
