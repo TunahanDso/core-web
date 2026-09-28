@@ -287,6 +287,7 @@ export default async function PortalRepositoryReviewPage({
   const compare = compareLoaded.compare;
   if (compare?.baseSha && compare.headSha && (base !== compare.baseSha || head !== compare.headSha)) {
     redirect(
+      "/portal/repositories/" + encodeURIComponent(repo.slug) + "/review" +
       reviewQuery({
         base: compare.baseSha,
         head: compare.headSha,
