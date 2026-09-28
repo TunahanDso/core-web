@@ -31,8 +31,8 @@ const columnX: Record<ProjectMapNode["type"], number> = {
   project: 370,
   vehicle: 690,
   repo: 690,
-  vault: 990,
-  task: 990,
+  vault: 1050,
+  task: 1290,
 };
 
 const typeLabel: Record<ProjectMapNode["type"], string> = {
@@ -91,7 +91,7 @@ export default function ProjectMappingCanvas({
 
   const visibleNodes = positioned.filter((node) => enabled[node.type]);
   const maxY = Math.max(780,...positioned.map((node) => node.y + node.height + 80));
-  const maxX = 1280;
+  const maxX = 1540;
 
   function reset() {
     setViewport({ x: 0, y: 0, zoom: 1 });
