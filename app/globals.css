@@ -8863,3 +8863,66 @@ html[data-core-native="native-v2"] .portalTeamLocalControlGrid .portalFormGrid.c
   grid-template-columns:1fr;
 }
 html[data-core-native="native-v2"] .portalTeamLocalControlGrid .portalFormWide{grid-column:1}
+
+
+/* CORE PORTAL V9 — auditable role grants */
+.portalCapabilityGrantList,
+.portalTeamAssignmentList{
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid #eceee9;
+}
+.portalCapabilityGrantList>article,
+.portalTeamAssignmentList>article{
+  min-height:54px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(150px,.8fr) minmax(110px,.5fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:8px 0;
+  border-bottom:1px solid #eceee9;
+}
+.portalCapabilityGrantList>article>div,
+.portalTeamAssignmentList>article>div{display:grid;gap:2px;min-width:0}
+.portalCapabilityGrantList>article b,
+.portalTeamAssignmentList>article b{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px;
+}
+.portalCapabilityGrantList>article small,
+.portalTeamAssignmentList>article small{color:#8c9398;font-size:8px}
+.portalCapabilityGrantList code{
+  width:max-content;
+  max-width:100%;
+  padding:6px 8px;
+  border-radius:6px;
+  background:#17191d;
+  color:#d9ddd9;
+  font-size:7px;
+  overflow-wrap:anywhere;
+}
+.portalCapabilityGrantList button{
+  min-height:32px;
+  border:1px solid #e1b1a7;
+  border-radius:7px;
+  background:#fff7f5;
+  color:#a73928;
+  padding:0 9px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalTeamAssignmentList>article{
+  grid-template-columns:70px minmax(0,1fr) auto;
+}
+.portalTeamAssignmentList>article>span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+}
+.portalTeamAssignmentList>article>em{
+  font:850 8px ui-monospace,monospace;
+  font-style:normal;
+  color:#6f777d;
+}
+@media(max-width:720px){
+  .portalCapabilityGrantList>article{grid-template-columns:1fr auto}
+  .portalCapabilityGrantList>article code{grid-column:1/-1}
+  .portalCapabilityGrantList>article>small{grid-column:1}
+}
