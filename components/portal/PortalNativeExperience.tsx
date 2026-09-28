@@ -17,6 +17,7 @@ type NativeExperienceProps = {
   memberName: string;
   memberRole: string;
   portalRole: string;
+  canControl: boolean;
   memberInitials: string;
   counts: {
     tasks: number;
@@ -133,6 +134,7 @@ export default function PortalNativeExperience({
   memberName,
   memberRole,
   portalRole,
+  canControl,
   memberInitials,
   counts,
 }: NativeExperienceProps) {
@@ -146,7 +148,7 @@ export default function PortalNativeExperience({
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recentRoutes, setRecentRoutes] = useState<string[]>([]);
   const visibleNativeModules = nativeModules.filter(
-    (item) => item.href !== "/portal/control" || portalRole === "admin" || portalRole === "lead"
+    (item) => item.href !== "/portal/control" || canControl
   );
   const [connected, setConnected] = useState(true);
   const [connectionType, setConnectionType] = useState<ConnectionType>("unknown");
@@ -640,7 +642,7 @@ export default function PortalNativeExperience({
                   <p>{group.label}</p>
                   <div>
                     {group.items
-                      .filter(([, href]) => href !== "/portal/control" || portalRole === "admin" || portalRole === "lead")
+                      .filter(([, href]) => href !== "/portal/control" || canControl)
                       .map(([label, href, code]) => (
                       <div className={"nativeModuleItem " + (activeTab(href) ? "active" : "")} key={href}>
                         <button type="button" className="nativeModuleOpen" onClick={() => navigate(href)}>
