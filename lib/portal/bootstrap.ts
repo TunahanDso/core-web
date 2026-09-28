@@ -172,6 +172,8 @@ ON CONFLICT(setting_key) DO UPDATE SET
   updated_at=CURRENT_TIMESTAMP;
 `;
 
+const PORTAL_V7_SQL = "-- YTÜ CORE Portal RP-02 repository code review\n-- Additive only. Review state is portal governance metadata; Git objects remain in CORE Repo Service.\n\nCREATE TABLE IF NOT EXISTS portal_repo_reviews (\n  id TEXT PRIMARY KEY,\n  repository_id TEXT NOT NULL,\n  base_ref TEXT NOT NULL,\n  head_ref TEXT NOT NULL,\n  base_sha TEXT NOT NULL,\n  head_sha TEXT NOT NULL,\n  title TEXT NOT NULL DEFAULT '',\n  status TEXT NOT NULL DEFAULT 'open'\n    CHECK (status IN ('open','approved','changes_requested','closed')),\n  created_by_member_id TEXT NOT NULL,\n  created_by_email TEXT NOT NULL,\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  UNIQUE(repository_id, base_sha, head_sha),\n  FOREIGN KEY (repository_id) REFERENCES portal_native_repositories(id) ON DELETE CASCADE,\n  FOREIGN KEY (created_by_member_id) REFERENCES portal_members(id) ON DELETE CASCADE\n);\n\nCREATE TABLE IF NOT EXISTS portal_repo_review_threads (\n  id TEXT PRIMARY KEY,\n  review_id TEXT NOT NULL,\n  file_path TEXT NOT NULL,\n  side TEXT NOT NULL DEFAULT 'head'\n    CHECK (side IN ('base','head')),\n  line_number INTEGER NOT NULL CHECK (line_number > 0),\n  line_sha TEXT,\n  created_by_member_id TEXT NOT NULL,\n  resolved_at TEXT,\n  resolved_by_member_id TEXT,\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  FOREIGN KEY (review_id) REFERENCES portal_repo_reviews(id) ON DELETE CASCADE,\n  FOREIGN KEY (created_by_member_id) REFERENCES portal_members(id) ON DELETE CASCADE,\n  FOREIGN KEY (resolved_by_member_id) REFERENCES portal_members(id) ON DELETE SET NULL\n);\n\nCREATE TABLE IF NOT EXISTS portal_repo_review_comments (\n  id TEXT PRIMARY KEY,\n  thread_id TEXT NOT NULL,\n  author_member_id TEXT NOT NULL,\n  body TEXT NOT NULL,\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  edited_at TEXT,\n  FOREIGN KEY (thread_id) REFERENCES portal_repo_review_threads(id) ON DELETE CASCADE,\n  FOREIGN KEY (author_member_id) REFERENCES portal_members(id) ON DELETE CASCADE\n);\n\nCREATE TABLE IF NOT EXISTS portal_repo_review_submissions (\n  id TEXT PRIMARY KEY,\n  review_id TEXT NOT NULL,\n  reviewer_member_id TEXT NOT NULL,\n  outcome TEXT NOT NULL\n    CHECK (outcome IN ('comment','approve','request_changes')),\n  body TEXT NOT NULL DEFAULT '',\n  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  FOREIGN KEY (review_id) REFERENCES portal_repo_reviews(id) ON DELETE CASCADE,\n  FOREIGN KEY (reviewer_member_id) REFERENCES portal_members(id) ON DELETE CASCADE\n);\n\nCREATE INDEX IF NOT EXISTS idx_repo_reviews_repository\n  ON portal_repo_reviews(repository_id, updated_at DESC);\nCREATE INDEX IF NOT EXISTS idx_repo_reviews_snapshot\n  ON portal_repo_reviews(repository_id, base_sha, head_sha);\nCREATE INDEX IF NOT EXISTS idx_repo_review_threads_review\n  ON portal_repo_review_threads(review_id, file_path, line_number);\nCREATE INDEX IF NOT EXISTS idx_repo_review_comments_thread\n  ON portal_repo_review_comments(thread_id, created_at);\nCREATE INDEX IF NOT EXISTS idx_repo_review_submissions_review\n  ON portal_repo_review_submissions(review_id, created_at DESC);\n\nINSERT INTO site_settings (setting_key,value_json,updated_at)\nVALUES (\n  'portal_repo_review_schema',\n  '{\"version\":\"2026.09-rp02\",\"features\":[\"immutable-review-snapshots\",\"diff-hunks\",\"line-threads\",\"resolve-reopen\",\"review-submissions\",\"approve-request-changes\"]}',\n  CURRENT_TIMESTAMP\n)\nON CONFLICT(setting_key) DO UPDATE SET\n  value_json=excluded.value_json,\n  updated_at=CURRENT_TIMESTAMP;\n";
+
 function splitPortalSql(sql: string) {
   const source = sql
     .split("\n")
@@ -270,6 +272,10 @@ const REQUIRED_PORTAL_TABLES = [
   "portal_project_registry",
   "portal_project_map_edges",
   "portal_vehicle_profiles",
+  "portal_repo_reviews",
+  "portal_repo_review_threads",
+  "portal_repo_review_comments",
+  "portal_repo_review_submissions",
 ] as const;
 
 export async function portalBootstrapStatus() {
@@ -345,7 +351,7 @@ export async function applyPortalFoundation(actor: string) {
   const db = env.DB;
   if (!db) throw new Error("DB binding is not available.");
 
-  const statements = splitPortalSql(PORTAL_SCHEMA_SQL + "\n" + PORTAL_V2_SQL + "\n" + PORTAL_V4_SQL + "\n" + PORTAL_V5_SQL + "\n" + PORTAL_V6_SQL);
+  const statements = splitPortalSql(PORTAL_SCHEMA_SQL + "\n" + PORTAL_V2_SQL + "\n" + PORTAL_V4_SQL + "\n" + PORTAL_V5_SQL + "\n" + PORTAL_V6_SQL + "\n" + PORTAL_V7_SQL);
   if (!statements.length) throw new Error("Portal migration is empty.");
 
   await db.batch(statements.map((statement) => db.prepare(statement)));
@@ -356,11 +362,11 @@ export async function applyPortalFoundation(actor: string) {
   `).bind(
     actor,
     JSON.stringify({
-      version: "2026.09-v6",
+      version: "2026.09-rp03",
       statementCount: statements.length,
       modules: [
         "members","auth","tasks","resources","repositories","inventory",
-        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane"
+        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2"
       ],
     })
   ).run();
