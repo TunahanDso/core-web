@@ -96,6 +96,24 @@ CREATE TABLE IF NOT EXISTS portal_mail_attachments (
   FOREIGN KEY (vault_file_id) REFERENCES portal_vault_files(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS portal_native_repositories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  service_repository_id TEXT,
+  project_slug TEXT,
+  team_code TEXT,
+  visibility TEXT NOT NULL DEFAULT 'private'
+    CHECK (visibility IN ('private','internal','public')),
+  default_branch TEXT NOT NULL DEFAULT 'main',
+  status TEXT NOT NULL DEFAULT 'provisioning'
+    CHECK (status IN ('provisioning','ready','degraded','archived')),
+  mirror_url TEXT,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS portal_repo_gateways (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -137,11 +155,12 @@ CREATE INDEX IF NOT EXISTS idx_design_derivatives_file ON portal_design_derivati
 CREATE INDEX IF NOT EXISTS idx_mail_state_member ON portal_mail_state(member_id, folder, unread, updated_at);
 CREATE INDEX IF NOT EXISTS idx_mail_drafts_owner ON portal_mail_drafts(owner_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_code_runs_member ON portal_code_runs(member_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_native_repositories_project ON portal_native_repositories(project_slug, updated_at);
 
 INSERT INTO site_settings (setting_key,value_json,updated_at)
 VALUES (
   'portal_engineering_os_schema',
-  '{"version":"2026.09-v4","features":["vault-r2","file-versioning","browser-preview","mechanical-workspace","pcb-workspace","mailbox-state","pwa-shell","repo-gateway-boundary","runner-job-boundary"]}',
+  '{"version":"2026.09-v4","features":["vault-r2","file-versioning","browser-preview","mechanical-workspace","pcb-workspace","mailbox-state","pwa-shell","native-repo-catalog","repo-gateway-boundary","runner-job-boundary"]}',
   CURRENT_TIMESTAMP
 )
 ON CONFLICT(setting_key) DO UPDATE SET
