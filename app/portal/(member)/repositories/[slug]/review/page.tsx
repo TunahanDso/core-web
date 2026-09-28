@@ -57,6 +57,8 @@ function ThreadCard({
   repoSlug,
   base,
   head,
+  baseRef,
+  headRef,
   view,
   file,
   memberId,
@@ -66,6 +68,8 @@ function ThreadCard({
   repoSlug: string;
   base: string;
   head: string;
+  baseRef: string;
+  headRef: string;
   view: ReviewView;
   file: string;
   memberId: string;
@@ -96,6 +100,8 @@ function ThreadCard({
           <input type="hidden" name="repoSlug" value={repoSlug} />
           <input type="hidden" name="base" value={base} />
           <input type="hidden" name="head" value={head} />
+          <input type="hidden" name="baseRef" value={baseRef} />
+          <input type="hidden" name="headRef" value={headRef} />
           <input type="hidden" name="view" value={view} />
           <input type="hidden" name="file" value={file} />
           <input type="hidden" name="threadId" value={thread.id} />
@@ -109,6 +115,8 @@ function ThreadCard({
           <input type="hidden" name="repoSlug" value={repoSlug} />
           <input type="hidden" name="base" value={base} />
           <input type="hidden" name="head" value={head} />
+          <input type="hidden" name="baseRef" value={baseRef} />
+          <input type="hidden" name="headRef" value={headRef} />
           <input type="hidden" name="view" value={view} />
           <input type="hidden" name="file" value={file} />
           <input type="hidden" name="threadId" value={thread.id} />
@@ -124,6 +132,8 @@ function LineCommentForm({
   repoSlug,
   base,
   head,
+  baseRef,
+  headRef,
   view,
   file,
   side,
@@ -133,6 +143,8 @@ function LineCommentForm({
   repoSlug: string;
   base: string;
   head: string;
+  baseRef: string;
+  headRef: string;
   view: ReviewView;
   file: string;
   side: "base" | "head";
@@ -197,6 +209,8 @@ function ThreadsForAnchor({
   repoSlug,
   base,
   head,
+  baseRef,
+  headRef,
   view,
   memberId,
   canManage,
@@ -208,6 +222,8 @@ function ThreadsForAnchor({
   repoSlug: string;
   base: string;
   head: string;
+  baseRef: string;
+  headRef: string;
   view: ReviewView;
   memberId: string;
   canManage: boolean;
@@ -224,6 +240,8 @@ function ThreadsForAnchor({
           repoSlug={repoSlug}
           base={base}
           head={head}
+          baseRef={baseRef}
+          headRef={headRef}
           view={view}
           file={file}
           memberId={memberId}
@@ -434,8 +452,10 @@ export default async function PortalRepositoryReviewPage({
                                   {lineNumber ? (
                                     <LineCommentForm
                                       repoSlug={repo.slug}
-                                      base={diff.base}
-                                      head={diff.head}
+                                      base={diff.baseSha}
+                                      head={diff.headSha}
+                                      baseRef={baseRef}
+                                      headRef={headRef}
                                       view={view}
                                       file={selectedFile.path}
                                       side={side}
@@ -450,8 +470,10 @@ export default async function PortalRepositoryReviewPage({
                                   side={side}
                                   line={lineNumber}
                                   repoSlug={repo.slug}
-                                  base={diff.base}
-                                  head={diff.head}
+                                  base={diff.baseSha}
+                                  head={diff.headSha}
+                                  baseRef={baseRef}
+                                  headRef={headRef}
                                   view={view}
                                   memberId={member.id}
                                   canManage={canManage}
@@ -463,8 +485,10 @@ export default async function PortalRepositoryReviewPage({
                                     side="base"
                                     line={line.oldLine}
                                     repoSlug={repo.slug}
-                                    base={diff.base}
-                                    head={diff.head}
+                                    base={diff.baseSha}
+                                    head={diff.headSha}
+                                    baseRef={baseRef}
+                                    headRef={headRef}
                                     view={view}
                                     memberId={member.id}
                                     canManage={canManage}
@@ -485,8 +509,10 @@ export default async function PortalRepositoryReviewPage({
                                   {row.left?.oldLine ? (
                                     <LineCommentForm
                                       repoSlug={repo.slug}
-                                      base={diff.base}
-                                      head={diff.head}
+                                      base={diff.baseSha}
+                                      head={diff.headSha}
+                                      baseRef={baseRef}
+                                      headRef={headRef}
                                       view={view}
                                       file={selectedFile.path}
                                       side="base"
@@ -501,8 +527,10 @@ export default async function PortalRepositoryReviewPage({
                                   {row.right?.newLine ? (
                                     <LineCommentForm
                                       repoSlug={repo.slug}
-                                      base={diff.base}
-                                      head={diff.head}
+                                      base={diff.baseSha}
+                                      head={diff.headSha}
+                                      baseRef={baseRef}
+                                      headRef={headRef}
                                       view={view}
                                       file={selectedFile.path}
                                       side="head"
@@ -520,8 +548,10 @@ export default async function PortalRepositoryReviewPage({
                                   side="base"
                                   line={row.left?.oldLine}
                                   repoSlug={repo.slug}
-                                  base={diff.base}
-                                  head={diff.head}
+                                  base={diff.baseSha}
+                                  head={diff.headSha}
+                                  baseRef={baseRef}
+                                  headRef={headRef}
                                   view={view}
                                   memberId={member.id}
                                   canManage={canManage}
@@ -532,8 +562,10 @@ export default async function PortalRepositoryReviewPage({
                                   side="head"
                                   line={row.right?.newLine}
                                   repoSlug={repo.slug}
-                                  base={diff.base}
-                                  head={diff.head}
+                                  base={diff.baseSha}
+                                  head={diff.headSha}
+                                  baseRef={baseRef}
+                                  headRef={headRef}
                                   view={view}
                                   memberId={member.id}
                                   canManage={canManage}
@@ -561,8 +593,10 @@ export default async function PortalRepositoryReviewPage({
             </div>
             <form action={submitRepoReviewAction}>
               <input type="hidden" name="repoSlug" value={repo.slug} />
-              <input type="hidden" name="base" value={diff.base} />
-              <input type="hidden" name="head" value={diff.head} />
+              <input type="hidden" name="base" value={diff.baseSha} />
+              <input type="hidden" name="head" value={diff.headSha} />
+              <input type="hidden" name="baseRef" value={baseRef} />
+              <input type="hidden" name="headRef" value={headRef} />
               <input type="hidden" name="view" value={view} />
               <textarea name="body" rows={4} placeholder="Review özeti / gerekçe…" />
               <div>
