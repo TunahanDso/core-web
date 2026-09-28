@@ -8,7 +8,10 @@ function database() {
 
 export type PortalMailboxFolder = "inbox" | "sent" | "starred" | "archive" | "trash";
 
-export async function listPortalMailboxThreads(memberId: string, folder: PortalMailboxFolder = "inbox") {
+export async function listPortalMailboxThreads(
+  memberId: string,
+  folder: PortalMailboxFolder = "inbox"
+): Promise<Record<string, unknown>[]> {
   const db = database();
   try {
     let condition = "COALESCE(s.folder,'inbox')='inbox'";
@@ -37,7 +40,7 @@ export async function listPortalMailboxThreads(memberId: string, folder: PortalM
   } catch {
     if (folder !== "inbox") return [];
     const legacy = await listPortalMailThreads(memberId);
-    return legacy.map((item) => ({ ...item, folder: "inbox", starred: 0, unread: 0 }));
+    return legacy.map((item) => ({ ...item, folder: "inbox", starred: 0, unread: 0 }) as Record<string, unknown>);
   }
 }
 
