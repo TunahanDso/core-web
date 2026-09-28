@@ -20,7 +20,11 @@ export async function applyShowcaseSeedAction() {
     await applyShowcaseSeed(actorFrom(identity));
   } catch (error) {
     console.error("Showcase seed failed", error);
-    redirect("/admin?seed=failed");
+    const message = error instanceof Error ? error.message : "Unknown D1 error";
+    const safeMessage = encodeURIComponent(
+      message.replace(/\s+/g, " ").slice(0, 240)
+    );
+    redirect(`/admin?seed=failed&seedError=${safeMessage}`);
   }
 
   revalidatePath("/admin");
