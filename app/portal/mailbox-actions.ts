@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { createPortalMailThread, sendPortalMailReply } from "@/lib/portal/db";
 import {
+  attachPortalVaultFilesToLatestMessage,
   deletePortalMailDraft,
   initializePortalMailState,
   markPortalMailOpened,
@@ -12,6 +13,7 @@ import {
   mutatePortalMailState,
   savePortalMailDraft,
 } from "@/lib/portal/mailbox";
+import { listPortalVaultFiles } from "@/lib/portal/vault";
 
 function textValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -21,6 +23,16 @@ function recipients(formData: FormData) {
   return Array.from(new Set(
     formData.getAll("participantId").map((value) => String(value).trim()).filter(Boolean)
   )).slice(0, 50);
+}
+
+async function accessibleAttachmentIds(formData: FormData, member: Awaited<ReturnType<typeof requirePortalMember>>) {
+  const requested = Array.from(new Set(
+    formData.getAll("vaultFileId").map((value) => String(value).trim()).filter(Boolean)
+  )).slice(0, 12);
+  if (!requested.length) return [];
+  const allowed = await listPortalVaultFiles({ lifecycle: "active", limit: 500, viewer: member });
+  const allowedIds = new Set(allowed.map((item) => String(item.id)));
+  return requested.filter((id) => allowedIds.has(id));
 }
 
 export async function createMailboxThreadAction(formData: FormData) {
@@ -39,6 +51,14 @@ export async function createMailboxThreadAction(formData: FormData) {
     participantIds,
   });
   await initializePortalMailState(threadId, member.id, participantIds);
+  const attachmentIds = await accessibleAttachmentIds(formData, member);
+  if (attachmentIds.length) {
+    await attachPortalVaultFilesToLatestMessage({
+      threadId,
+      authorId: member.id,
+      vaultFileIds: attachmentIds,
+    });
+  }
 
   const draftId = textValue(formData, "draftId");
   if (draftId) await deletePortalMailDraft(draftId, member.id).catch(() => undefined);
@@ -109,6 +129,14 @@ export async function replyMailboxThreadAction(formData: FormData) {
     body,
   });
   await markPortalMailReplyState(threadId, member.id);
+  const attachmentIds = await accessibleAttachmentIds(formData, member);
+  if (attachmentIds.length) {
+    await attachPortalVaultFilesToLatestMessage({
+      threadId,
+      authorId: member.id,
+      vaultFileIds: attachmentIds,
+    });
+  }
 
   revalidatePath("/portal/mail");
   revalidatePath("/portal/mail/" + threadId);
