@@ -5,19 +5,22 @@ import {
   type PortalRole,
 } from "@/lib/portal/auth";
 
-export type PortalCapability =
-  | "portal.admin"
-  | "teams.read_all"
-  | "teams.manage"
-  | "roles.manage"
-  | "control.projects"
-  | "control.vehicles"
-  | "project.map.edit"
-  | "vault.approve"
-  | "ops.read_all"
-  | "team.manage"
-  | "team.project.manage"
-  | "team.vehicle.manage";
+export const PORTAL_CAPABILITY_OPTIONS = [
+  "portal.admin",
+  "teams.read_all",
+  "teams.manage",
+  "roles.manage",
+  "control.projects",
+  "control.vehicles",
+  "project.map.edit",
+  "vault.approve",
+  "ops.read_all",
+  "team.manage",
+  "team.project.manage",
+  "team.vehicle.manage",
+] as const;
+
+export type PortalCapability = typeof PORTAL_CAPABILITY_OPTIONS[number];
 
 export type PortalTeamRole =
   | "owner"
@@ -76,6 +79,42 @@ export function portalTeamRoleCapabilities(role: string) {
   return TEAM_ROLE_CAPABILITIES[role as PortalTeamRole] ?? [];
 }
 
+function safeCapabilities(value: unknown) {
+  try {
+    const parsed = JSON.parse(String(value || "[]"));
+    if (!Array.isArray(parsed)) return [];
+    const allowed = new Set<string>(PORTAL_CAPABILITY_OPTIONS);
+    return parsed
+      .map((item) => String(item))
+      .filter((item): item is PortalCapability => allowed.has(item));
+  } catch {
+    return [];
+  }
+}
+
+export async function portalRoleProfileCapabilities(roleKey: string) {
+  try {
+    const row = await db().prepare(
+      "SELECT capabilities_json FROM portal_role_profiles WHERE role_key=? LIMIT 1"
+    ).bind(roleKey).first<{ capabilities_json: string }>();
+    if (row) return safeCapabilities(row.capabilities_json);
+  } catch {
+    // V6 bootstrap fallback below.
+  }
+
+  if (roleKey.startsWith("team_")) {
+    return portalTeamRoleCapabilities(roleKey.slice(5));
+  }
+  return portalGlobalRoleCapabilities(roleKey as PortalRole);
+}
+
+function teamRoleProfileKey(role: string) {
+  if (role === "owner") return "team_owner";
+  if (role === "captain") return "team_captain";
+  if (role === "lead") return "team_lead";
+  return role;
+}
+
 export async function listPortalMemberCapabilities(memberId: string) {
   try {
     const result = await db().prepare(
@@ -101,11 +140,18 @@ export async function listPortalMemberTeamMemberships(memberId: string) {
 }
 
 export async function portalMemberCapabilitySet(member: PortalMember) {
-  const explicit = await listPortalMemberCapabilities(member.id);
-  return new Set<string>([
-    ...portalGlobalRoleCapabilities(member.role),
+  const [roleCapabilities,explicit] = await Promise.all([
+    portalRoleProfileCapabilities(member.role),
+    listPortalMemberCapabilities(member.id),
+  ]);
+  const capabilities = new Set<string>([
+    ...roleCapabilities,
     ...explicit,
   ]);
+  // An administrator record must never be able to remove its own emergency
+  // administration boundary by editing the role profile.
+  if (member.role === "admin") capabilities.add("portal.admin");
+  return capabilities;
 }
 
 export async function memberHasPortalCapability(
@@ -172,7 +218,7 @@ export async function canManagePortalTeam(member: PortalMember, teamCode: string
   const membership = await portalTeamMembershipFor(member,teamCode);
   if (!membership) return false;
   const role = String(membership.team_role || "observer");
-  const roleCapabilities = portalTeamRoleCapabilities(role);
+  const roleCapabilities = await portalRoleProfileCapabilities(teamRoleProfileKey(role));
   if (roleCapabilities.includes("team.manage")) return true;
 
   try {
@@ -188,7 +234,7 @@ export async function canManageTeamProjects(member: PortalMember, teamCode: stri
   const membership = await portalTeamMembershipFor(member,teamCode);
   if (!membership) return false;
   const role = String(membership.team_role || "observer");
-  if (portalTeamRoleCapabilities(role).includes("team.project.manage")) return true;
+  if ((await portalRoleProfileCapabilities(teamRoleProfileKey(role))).includes("team.project.manage")) return true;
   try {
     const explicit = JSON.parse(String(membership.capabilities_json || "[]"));
     return Array.isArray(explicit) && explicit.includes("team.project.manage");
@@ -202,7 +248,7 @@ export async function canManageTeamVehicles(member: PortalMember, teamCode: stri
   const membership = await portalTeamMembershipFor(member,teamCode);
   if (!membership) return false;
   const role = String(membership.team_role || "observer");
-  if (portalTeamRoleCapabilities(role).includes("team.vehicle.manage")) return true;
+  if ((await portalRoleProfileCapabilities(teamRoleProfileKey(role))).includes("team.vehicle.manage")) return true;
   try {
     const explicit = JSON.parse(String(membership.capabilities_json || "[]"));
     return Array.isArray(explicit) && explicit.includes("team.vehicle.manage");
