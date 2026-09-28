@@ -1,5 +1,5 @@
-import { saveSiteAyarlarAction } from "@/app/admin/extended-actions";
-import { listSiteAyarlar } from "@/lib/cms/extensions";
+import { saveSiteSettingsAction } from "@/app/admin/extended-actions";
+import { listSiteSettings } from "@/lib/cms/extensions";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ function settingMap(rows: Record<string, unknown>[]) {
 }
 
 export default async function AdminAyarlarPage() {
-  const rows = await listSiteAyarlar();
+  const rows = await listSiteSettings();
   const settings = settingMap(rows);
   const recruitment = settings.get("recruitment") || {};
   const banner = settings.get("portal_banner") || {};
@@ -25,7 +25,7 @@ export default async function AdminAyarlarPage() {
       <h1>Ayarlar</h1>
       <p>Vitrin ve iç portal için küçük ama etkili kontroller. Güvenlik secret'ları bu ekrandan hiçbir zaman düzenlenmez.</p>
 
-      <form className="adminAyarlarForm" action={saveSiteAyarlarAction}>
+      <form className="adminSettingsForm" action={saveSiteSettingsAction}>
         <section>
           <div><span>KİMLİK</span><h2>Slogan</h2></div>
           <label><span>TR</span><input name="sloganTr" defaultValue={String(identity.slogan_tr || "İnsan İçin Teknoloji.")} /></label>
