@@ -26,12 +26,14 @@ function serviceUrl(value: unknown) {
 
 export function getEngineeringServiceStatus() {
   const repositoryUrl = serviceUrl(env.CORE_REPO_SERVICE_URL);
+  const repositoryToken = String(env.CORE_REPO_SERVICE_TOKEN || "").trim();
+  const externalRepository = Boolean(repositoryUrl && repositoryToken);
   const embeddedRepository = embeddedRepoEngineAvailable();
   return {
     repository: {
-      configured: Boolean(repositoryUrl || embeddedRepository),
-      url: repositoryUrl,
-      mode: repositoryUrl ? "external" : embeddedRepository ? "embedded-r2" : "offline",
+      configured: Boolean(externalRepository || embeddedRepository),
+      url: externalRepository ? repositoryUrl : null,
+      mode: externalRepository ? "external" : embeddedRepository ? "embedded-r2" : "offline",
       embedded: embeddedRepository,
     },
     runner: {
