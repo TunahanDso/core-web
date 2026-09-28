@@ -2,7 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requirePortalCapability } from "@/lib/portal/governance";
+import {
+  canManagePortalTeam,
+  canManageTeamProjects,
+  canManageTeamVehicles,
+  requirePortalCapability,
+} from "@/lib/portal/governance";
+import { requirePortalMember } from "@/lib/portal/auth";
 import {
   createOrUpdatePortalProject,
   createPortalMapEdge,
@@ -14,6 +20,78 @@ import {
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
+}
+
+
+export async function upsertPortalTeamMembershipScopedAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const teamCode = text(formData,"teamCode");
+  if (!teamCode || !(await canManagePortalTeam(member,teamCode))) {
+    throw new Error("Bu takımın üyeliklerini yönetme yetkin yok.");
+  }
+  await upsertPortalTeamMembership({
+    teamCode,
+    memberId: text(formData,"memberId"),
+    teamRole: text(formData,"teamRole") || "engineer",
+    capabilities: [],
+    actorEmail: member.email,
+  });
+  revalidatePath("/portal/teams/" + teamCode);
+  revalidatePath("/portal/members");
+  redirect("/portal/teams/" + encodeURIComponent(teamCode) + "?membership=1");
+}
+
+export async function createPortalTeamProjectAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const teamCode = text(formData,"teamCode");
+  if (!teamCode || !(await canManageTeamProjects(member,teamCode))) {
+    throw new Error("Bu takımda proje oluşturma yetkin yok.");
+  }
+  const projectSlug = await createOrUpdatePortalProject({
+    slug: text(formData,"slug"),
+    title: text(formData,"title"),
+    summary: text(formData,"summary"),
+    domain: text(formData,"domain"),
+    teamCode,
+    status: text(formData,"status") || "concept",
+    visibility: "team",
+    ownerMemberId: text(formData,"ownerMemberId") || member.id,
+    startAt: text(formData,"startAt") || null,
+    targetAt: text(formData,"targetAt") || null,
+    riskLevel: text(formData,"riskLevel") || "medium",
+    readiness: Number(formData.get("readiness") ?? 0),
+    actorEmail: member.email,
+  });
+  revalidatePath("/portal/projects");
+  revalidatePath("/portal/project-map");
+  revalidatePath("/portal/teams/" + teamCode);
+  redirect("/portal/projects/" + encodeURIComponent(projectSlug));
+}
+
+export async function createPortalTeamVehicleAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const teamCode = text(formData,"teamCode");
+  if (!teamCode || !(await canManageTeamVehicles(member,teamCode))) {
+    throw new Error("Bu takımda araç registry yönetme yetkin yok.");
+  }
+  await createPortalVehicleControl({
+    code: text(formData,"code"),
+    name: text(formData,"name"),
+    domain: text(formData,"domain"),
+    teamCode,
+    projectSlug: text(formData,"projectSlug") || null,
+    platformType: text(formData,"platformType") || "vehicle",
+    lifecycle: text(formData,"lifecycle") || "prototype",
+    serialNumber: text(formData,"serialNumber"),
+    criticality: text(formData,"criticality") || "medium",
+    description: text(formData,"description"),
+    ownerMemberId: text(formData,"ownerMemberId") || member.id,
+    actorEmail: member.email,
+  });
+  revalidatePath("/portal/ops");
+  revalidatePath("/portal/project-map");
+  revalidatePath("/portal/teams/" + teamCode);
+  redirect("/portal/teams/" + encodeURIComponent(teamCode) + "?vehicle=1");
 }
 
 export async function upsertPortalProjectControlAction(formData: FormData) {
