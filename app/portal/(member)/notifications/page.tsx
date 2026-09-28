@@ -1,22 +1,44 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
-import { createNotificationAction, markNotificationReadAction } from "@/app/portal/actions";
+import { createNotificationAction, markAllNotificationsReadAction, markNotificationReadAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalMembers, listPortalNotifications } from "@/lib/portal/db";
 import { portalNotificationKindLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalNotificationsPage() {
+export default async function PortalNotificationsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ filter?: string }>;
+}) {
+  const query = searchParams ? await searchParams : {};
   const member = await requirePortalMember();
   const [notifications, members] = await Promise.all([
     listPortalNotifications(member.id),
     listPortalMembers(),
   ]);
   const canWrite = member.role === "admin" || member.role === "lead";
+  const unreadCount = notifications.filter((item) => !item.read_at).length;
+  const filter = String(query.filter || "") === "unread" ? "unread" : "all";
+  const visibleNotifications = filter === "unread"
+    ? notifications.filter((item) => !item.read_at)
+    : notifications;
 
   return (
     <>
       <PortalPageHeader code="NT / BİLDİRİMLER" title="Bildirim Merkezi" lead="Takım duyuruları, stok uyarıları, test değişiklikleri ve üyeye özel hatırlatmalar." />
+
+      <section className="portalNotificationToolbar">
+        <nav>
+          <a className={filter === "all" ? "active" : ""} href="/portal/notifications">TÜMÜ <b>{notifications.length}</b></a>
+          <a className={filter === "unread" ? "active" : ""} href="/portal/notifications?filter=unread">OKUNMAMIŞ <b>{unreadCount}</b></a>
+        </nav>
+        {unreadCount ? (
+          <form action={markAllNotificationsReadAction}>
+            <button type="submit">TÜMÜNÜ OKUNDU YAP →</button>
+          </form>
+        ) : <span>Güncelsin</span>}
+      </section>
       {canWrite ? (
         <section className="portalPanel portalCreatePanel">
           <div className="portalPanelHead"><span>YENİ BİLDİRİM</span><small>LİDER / ADMİN</small></div>
@@ -36,9 +58,9 @@ export default async function PortalNotificationsPage() {
           </form>
         </section>
       ) : null}
-      {notifications.length ? (
+      {visibleNotifications.length ? (
         <div className="portalNotificationList">
-          {notifications.map((item) => (
+          {visibleNotifications.map((item) => (
             <article className={item.read_at ? "read" : ""} key={String(item.id)}>
               <span>{portalNotificationKindLabel(String(item.kind))}</span>
               <div><h3>{String(item.title)}</h3><p>{String(item.body || "")}</p><small>{String(item.created_at)}</small></div>
@@ -52,7 +74,7 @@ export default async function PortalNotificationsPage() {
             </article>
           ))}
         </div>
-      ) : <PortalEmpty title="Bildirim yok." text="Güncelsin." />}
+      ) : <PortalEmpty title={filter === "unread" ? "Okunmamış bildirim yok." : "Bildirim yok."} text="Güncelsin." />}
     </>
   );
 }
