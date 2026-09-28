@@ -4,37 +4,37 @@ import { listPortalResources } from "@/lib/portal/db";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalLibraryPage() {
+export default async function PortalKütüphanePage() {
   const resources = await listPortalResources();
 
   return (
     <>
       <PortalPageHeader
         code="KB / LIBRARY"
-        title="Knowledge Library"
-        lead="The searchable index for reports, procedures, datasets, drawings, code references and evidence produced by CORE."
+        title="Bilgi Kütüphanesi"
+        lead="CORE tarafından üretilen rapor, prosedür, veri seti, çizim, kod referansı ve kanıtların aranabilir indeksi."
       />
 
       <section className="portalPanel portalCreatePanel">
-        <div className="portalPanelHead"><span>REGISTER KNOWLEDGE</span><small>LINK OR INDEX FIRST · R2 UPLOAD NEXT</small></div>
+        <div className="portalPanelHead"><span>BİLGİ KAYDI EKLE</span><small>ÖNCE BAĞLANTI / İNDEKS · R2 YÜKLEME SONRA</small></div>
         <form className="portalFormGrid" action={createResourceAction}>
           <label>
-            <span>Type</span>
+            <span>Tür</span>
             <select name="kind" defaultValue="document">
-              <option value="document">Document</option><option value="archive">Archive</option>
-              <option value="library">Library</option><option value="drawing">Drawing</option>
+              <option value="document">Doküman</option><option value="archive">Arşiv</option>
+              <option value="library">Kütüphane</option><option value="drawing">Çizim</option>
               <option value="pcb">PCB</option><option value="bom">BOM</option>
-              <option value="code">Code</option><option value="procedure">Procedure</option>
-              <option value="dataset">Dataset</option><option value="media">Media</option>
+              <option value="code">Kod</option><option value="procedure">Prosedür</option>
+              <option value="dataset">Veri Seti</option><option value="media">Medya</option>
             </select>
           </label>
-          <label><span>Title</span><input name="title" required /></label>
-          <label><span>Team</span><input name="teamCode" placeholder="MAR / SYS / EMB" /></label>
-          <label><span>Project slug</span><input name="projectSlug" placeholder="hydronom" /></label>
-          <label className="portalFormWide"><span>External URL</span><input name="externalUrl" type="url" placeholder="https://..." /></label>
-          <label className="portalFormWide"><span>Description</span><textarea name="description" rows={3} /></label>
-          <label className="portalFormWide"><span>Tags</span><input name="tags" placeholder="navigation, imu, smoke-test" /></label>
-          <button type="submit" className="portalPrimaryButton">ADD TO LIBRARY →</button>
+          <label><span>Başlık</span><input name="title" required /></label>
+          <label><span>Takım</span><input name="teamKod" placeholder="MAR / SYS / EMB" /></label>
+          <label><span>Proje slug</span><input name="projectSlug" placeholder="hydronom" /></label>
+          <label className="portalFormWide"><span>Harici URL</span><input name="externalUrl" type="url" placeholder="https://..." /></label>
+          <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={3} /></label>
+          <label className="portalFormWide"><span>Etiketler</span><input name="tags" placeholder="navigation, imu, smoke-test" /></label>
+          <button type="submit" className="portalPrimaryButton">KÜTÜPHANEYE EKLE →</button>
         </form>
       </section>
 
@@ -47,12 +47,12 @@ export default async function PortalLibraryPage() {
               <p>{String(item.description || "")}</p>
               <footer>
                 <small>{String(item.project_slug || "institutional")}</small>
-                {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">OPEN ↗</a> : <span>INDEXED</span>}
+                {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">AÇ ↗</a> : <span>İNDEKSLENDİ</span>}
               </footer>
             </article>
           ))}
         </div>
-      ) : <PortalEmpty title="The library is ready." text="Register the first report, drawing, procedure or dataset above." />}
+      ) : <PortalEmpty title="Kütüphane hazır." text="İlk raporu, çizimi, prosedürü veya veri setini yukarıdan kaydet." />}
     </>
   );
 }
