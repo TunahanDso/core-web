@@ -148,13 +148,26 @@ export async function createRepositoryAction(formData: FormData) {
   const name = textValue(formData, "name");
   const repoUrl = textValue(formData, "repoUrl");
   if (!name || !repoUrl) throw new Error("Repo adı ve URL gerekli.");
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(repoUrl);
+  } catch {
+    throw new Error("Geçerli bir repository URL gerekli.");
+  }
+  if (!["https:","http:"].includes(parsedUrl.protocol)) {
+    throw new Error("Mirror URL yalnız HTTP/HTTPS olabilir.");
+  }
+  const visibilityRaw = textValue(formData, "visibility");
+  const visibility = ["private","internal","public"].includes(visibilityRaw)
+    ? visibilityRaw
+    : "private";
 
   await createPortalRepository({
     name,
-    repoUrl,
+    repoUrl: parsedUrl.toString(),
     projectSlug: textValue(formData, "projectSlug") || null,
     teamCode: textValue(formData, "teamCode") || null,
-    visibility: textValue(formData, "visibility") || "private",
+    visibility,
     actorEmail: member.email,
   });
 
