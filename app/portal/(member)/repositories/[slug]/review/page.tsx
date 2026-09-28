@@ -257,7 +257,10 @@ export default async function PortalRepositoryReviewPage({
 
   const compareLoaded = await loadNativeRepositoryCompare(repo, base, head);
   const compareFiles = compareLoaded.compare?.files ?? [];
-  const selectedPath = requestedFile || compareFiles[0]?.path || "";
+  const requestedExists = requestedFile
+    ? compareFiles.some((item) => item.path === requestedFile || item.previousPath === requestedFile)
+    : false;
+  const selectedPath = requestedExists ? requestedFile : (compareFiles[0]?.path || "");
   const loaded = await loadNativeRepositoryDiff(repo, base, head, selectedPath || null);
   const diff = loaded.diff;
   const canManage = await canManageNativeRepository(member, repo);
@@ -432,6 +435,20 @@ export default async function PortalRepositoryReviewPage({
                                   memberId={member.id}
                                   canManage={canManage}
                                 />
+                                {line.kind === "context" ? (
+                                  <ThreadsForAnchor
+                                    threads={threadMap}
+                                    file={selectedFile.path}
+                                    side="base"
+                                    line={line.oldLine}
+                                    repoSlug={repo.slug}
+                                    base={diff.base}
+                                    head={diff.head}
+                                    view={view}
+                                    memberId={member.id}
+                                    canManage={canManage}
+                                  />
+                                ) : null}
                               </div>
                             );
                           })}
