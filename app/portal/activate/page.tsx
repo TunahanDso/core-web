@@ -4,9 +4,17 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalActivatePage() {
-  const member = await getPortalMember();
+export default async function PortalActivatePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ email?: string }>;
+}) {
+  const [member, query] = await Promise.all([
+    getPortalMember(),
+    searchParams ?? Promise.resolve<{ email?: string }>({}),
+  ]);
   if (member) redirect("/portal");
+  const defaultEmail = typeof query.email === "string" ? query.email.trim().toLowerCase() : "";
 
   return (
     <main className="portalAuthPage">
@@ -28,7 +36,7 @@ export default async function PortalActivatePage() {
           <span className="portalAuthKicker">HESAP AKTİVASYONU</span>
           <h2>Davetini aktifleştir.</h2>
           <p>Davet kodları 72 saat sonra geçersiz olur ve yalnızca bir kez kullanılabilir.</p>
-          <PortalAuthForm mode="activate" />
+          <PortalAuthForm mode="activate" defaultEmail={defaultEmail} />
           <div className="portalAuthFoot">
             <span>Hesabını zaten aktifleştirdin mi?</span>
             <a href="/portal/login">Giriş yap →</a>
