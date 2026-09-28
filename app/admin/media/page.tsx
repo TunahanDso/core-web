@@ -1,10 +1,10 @@
-import { uploadMedyaAction } from "@/app/admin/extended-actions";
-import { listMedyaAssets } from "@/lib/cms/extensions";
+import { uploadMediaAction } from "@/app/admin/extended-actions";
+import { listMediaAssets } from "@/lib/cms/extensions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminMedyaPage() {
-  const assets = await listMedyaAssets();
+  const assets = await listMediaAssets();
   return (
     <main className="admin adminLight">
       <div className="adminTopline"><div><a className="adminBreadcrumb" href="/admin">CORE CONTROL / ADMIN</a><p className="eyebrow">R2 MEDYA KÜTÜPHANESİ</p></div><span className="cmsHealth online"><i />MEDYA BAĞLI</span></div>
@@ -12,7 +12,7 @@ export default async function AdminMedyaPage() {
       <p>Public görselleri, PDF, metin/CSV veya ZIP dosyalarını CORE R2 bucket'ına yükle. Dosyalar D1'de indekslenir ve site üzerinden servis edilir.</p>
 
       <section className="adminEditor adminLightEditor">
-        <form className="editorGrid" action={uploadMedyaAction}>
+        <form className="editorGrid" action={uploadMediaAction}>
           <label className="editorWide"><span>Dosya · en fazla 25 MB</span><input name="file" type="file" required /></label>
           <label><span>Alternatif metin · TR</span><input name="altTr" /></label>
           <label><span>Alternatif metin · EN</span><input name="altEn" /></label>
@@ -20,7 +20,7 @@ export default async function AdminMedyaPage() {
         </form>
       </section>
 
-      <div className="adminMedyaGrid">
+      <div className="adminMediaGrid">
         {assets.map((asset) => (
           <article key={String(asset.id)}>
             <span>{String(asset.mime_type)}</span>
