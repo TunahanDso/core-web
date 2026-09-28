@@ -40,7 +40,7 @@ export default async function AdminMembersPage() {
         <article className={mail.configured ? "ok" : "warn"}>
           <span>DAVET E-POSTASI</span>
           <b>{mail.configured ? "BAĞLANTI HAZIR" : "YAPILANDIRILMADI"}</b>
-          <small>{mail.provider}</small>
+          <small>{mail.provider} · inbox/spam kararı alıcı tarafında</small>
         </article>
         <article>
           <span>AKTİF ÜYE</span>
@@ -142,7 +142,7 @@ export default async function AdminMembersPage() {
                   <div className={"inviteDelivery " + String(member.invite_delivery_status || "none")}>
                     <b>
                       {String(member.invite_delivery_status || "") === "sent"
-                        ? "GÖNDERİLDİ"
+                        ? "SAĞLAYICI KABUL ETTİ"
                         : String(member.invite_delivery_status || "") === "failed"
                           ? "HATA"
                           : String(member.invite_delivery_status || "") === "not_configured"
