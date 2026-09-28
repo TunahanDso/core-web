@@ -35,7 +35,7 @@ export default function MailDeliveryTestForm() {
         <div className={"adminMailTestResult " + state.status}>
           <b>
             {state.status === "sent"
-              ? "TEST MAİLİ GÖNDERİLDİ"
+              ? "TEST MAİLİ SAĞLAYICIYA VERİLDİ"
               : state.status === "not_configured"
                 ? "MAIL SERVİSİ HAZIR DEĞİL"
                 : "GÖNDERİM HATASI"}
@@ -45,6 +45,7 @@ export default function MailDeliveryTestForm() {
             {state.provider ? " · " + state.provider : ""}
           </span>
           {state.messageId ? <small>Message ID: {state.messageId}</small> : null}
+          {state.status === "sent" ? <small>Bu durum Inbox garantisi değildir; spam/inbox sınıflandırmasını alıcı servis yapar.</small> : null}
           {state.error ? <small>{state.error}</small> : null}
         </div>
       ) : state.error ? (
