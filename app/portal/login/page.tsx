@@ -13,8 +13,8 @@ export default async function PortalLoginPage() {
       <section className="portalAuthBrand">
         <a href="/tr">YTÜ CORE</a>
         <div>
-          <span>INTERNAL NETWORK</span>
-          <h1>Build together.<br />Remember everything.</h1>
+          <span>İÇ AĞ</span>
+          <h1>Birlikte üret.<br />Hiçbir bilgiyi kaybetme.</h1>
           <p>
             CORE Portal is the private workspace for student engineering:
             projects, knowledge, hardware, inventory, communication and field
@@ -26,13 +26,13 @@ export default async function PortalLoginPage() {
 
       <section className="portalAuthPanel">
         <div className="portalAuthCard">
-          <span className="portalAuthKicker">MEMBER SIGN IN</span>
-          <h2>Welcome back.</h2>
-          <p>Use the Yıldız student account activated by your CORE invitation.</p>
+          <span className="portalAuthKicker">ÜYE GİRİŞİ</span>
+          <h2>Tekrar hoş geldin.</h2>
+          <p>CORE davetinle aktifleştirdiğin Yıldız öğrenci hesabını kullan.</p>
           <PortalAuthForm mode="login" />
           <div className="portalAuthFoot">
-            <span>First time here?</span>
-            <a href="/portal/activate">Activate invitation →</a>
+            <span>İlk kez mi geliyorsun?</span>
+            <a href="/portal/activate">Daveti aktifleştir →</a>
           </div>
         </div>
       </section>
