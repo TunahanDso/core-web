@@ -15,6 +15,7 @@ import { portalNavigation } from "@/lib/portal/modules";
 type NativeExperienceProps = {
   memberName: string;
   memberRole: string;
+  portalRole: string;
   memberInitials: string;
   counts: {
     tasks: number;
@@ -92,6 +93,9 @@ const nativeModules = portalNavigation.flatMap((group) =>
 
 const routeTitles = new Map<string, string>([
   ["/portal", "Ana Sayfa"],
+  ["/portal/projects", "Projeler"],
+  ["/portal/project-map", "Project Map"],
+  ["/portal/teams", "Takımlar"],
   ["/portal/tasks", "Görevler"],
   ["/portal/chat", "Sohbet"],
   ["/portal/mail", "Mail"],
@@ -107,6 +111,7 @@ const routeTitles = new Map<string, string>([
   ["/portal/members", "Üyeler"],
   ["/portal/security", "Güvenlik"],
   ["/portal/ops", "Canlı Araç"],
+  ["/portal/control", "Ağır Kontrol"],
 ]);
 
 function nativeRouteTitle(pathname: string) {
@@ -126,6 +131,7 @@ function isInteractiveTarget(target: EventTarget | null) {
 export default function PortalNativeExperience({
   memberName,
   memberRole,
+  portalRole,
   memberInitials,
   counts,
 }: NativeExperienceProps) {
@@ -138,6 +144,9 @@ export default function PortalNativeExperience({
   const [moduleQuery, setModuleQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recentRoutes, setRecentRoutes] = useState<string[]>([]);
+  const visibleNativeModules = nativeModules.filter(
+    (item) => item.href !== "/portal/control" || portalRole === "admin" || portalRole === "lead"
+  );
   const [connected, setConnected] = useState(true);
   const [connectionType, setConnectionType] = useState<ConnectionType>("unknown");
   const [keyboardOpen, setKeyboardOpen] = useState(false);
@@ -521,7 +530,7 @@ export default function PortalNativeExperience({
               <button type="submit">ARA</button>
             </form>
             <div className="nativeSearchSuggestions">
-              {nativeModules
+              {visibleNativeModules
                 .filter((item) => !moduleQuery || (item.label + " " + item.group).toLowerCase().includes(moduleQuery.toLowerCase()))
                 .slice(0,10)
                 .map((item) => (
@@ -561,7 +570,7 @@ export default function PortalNativeExperience({
                     <p><Icon name="star" /> FAVORİLER</p>
                     <div>
                       {favorites.map((href) => {
-                        const item = nativeModules.find((module) => module.href === href);
+                        const item = visibleNativeModules.find((module) => module.href === href);
                         if (!item) return null;
                         return <button type="button" key={href} onClick={() => navigate(href)}><span>{item.code}</span><b>{item.label}</b></button>;
                       })}
@@ -573,7 +582,7 @@ export default function PortalNativeExperience({
                     <p><Icon name="recent" /> SON KULLANILAN</p>
                     <div>
                       {recentRoutes.slice(0,4).map((href) => {
-                        const item = nativeModules.find((module) => module.href === href);
+                        const item = visibleNativeModules.find((module) => module.href === href);
                         if (!item) return null;
                         return <button type="button" key={href} onClick={() => navigate(href)}><span>{item.code}</span><b>{item.label}</b></button>;
                       })}
@@ -588,7 +597,9 @@ export default function PortalNativeExperience({
                 <section key={group.label}>
                   <p>{group.label}</p>
                   <div>
-                    {group.items.map(([label, href, code]) => (
+                    {group.items
+                      .filter(([, href]) => href !== "/portal/control" || portalRole === "admin" || portalRole === "lead")
+                      .map(([label, href, code]) => (
                       <div className={"nativeModuleItem " + (activeTab(href) ? "active" : "")} key={href}>
                         <button type="button" className="nativeModuleOpen" onClick={() => navigate(href)}>
                           <span>{code}</span>
