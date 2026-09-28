@@ -116,3 +116,13 @@ export async function sendPortalInvitationEmail(input: {
     error: "E-posta sağlayıcısı henüz yapılandırılmadı.",
   };
 }
+
+export function portalMailProviderStatus() {
+  if (env.EMAIL && typeof env.EMAIL.send === "function") {
+    return { configured: true, provider: "Cloudflare Email Service" };
+  }
+  if (typeof env.RESEND_API_KEY === "string" && env.RESEND_API_KEY) {
+    return { configured: true, provider: "Resend" };
+  }
+  return { configured: false, provider: "Yapılandırılmadı" };
+}
