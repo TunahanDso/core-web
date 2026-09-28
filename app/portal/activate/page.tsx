@@ -13,25 +13,25 @@ export default async function PortalActivatePage() {
       <section className="portalAuthBrand portalAuthBrandActivation">
         <a href="/tr">YTÜ CORE</a>
         <div>
-          <span>INVITATION ONLY</span>
-          <h1>Your CORE identity<br />starts here.</h1>
+          <span>YALNIZCA DAVETLE</span>
+          <h1>CORE kimliğin<br />burada başlıyor.</h1>
           <p>
             Membership records are created internally. Enter the one-time code
             issued by a CORE administrator and set your portal password.
           </p>
         </div>
-        <small>Student account · revocable sessions · future trusted-device ready</small>
+        <small>Öğrenci hesabı · iptal edilebilir oturum · güvenilir cihaz altyapısına hazır</small>
       </section>
 
       <section className="portalAuthPanel">
         <div className="portalAuthCard">
-          <span className="portalAuthKicker">ACCOUNT ACTIVATION</span>
-          <h2>Claim your invitation.</h2>
-          <p>Invitation codes expire after 72 hours and can only be used once.</p>
+          <span className="portalAuthKicker">HESAP AKTİVASYONU</span>
+          <h2>Davetini aktifleştir.</h2>
+          <p>Davet kodları 72 saat sonra geçersiz olur ve yalnızca bir kez kullanılabilir.</p>
           <PortalAuthForm mode="activate" />
           <div className="portalAuthFoot">
-            <span>Already activated?</span>
-            <a href="/portal/login">Sign in →</a>
+            <span>Hesabını zaten aktifleştirdin mi?</span>
+            <a href="/portal/login">Giriş yap →</a>
           </div>
         </div>
       </section>
