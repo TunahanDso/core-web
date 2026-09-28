@@ -7,7 +7,9 @@ import {
   canManageNativeRepository,
   findRepoDiffLine,
   getAccessibleNativeRepository,
+  loadNativeRepositoryCompare,
   loadNativeRepositoryDiff,
+  type RepoDiff,
 } from "@/lib/portal/repositories";
 import {
   createPortalRepoReviewThread,
@@ -40,7 +42,7 @@ function reviewHref(input: {
   return "/portal/repositories/" + encodeURIComponent(input.slug) + "/review?" + params.toString() + anchor;
 }
 
-async function reviewContext(formData: FormData) {
+async function repoContext(formData: FormData) {
   const member = await requirePortalMember();
   const slug = textValue(formData, "repoSlug").toLowerCase();
   const base = textValue(formData, "base");
@@ -49,16 +51,33 @@ async function reviewContext(formData: FormData) {
 
   const repo = await getAccessibleNativeRepository(member, slug);
   if (!repo) throw new Error("Repository erişimi yok.");
+  return { member, repo, base, head };
+}
 
-  const loaded = await loadNativeRepositoryDiff(repo, base, head);
-  if (!loaded.diff) throw new Error(loaded.error || "Diff yüklenemedi.");
+async function snapshotContext(formData: FormData) {
+  const context = await repoContext(formData);
+  const loaded = await loadNativeRepositoryCompare(context.repo, context.base, context.head);
+  const compare = loaded.compare;
+  if (!compare?.baseSha || !compare.headSha) {
+    throw new Error(loaded.error || "Review snapshot SHA bilgisi çözülemedi.");
+  }
 
-  return { member, repo, diff: loaded.diff };
+  const diff: RepoDiff = {
+    base: compare.base,
+    head: compare.head,
+    baseSha: compare.baseSha,
+    headSha: compare.headSha,
+    files: [],
+  };
+  return { ...context, diff };
 }
 
 export async function createRepoReviewThreadAction(formData: FormData) {
-  const { member, repo, diff } = await reviewContext(formData);
+  const { member, repo, base, head } = await repoContext(formData);
   const filePath = textValue(formData, "filePath");
+  const loaded = await loadNativeRepositoryDiff(repo, base, head, filePath);
+  if (!loaded.diff) throw new Error(loaded.error || "Diff yüklenemedi.");
+  const diff = loaded.diff;
   const side = textValue(formData, "side") === "base" ? "base" : "head";
   const lineNumber = Number.parseInt(textValue(formData, "lineNumber"), 10);
   const body = textValue(formData, "body");
@@ -91,7 +110,7 @@ export async function createRepoReviewThreadAction(formData: FormData) {
 }
 
 export async function replyRepoReviewThreadAction(formData: FormData) {
-  const { member, repo, diff } = await reviewContext(formData);
+  const { member, repo, diff } = await snapshotContext(formData);
   const review = await findPortalRepoReview(repo.id, diff.baseSha, diff.headSha);
   if (!review) throw new Error("Review kaydı bulunamadı.");
 
@@ -117,7 +136,7 @@ export async function replyRepoReviewThreadAction(formData: FormData) {
 }
 
 export async function setRepoReviewThreadResolvedAction(formData: FormData) {
-  const { member, repo, diff } = await reviewContext(formData);
+  const { member, repo, diff } = await snapshotContext(formData);
   const review = await findPortalRepoReview(repo.id, diff.baseSha, diff.headSha);
   if (!review) throw new Error("Review kaydı bulunamadı.");
 
@@ -145,7 +164,7 @@ export async function setRepoReviewThreadResolvedAction(formData: FormData) {
 }
 
 export async function submitRepoReviewAction(formData: FormData) {
-  const { member, repo, diff } = await reviewContext(formData);
+  const { member, repo, diff } = await snapshotContext(formData);
   const review = await ensurePortalRepoReview({ repo, diff, member });
   const raw = textValue(formData, "outcome");
   const outcome = raw === "approve"
