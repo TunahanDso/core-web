@@ -7,13 +7,13 @@ import { portalBootstrapStatus } from "@/lib/portal/bootstrap";
 export const dynamic = "force-dynamic";
 
 const publicModules = [
-  ["Projects", "Portföy, entegrasyonlar, sahiplik ve ilerleme.", "/admin/projects", true, "PJ"],
-  ["Competitions", "Saha hedefleri, tarihler, konumlar ve plan durumu.", "/admin/competitions", true, "CP"],
-  ["Content", "TR/EN vitrin sayfaları, ana metinler ve SEO.", "/admin/content", true, "CT"],
-  ["Publications", "Araştırma raporları, makaleler ve teknik yayınlar.", "/admin/publications", true, "PB"],
-  ["Media", "R2 üzerindeki görseller, proje medyası ve public dosyalar.", "/admin/media", true, "MD"],
-  ["Team Showcase", "Alan takımları, servisler ve public profiller.", "/admin/team", false, "TM"],
-  ["Settings", "Navigasyon, ana sayfa, metadata ve site kontrolleri.", "/admin/settings", true, "ST"],
+  ["Projeler", "Portföy, entegrasyonlar, sahiplik ve ilerleme.", "/admin/projects", true, "PJ"],
+  ["Yarışmalar", "Saha hedefleri, tarihler, konumlar ve plan durumu.", "/admin/competitions", true, "CP"],
+  ["İçerik", "TR/EN vitrin sayfaları, ana metinler ve SEO.", "/admin/content", true, "CT"],
+  ["Yayınlar", "Araştırma raporları, makaleler ve teknik yayınlar.", "/admin/publications", true, "PB"],
+  ["Medya", "R2 üzerindeki görseller, proje medyası ve public dosyalar.", "/admin/media", true, "MD"],
+  ["Takım Vitrini", "Alan takımları, servisler ve public profiller.", "/admin/team", false, "TM"],
+  ["Ayarlar", "Navigasyon, ana sayfa, metadata ve site kontrolleri.", "/admin/settings", true, "ST"],
 ] as const;
 
 const portalModules = [
