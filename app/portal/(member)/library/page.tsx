@@ -1,6 +1,7 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createResourceAction } from "@/app/portal/actions";
 import { listPortalResources } from "@/lib/portal/db";
+import { portalResourceKindLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export default async function PortalKütüphanePage() {
         <div className="portalResourceGrid">
           {resources.map((item) => (
             <article key={String(item.id)}>
-              <div><span>{String(item.kind).toUpperCase()}</span><small>{String(item.team_code || "CORE")}</small></div>
+              <div><span>{portalResourceKindLabel(String(item.kind))}</span><small>{String(item.team_code || "CORE")}</small></div>
               <h3>{String(item.title)}</h3>
               <p>{String(item.description || "")}</p>
               <footer>
