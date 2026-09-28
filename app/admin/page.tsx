@@ -18,12 +18,12 @@ const modules = [
 export default async function Admin({
   searchParams,
 }: {
-  searchParams?: Promise<{ seed?: string }>;
+  searchParams?: Promise<{ seed?: "applied" | "failed" }>;
 }) {
   const [stats, identity, query] = await Promise.all([
     getCmsStats(),
     getAdminIdentity(),
-    searchParams ?? Promise.resolve<{ seed?: string }>({}),
+    searchParams ?? Promise.resolve<{ seed?: "applied" | "failed" }>({}),
   ]);
   const databaseOnline = stats.connection === "online";
   const writeEnabled = databaseOnline && identity.authenticated;
@@ -71,6 +71,16 @@ export default async function Admin({
         <div className="cmsSuccess">
           <b>Showcase seed applied.</b>
           <span>D1 content has been synchronized and an audit event was recorded.</span>
+        </div>
+      ) : null}
+
+      {query.seed === "failed" ? (
+        <div className="cmsWarning">
+          <b>Showcase seed could not be applied.</b>
+          <span>
+            The admin session is still healthy. The seed operation was stopped and
+            can be safely retried after the runtime fix.
+          </span>
         </div>
       ) : null}
 
