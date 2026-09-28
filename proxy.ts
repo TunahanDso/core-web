@@ -6,6 +6,7 @@ export function proxy(request: NextRequest) {
 
   if (
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/portal") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
     pathname.includes(".")
