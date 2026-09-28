@@ -26,7 +26,7 @@ export default async function PortalSecurityPage() {
       <section className="portalSecurityGrid">
         <article><span>HESAP</span><h3>{member.email}</h3><p>Rol: {portalRoleLabel(member.role)}</p><b>AKTİF OTURUM</b></article>
         <article><span>OTURUM MODELİ</span><h3>Sunucu taraflı iptal edilebilir token</h3><p>HttpOnly cookie + D1 token hash; portal API'leri aynı oturum sınırını kullanır.</p><b>EN FAZLA 7 GÜN</b></article>
-        <article><span>MOBİL APP</span><h3>Capacitor shell · v{mobileConfig.appVersion}</h3><p>{mobileConfig.androidPackage} / {mobileConfig.iosBundleId}</p><b>{mobileConfig.handoffEnabled ? "HANDOFF AÇIK" : "HANDOFF KONTROLLÜ"}</b></article>
+        <article><span>MOBİL APP</span><h3>Native UX · v{mobileConfig.appVersion}</h3><p>{mobileConfig.androidPackage} / {mobileConfig.iosBundleId}</p><b>{mobileConfig.pushEnabled ? "PUSH AÇIK" : "PUSH PROVIDER BEKLİYOR"}</b></article>
         <article><span>GÜVEN MODELİ</span><h3>Device registry aktif</h3><p>Güvenilen cihaz etiketi parola veya oturum kontrolünü atlamaz; push, hızlı erişim ve gelecekteki biyometrik politika için cihaz tercihi taşır.</p><b>TRUST + REVOKE</b></article>
       </section>
 
@@ -43,7 +43,7 @@ export default async function PortalSecurityPage() {
                 <div>
                   <b>{String(device.device_label || "CORE mobile")}</b>
                   <small>
-                    v{String(device.app_version || "—")} · son rota {String(device.last_path || "/portal")} · {String(device.last_seen_at || "")}
+                    v{String(device.app_version || "—")} · {device.push_provider ? String(device.push_provider).toUpperCase() + " push · " : ""}son rota {String(device.last_path || "/portal")} · {String(device.last_seen_at || "")}
                   </small>
                 </div>
                 <em className={"state " + String(device.trusted_state || "pending")}>{String(device.trusted_state || "pending").toUpperCase()}</em>
