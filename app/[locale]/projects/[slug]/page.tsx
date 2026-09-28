@@ -39,7 +39,7 @@ export default async function ProjectDetailPage({
 
   const ownerTeams = teamLinksForOwner(project.owner);
   const integrations = project.integrations
-    .map((name) => projects.find((item) => item.name === name))
+    .map((name) => projects.find((item) => item.name === name || item.slug === siteSlug(name)))
     .filter((item): item is (typeof projects)[number] => Boolean(item));
 
   return (
