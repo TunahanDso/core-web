@@ -1,5 +1,6 @@
 "use server";
 
+import { createPortalFileResource, uploadPortalFile } from "@/lib/portal/files";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
@@ -381,4 +382,77 @@ export async function openChatChannelAction(formData: FormData) {
   await markPortalChannelRead(channelId, member.id);
   revalidatePath("/portal/chat");
   redirect("/portal/chat?channel=" + encodeURIComponent(channelId));
+}
+
+
+export async function uploadLibraryFileAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size <= 0) {
+    throw new Error("Yüklenecek dosya gerekli.");
+  }
+
+  const kind = textValue(formData, "kind") || "document";
+  const allowed = ["document","archive","library","drawing","pcb","bom","code","procedure","dataset","media"];
+  if (!allowed.includes(kind)) throw new Error("Geçersiz kaynak türü.");
+
+  const projectSlug = textValue(formData, "projectSlug") || null;
+  const teamCode = textValue(formData, "teamCode") || null;
+  const title = textValue(formData, "title") || file.name;
+  const description = textValue(formData, "description");
+  const tags = textValue(formData, "tags")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 30);
+
+  const stored = await uploadPortalFile({
+    file,
+    memberId: member.id,
+    kind,
+    projectSlug,
+    teamCode,
+    note: textValue(formData, "versionNote") || "İlk yükleme",
+  });
+
+  await createPortalFileResource({
+    fileId: stored.id,
+    title,
+    description,
+    kind,
+    teamCode,
+    projectSlug,
+    tags,
+    actorId: member.id,
+    actorEmail: member.email,
+  });
+
+  revalidatePath("/portal");
+  revalidatePath("/portal/library");
+  revalidatePath("/portal/documents");
+  revalidatePath("/portal/archive");
+  revalidatePath("/portal/electronics");
+  redirect("/portal/files/" + encodeURIComponent(stored.id) + "?uploaded=1");
+}
+
+export async function uploadFileVersionAction(formData: FormData) {
+  const member = await requirePortalMember();
+  const fileId = textValue(formData, "fileId");
+  const file = formData.get("file");
+  if (!fileId || !(file instanceof File) || file.size <= 0) {
+    throw new Error("Dosya ve dosya kimliği gerekli.");
+  }
+
+  await uploadPortalFile({
+    file,
+    memberId: member.id,
+    existingFileId: fileId,
+    projectSlug: textValue(formData, "projectSlug") || null,
+    teamCode: textValue(formData, "teamCode") || null,
+    note: textValue(formData, "versionNote") || "Yeni sürüm",
+  });
+
+  revalidatePath("/portal/files/" + fileId);
+  revalidatePath("/portal/library");
+  redirect("/portal/files/" + encodeURIComponent(fileId) + "?versioned=1");
 }
