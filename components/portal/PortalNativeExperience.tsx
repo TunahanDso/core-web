@@ -589,18 +589,21 @@ export default function PortalNativeExperience({
                   <p>{group.label}</p>
                   <div>
                     {group.items.map(([label, href, code]) => (
-                      <button
-                        type="button"
-                        key={href}
-                        className={activeTab(href) ? "active" : ""}
-                        onClick={() => navigate(href)}
-                        onDoubleClick={(event) => { event.preventDefault(); toggleFavorite(href); }}
-                        title={favorites.includes(href) ? "Favorilerde · kaldırmak için çift dokun" : "Favoriye eklemek için çift dokun"}
-                      >
-                        <span>{code}</span>
-                        <b>{label}</b>
-                        <i>{favorites.includes(href) ? "★" : "›"}</i>
-                      </button>
+                      <div className={"nativeModuleItem " + (activeTab(href) ? "active" : "")} key={href}>
+                        <button type="button" className="nativeModuleOpen" onClick={() => navigate(href)}>
+                          <span>{code}</span>
+                          <b>{label}</b>
+                          <i>›</i>
+                        </button>
+                        <button
+                          type="button"
+                          className={"nativeFavoriteButton " + (favorites.includes(href) ? "active" : "")}
+                          aria-label={favorites.includes(href) ? label + " favorilerden çıkar" : label + " favorilere ekle"}
+                          onClick={() => toggleFavorite(href)}
+                        >
+                          ★
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </section>
