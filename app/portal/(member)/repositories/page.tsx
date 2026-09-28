@@ -14,21 +14,21 @@ export default async function PortalRepositoriesPage() {
       <PortalPageHeader code="RP / REPOLAR" title="Repo Servisi" lead="Kod sahipliği, proje bağlantıları ve repo sağlığı için tek kayıt noktası. Private GitHub senkronizasyonu tokenları tarayıcıya açmadan bağlanabilir." />
 
       {canWrite ? (
-        <section classAd="portalPanel portalCreatePanel">
-          <div classAd="portalPanelHead"><span>REPO KAYDET</span><small>LİDER / ADMİN</small></div>
-          <form classAd="portalFormGrid" action={createRepositoryAction}>
+        <section className="portalPanel portalCreatePanel">
+          <div className="portalPanelHead"><span>REPO KAYDET</span><small>LİDER / ADMİN</small></div>
+          <form className="portalFormGrid" action={createRepositoryAction}>
             <label><span>Ad</span><input name="name" required /></label>
             <label><span>Repo URL</span><input name="repoUrl" type="url" required /></label>
             <label><span>Proje slug</span><input name="projectSlug" /></label>
             <label><span>Takım</span><input name="teamCode" /></label>
-            <label><span>Görünürlük</span><select name="visibility"><option>Özel</option><option>İç</option><option>Public</option></select></label>
-            <button type="submit" classAd="portalPrimaryButton">KAYDET →</button>
+            <label><span>Görünürlük</span><select name="visibility" defaultValue="private"><option value="private">Özel</option><option value="internal">İç</option><option value="public">Public</option></select></label>
+            <button type="submit" className="portalPrimaryButton">KAYDET →</button>
           </form>
         </section>
       ) : null}
 
       {repositories.length ? (
-        <div classAd="portalRepoList">
+        <div className="portalRepoList">
           {repositories.map((repo) => (
             <a href={String(repo.repo_url)} target="_blank" rel="noreferrer" key={String(repo.id)}>
               <span>GIT</span>
