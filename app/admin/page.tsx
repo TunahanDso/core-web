@@ -95,7 +95,7 @@ export default async function Admin({
         <span><b>DB</b> core-web-cms · {databaseOnline ? "bağlı" : "kullanılamıyor"}</span>
         <span><b>MEDYA</b> {stats.mediaBinding ? "core-web-media · bağlı" : "kullanılamıyor"}</span>
         <span><b>ACCESS</b> {identity.authenticated ? "JWT DOĞRULANDI" : "DOĞRULANMADI"}</span>
-        <span><b>PORTAL</b> {portal.ready ? "ENGINEERING OS HAZIR" : (portal.tableCount ?? 0) > 0 ? "ENGINEERING OS YÜKSELTME GEREKLİ" : "KURULUM GEREKLİ"}</span>
+        <span><b>PORTAL</b> {portal.ready ? "ENGINEERING OS + MOBILE V5 HAZIR" : (portal.tableCount ?? 0) > 0 ? "V5 NATIVE MOBILE YÜKSELTME GEREKLİ" : "KURULUM GEREKLİ"}</span>
         <span><b>KOMUT KATMANI</b> İZOLE</span>
       </section>
 
@@ -107,16 +107,16 @@ export default async function Admin({
       {writeEnabled && !portal.ready ? (
         <section className="adminSetupPanel">
           <div>
-            <span>{(portal.tableCount ?? 0) > 0 ? "ENGINEERING OS YÜKSELTMESİ" : "TEK SEFERLİK ALTYAPI"}</span>
-            <h2>{(portal.tableCount ?? 0) > 0 ? "CORE Portalı native mühendislik veri katmanına yükselt" : "İç CORE Portalını Kur"}</h2>
+            <span>{(portal.tableCount ?? 0) > 0 ? "V5 NATIVE MOBILE YÜKSELTMESİ" : "TEK SEFERLİK ALTYAPI"}</span>
+            <h2>{(portal.tableCount ?? 0) > 0 ? "CORE Portalı native mühendislik + mobil uygulama katmanına yükselt" : "İç CORE Portalını Kur"}</h2>
             <p>
               {(portal.tableCount ?? 0) > 0
-                ? "Mevcut üyeleri, oturumları, görevleri ve stokları silmeden Vault, CAD/PCB türevleri, mailbox state, repo gateway ve runner job tablolarını ekler."
+                ? "Mevcut üyeleri, oturumları ve mühendislik verisini silmeden mobil cihaz registry'si ile native Android/iOS handoff altyapısını ekler."
                 : "Davet tabanlı üye erişimi, oturumlar, görevler, bilgi merkezi, repo kayıtları, envanter, sohbet, iç yazışma, takvim, bildirimler, araç telemetrisi ve güvenlik cihazı altyapısını oluşturur."}
             </p>
           </div>
           <form action={initializePortalAction}>
-            <button className="adminModernPrimary" type="submit">{(portal.tableCount ?? 0) > 0 ? "ENGINEERING OS'E YÜKSELT →" : "PORTALI KUR →"}</button>
+            <button className="adminModernPrimary" type="submit">{(portal.tableCount ?? 0) > 0 ? "V5'E YÜKSELT →" : "PORTALI KUR →"}</button>
           </form>
         </section>
       ) : null}
