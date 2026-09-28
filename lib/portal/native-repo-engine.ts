@@ -107,7 +107,8 @@ function bytesToHex(bytes: Uint8Array) {
 }
 
 async function sha256Bytes(bytes: Uint8Array) {
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const stable = Uint8Array.from(bytes);
+  const digest = await crypto.subtle.digest("SHA-256", stable.buffer);
   return bytesToHex(new Uint8Array(digest));
 }
 async function sha256Text(value: string) {
@@ -134,7 +135,7 @@ async function getJson<T>(key: string): Promise<T | null> {
   const object = await bucket().get(key);
   if (!object) return null;
   try {
-    return JSON.parse(await object.text()) as T;
+    return JSON.parse(await new Response(object.body).text()) as T;
   } catch {
     return null;
   }
@@ -206,9 +207,8 @@ async function storeBlob(repoId: string, path: string, bytes: Uint8Array) {
   const key = blobKey(repoId,sha);
   const existing = await bucket().head(key);
   if (!existing) {
-    await bucket().put(key,bytes,{
+    await bucket().put(key,bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),{
       httpMetadata:{ contentType:mimeForPath(path) },
-      customMetadata:{ path },
     });
   }
   return {
@@ -386,7 +386,7 @@ export async function getEmbeddedRepoBlob(repoId: string, ref: string, pathValue
   if (!file) throw new Error("Dosya bulunamadı.");
   const object = await bucket().get(blobKey(repoId,file.blobSha));
   if (!object) throw new Error("Blob bulunamadı.");
-  const bytes = new Uint8Array(await object.arrayBuffer());
+  const bytes = new Uint8Array(await new Response(object.body).arrayBuffer());
   const text = isTextMime(file.mimeType,path) && bytes.byteLength <= MAX_TEXT_BLOB_BYTES;
   return {
     path,
@@ -589,7 +589,7 @@ async function blobText(repoId: string, path: string, file?: RepoFileMeta) {
   if (!file || !isTextMime(file.mimeType,path) || file.size > MAX_TEXT_BLOB_BYTES) return null;
   const object = await bucket().get(blobKey(repoId,file.blobSha));
   if (!object) return null;
-  return decoder.decode(new Uint8Array(await object.arrayBuffer()));
+  return decoder.decode(new Uint8Array(await new Response(object.body).arrayBuffer()));
 }
 
 async function buildHunks(ops: DiffOp[]) {
