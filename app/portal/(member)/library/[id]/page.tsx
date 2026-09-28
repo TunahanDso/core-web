@@ -44,12 +44,12 @@ export default async function VaultFilePage({
   const member = await requirePortalMember();
   const { id } = await params;
   const fileId = decodeURIComponent(id);
-  const [file, versions, derivatives, query] = await Promise.all([
+  const [file, versions, derivatives] = await Promise.all([
     getPortalVaultFile(fileId),
     listPortalVaultVersions(fileId),
     listPortalDesignDerivatives(fileId),
-    searchParams ?? Promise.resolve({}),
   ]);
+  const query: Record<string, string | string[] | undefined> = searchParams ? await searchParams : {};
   if (!file || !canRead(member,file)) notFound();
 
   const previewKind = String(file.preview_kind || "download");
