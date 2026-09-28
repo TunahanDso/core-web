@@ -248,7 +248,15 @@ jobs:
                 throw new Error(`Task usability filter missing: ${required}`);
               }
             }
-            console.log("Deliverability diagnostics, Command Center and task filters validated.");
+            const notificationPage = fs.readFileSync("app/portal/(member)/notifications/page.tsx", "utf8");
+            if (!notificationPage.includes("markAllNotificationsReadAction") || !notificationPage.includes("filter=unread")) {
+              throw new Error("Notification center must preserve unread filtering and mark-all-read.");
+            }
+            const portalDb = fs.readFileSync("lib/portal/db.ts", "utf8");
+            if (!portalDb.includes("markAllPortalNotificationsRead")) {
+              throw new Error("Notification mark-all persistence helper is missing.");
+            }
+            console.log("Deliverability diagnostics, Command Center, task filters and notification controls validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
             const pbkdf2Match = portalAuth.match(/const PBKDF2_ITERATIONS = (\d+);/);
