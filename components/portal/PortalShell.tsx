@@ -1,5 +1,5 @@
 import type { PortalMember } from "@/lib/portal/auth";
-import { portalNavigation } from "@/lib/portal/modules";
+import PortalNav from "@/components/portal/PortalNav";
 import { logoutPortalAction } from "@/app/portal/actions";
 import { getSiteSetting } from "@/lib/cms/extensions";
 import { portalRoleLabel } from "@/lib/portal/labels";
@@ -27,19 +27,7 @@ export default async function PortalShell({
           </span>
         </a>
 
-        <nav className="portalNav" aria-label="Portal navigasyonu">
-          {portalNavigation.map((group) => (
-            <section key={group.label}>
-              <p>{group.label}</p>
-              {group.items.map(([label, href, code]) => (
-                <a href={href} key={href}>
-                  <span>{code}</span>
-                  <b>{label}</b>
-                </a>
-              ))}
-            </section>
-          ))}
-        </nav>
+        <PortalNav />
 
         <div className="portalSidebarFoot">
           <a href="/tr" className="portalPublicLink">← Vitrin sitesi</a>
