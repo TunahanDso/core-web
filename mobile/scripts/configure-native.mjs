@@ -14,16 +14,23 @@ function write(file, content) {
 
 function configureAndroid() {
   const manifest = "android/app/src/main/AndroidManifest.xml";
-  if (!fs.existsSync(manifest)) throw new Error("Android project is missing. Run cap add android first.");
-
-  let source = read(manifest);
-  if (source.includes("CORE_NATIVE_LINKS")) {
-    console.log("Android native links already configured.");
-    return;
+  const variables = "android/variables.gradle";
+  if (!fs.existsSync(manifest) || !fs.existsSync(variables)) {
+    throw new Error("Android project is missing. Run cap add android first.");
   }
 
-  const marker = "        <!-- CORE_NATIVE_LINKS -->";
-  const filters = `
+  let gradle = read(variables);
+  const minSdkPattern = /minSdkVersion\s*=\s*\d+/;
+  if (!minSdkPattern.test(gradle)) {
+    throw new Error("Android minSdkVersion setting was not found.");
+  }
+  gradle = gradle.replace(minSdkPattern, "minSdkVersion = 26");
+  write(variables, gradle);
+
+  let source = read(manifest);
+  if (!source.includes("CORE_NATIVE_LINKS")) {
+    const marker = "        <!-- CORE_NATIVE_LINKS -->";
+    const filters = `
 ${marker}
         <intent-filter>
           <action android:name="android.intent.action.VIEW" />
@@ -41,11 +48,13 @@ ${marker}
             android:pathPrefix="/portal" />
         </intent-filter>`;
 
-  const mainActivity = /(<activity\b[\s\S]*?android:name="\.MainActivity"[\s\S]*?)(\s*<\/activity>)/;
-  if (!mainActivity.test(source)) throw new Error("Capacitor MainActivity block was not found.");
-  source = source.replace(mainActivity, (_, body, close) => body + filters + close);
-  write(manifest, source);
-  console.log("Android custom scheme and App Links intent filters configured.");
+    const mainActivity = /(<activity\b[\s\S]*?android:name="\.MainActivity"[\s\S]*?)(\s*<\/activity>)/;
+    if (!mainActivity.test(source)) throw new Error("Capacitor MainActivity block was not found.");
+    source = source.replace(mainActivity, (_, body, close) => body + filters + close);
+    write(manifest, source);
+  }
+
+  console.log("Android minSdk 26, custom scheme and App Links configured.");
 }
 
 function configureIos() {
