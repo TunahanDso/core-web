@@ -7746,3 +7746,174 @@ html[data-core-native="native-v2"] .portalAuthButton{
   .adminMailDeliverabilityNotes{grid-template-columns:1fr}
   .adminMailHealthHead{flex-direction:column}
 }
+
+
+/* =========================================================
+   CORE PORTAL V8 — COMMAND CENTER
+   ========================================================= */
+
+.portalCommandTrigger{
+  min-height:34px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:0 10px;
+  border:1px solid var(--portal-line);
+  border-radius:999px;
+  background:#fff;
+  color:#676f76;
+  cursor:pointer;
+}
+.portalCommandTrigger>span{color:var(--portal-orange);font-weight:950}
+.portalCommandTrigger>b{font-size:9px}
+.portalCommandTrigger>kbd{
+  border:0;
+  background:transparent;
+  color:#9aa0a5;
+  font:800 7px ui-monospace,monospace;
+}
+.portalCommandBackdrop{
+  position:fixed;
+  z-index:300;
+  inset:0;
+  display:grid;
+  place-items:start center;
+  padding:11vh 16px 24px;
+  background:rgba(15,17,20,.44);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.portalCommandPalette{
+  width:min(700px,100%);
+  overflow:hidden;
+  border:1px solid #d9dcd6;
+  border-radius:18px;
+  background:#fafbf8;
+  box-shadow:0 28px 90px rgba(12,14,17,.28);
+}
+.portalCommandPalette>header{
+  min-height:50px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+  border-bottom:1px solid #e5e7e2;
+}
+.portalCommandPalette>header>span{
+  color:#c84c00;
+  font:900 8px ui-monospace,monospace;
+  letter-spacing:.11em;
+}
+.portalCommandPalette>header>button{
+  border:0;
+  border-radius:7px;
+  background:#eceee9;
+  color:#747b81;
+  padding:6px 8px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalCommandSearch{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  padding:12px;
+  border-bottom:1px solid #e7e9e4;
+  background:#fff;
+}
+.portalCommandSearch>span{color:#c94d00;font-size:20px}
+.portalCommandSearch input{
+  min-width:0;
+  min-height:46px;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#17191d;
+  font-size:17px;
+}
+.portalCommandSearch>button{
+  min-height:34px;
+  border:0;
+  border-radius:8px;
+  background:#17191d;
+  color:#fff;
+  padding:0 10px;
+  font:900 7px ui-monospace,monospace;
+}
+.portalCommandResults{
+  max-height:min(58vh,520px);
+  overflow:auto;
+  padding:8px;
+}
+.portalCommandResults>p{
+  margin:6px 8px 8px;
+  color:#9aa0a5;
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.1em;
+}
+.portalCommandResults>button{
+  width:100%;
+  min-height:58px;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  text-align:left;
+  border:0;
+  border-radius:11px;
+  background:transparent;
+  padding:8px 10px;
+  color:#30363b;
+  cursor:pointer;
+}
+.portalCommandResults>button:hover,
+.portalCommandResults>button.active{
+  background:#fff1e6;
+}
+.portalCommandResults>button>span{
+  width:42px;height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#edf0ea;
+  color:#c94d00;
+  font:900 8px ui-monospace,monospace;
+}
+.portalCommandResults>button>div{display:grid;gap:3px;min-width:0}
+.portalCommandResults>button b{font-size:11px}
+.portalCommandResults>button small{
+  color:#93999e;
+  font:800 7px ui-monospace,monospace;
+}
+.portalCommandResults>button i{
+  color:#a8ada9;
+  font:900 10px ui-monospace,monospace;
+  font-style:normal;
+}
+.portalCommandSearchAll{
+  margin-top:4px;
+  border-top:1px solid #eceee9!important;
+}
+.portalCommandPalette>footer{
+  display:flex;
+  gap:14px;
+  padding:10px 13px;
+  border-top:1px solid #e4e6e1;
+  color:#858c92;
+  font:800 7px ui-monospace,monospace;
+}
+.portalCommandPalette>footer span{display:flex;align-items:center;gap:5px}
+.portalCommandPalette>footer kbd{
+  padding:3px 5px;
+  border:1px solid #dadfd7;
+  border-radius:5px;
+  background:#fff;
+}
+
+@media(max-width:900px){
+  .portalCommandTrigger{display:none}
+}
+@media(max-width:620px){
+  .portalCommandBackdrop{padding:6vh 8px 10px}
+  .portalCommandPalette>footer{display:none}
+}
