@@ -83,6 +83,7 @@ export default async function PortalCodeTerminalPage({
       {connectable ? (
         <LiveCodeTerminal
           socketUrl={detail.socketUrl}
+          socketToken={detail.socketToken}
           repository={String(terminal.repo_name || terminal.repository_slug)}
           snapshotRef={terminal.snapshot_ref}
           snapshotSha={terminal.snapshot_sha}
