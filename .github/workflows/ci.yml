@@ -170,8 +170,17 @@ jobs:
             for (const required of ["getTcpPort(8081)", "requiredPorts = [8080, 8081]", "/v1/terminals", "terminalSocket"]) {
               if (!runnerWorker.includes(required)) throw new Error(`CL-02.1 container websocket transport missing: ${required}`);
             }
-            for (const required of ["WebSocketServer", "script", "CORE_RUNNER_NETWORK", "coreTerminal", "8081"]) {
+            for (const required of ["WebSocketServer", "node-pty", "CORE_RUNNER_NETWORK", "coreTerminal", "IDLE_TIMEOUT_MS", "activeSessions", "shell.resize", "8081"]) {
               if (!terminalServer.includes(required)) throw new Error(`CL-02.1 terminal server missing: ${required}`);
+            }
+            if (!liveTerminal.includes('["core-terminal",socketToken]') || liveTerminal.includes("socket?token=")) {
+              throw new Error("Live terminal capability must travel in the WebSocket subprotocol, never in the URL.");
+            }
+            if (!runnerWorker.includes('request.headers.get("sec-websocket-protocol")') || runnerWorker.includes('searchParams.get("token")')) {
+              throw new Error("Runner terminal authentication must reject query-string capabilities.");
+            }
+            if (!runnerDockerfile.includes("node-pty@")) {
+              throw new Error("Runner image must include the reviewed PTY implementation.");
             }
             if (!runnerDockerfile.includes("EXPOSE 8080 8081") || !runnerDockerfile.includes("terminal_server.cjs")) {
               throw new Error("CL-02.1 Docker image must expose and start the terminal websocket service.");
@@ -348,8 +357,13 @@ jobs:
               }
             }
             const nativeLayout = fs.readFileSync("app/portal/(member)/layout.tsx", "utf8");
-            if (!nativeLayout.includes("getPortalMailboxCounts") || !nativeLayout.includes("listPortalChannelsForMember") || !nativeLayout.includes("counts={{")) {
-              throw new Error("Native shell must receive live mail/chat/task/notification counters.");
+            const nativeGate = fs.readFileSync("components/portal/PortalNativeGate.tsx", "utf8");
+            const nativeSummary = fs.readFileSync("app/api/portal/native/summary/route.ts", "utf8");
+            if (nativeLayout.includes("getPortalMailboxCounts") || nativeLayout.includes("listPortalChannelsForMember") || nativeLayout.includes("getPortalMetrics")) {
+              throw new Error("Desktop portal navigation must not execute native-only counter queries.");
+            }
+            if (!nativeGate.includes('import("@/components/portal/PortalNativeExperience")') || !nativeSummary.includes("getPortalMailboxCounts") || !nativeSummary.includes("listPortalChannelsForMember")) {
+              throw new Error("Native counters must load lazily through the authenticated native summary boundary.");
             }
             const taskPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
             if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("createOpen") || !taskPage.includes("portalToolSurface") || !taskPage.includes("createTaskAction")) {
@@ -537,8 +551,14 @@ jobs:
             for (const required of ["listControlCenterRegistry","updateControlCenterEntity","deleteControlCenterEntity"]) {
               if (!controlCenterService.includes(required)) throw new Error(`Control Center service missing: ${required}`);
             }
-            if (!controlCenterPage.includes("ControlCenterRegistry") || !controlCenterPage.includes("memberHasPortalCapability")) {
-              throw new Error("Control Center page must be role/capability gated.");
+            if (!controlCenterPage.includes("ControlCenterRegistry") || !controlCenterPage.includes("portalMemberCapabilitySet")) {
+              throw new Error("Control Center page must be role/capability gated with one capability-set read.");
+            }
+            if (controlCenterPage.includes('"vault.approve"')) {
+              throw new Error("Vault approval alone must not unlock the global Control Center.");
+            }
+            if (controlCenterService.includes("LIMIT 500") || controlCenterService.includes("LIMIT 300")) {
+              throw new Error("Control Center must not fan out hundreds of rows per registry.");
             }
             for (const required of ["controlCenterTabs","controlCenterTable","controlCenterInspector","SİL / ARŞİV"]) {
               if (!controlCenterClient.includes(required)) throw new Error(`Control Center UI missing: ${required}`);
