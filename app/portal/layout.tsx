@@ -1,3 +1,4 @@
+import "@/app/workspace.css";
 import PortalMobileRuntime from "@/components/portal/PortalMobileRuntime";
 import { portalMobilePublicConfig } from "@/lib/portal/mobile";
 
