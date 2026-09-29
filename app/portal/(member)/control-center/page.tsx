@@ -3,7 +3,7 @@ import ControlCenterRegistry from "@/components/portal/ControlCenterRegistry";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listControlCenterRegistry } from "@/lib/portal/control-center";
-import { memberHasPortalCapability } from "@/lib/portal/governance";
+import { portalMemberCapabilitySet } from "@/lib/portal/governance";
 
 export const dynamic = "force-dynamic";
 
@@ -32,28 +32,9 @@ export default async function PortalControlCenterPage({
     "teams.manage",
     "control.projects",
     "control.vehicles",
-    "vault.approve",
   ] as const;
-  const capabilityChecks = await Promise.all(
-    capabilityNames.map((capability) => memberHasPortalCapability(member,capability))
-  );
-  if (!capabilityChecks.some(Boolean)) notFound();
-
-  const registry = await listControlCenterRegistry();
-  const teams = registry.teams.map((row) => ({
-    value:String(row.code || ""),
-    label:String(row.code || "") + " · " + String(row.name || ""),
-  }));
-  const projects = registry.projects.map((row) => ({
-    value:String(row.slug || ""),
-    label:String(row.title || row.slug || ""),
-  }));
-  const members = registry.members
-    .filter((row) => String(row.status || "") !== "archived")
-    .map((row) => ({
-      value:String(row.id || ""),
-      label:String(row.full_name || row.email || ""),
-    }));
+  const capabilitySet = await portalMemberCapabilitySet(member);
+  if (!capabilityNames.some((capability) => capabilitySet.has(capability))) notFound();
 
   const allowed: EntityType[] = [
     "members","roles","teams","projects","tasks","vehicles","repositories","vault","inventory",
@@ -61,6 +42,20 @@ export default async function PortalControlCenterPage({
   const initialType = allowed.includes(String(query.type || "") as EntityType)
     ? String(query.type) as EntityType
     : "projects";
+
+  const { registry,lookups } = await listControlCenterRegistry(initialType);
+  const teams = lookups.teams.map((row) => ({
+    value:String(row.code || ""),
+    label:String(row.code || "") + " · " + String(row.name || ""),
+  }));
+  const projects = lookups.projects.map((row) => ({
+    value:String(row.slug || ""),
+    label:String(row.title || row.slug || ""),
+  }));
+  const members = lookups.members.map((row) => ({
+    value:String(row.id || ""),
+    label:String(row.full_name || row.email || ""),
+  }));
 
   return (
     <>
