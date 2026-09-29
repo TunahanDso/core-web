@@ -7,6 +7,7 @@ import { portalMemberCapabilitySet } from "@/lib/portal/governance";
 import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
 import PortalSidebarToggle from "@/components/portal/PortalSidebarToggle";
 import PortalContent from "@/components/portal/PortalContent";
+import PortalDensityToggle from "@/components/portal/PortalDensityToggle";
 
 export default async function PortalShell({
   member,
@@ -61,6 +62,7 @@ export default async function PortalShell({
             <kbd>⌘K</kbd>
           </form>
           <div className="portalTopActions">
+            <PortalDensityToggle />
             <PortalCommandCenter />
             <a href="/portal/notifications" className="portalTopChip">Bildirimler</a>
             <a href="/portal/profile" className="portalIdentity">
