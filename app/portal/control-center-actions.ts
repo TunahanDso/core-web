@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePortalMember } from "@/lib/portal/auth";
+import { deleteShowcaseProjectBySlug } from "@/lib/cms/project-control";
 import { memberHasPortalCapability, type PortalCapability } from "@/lib/portal/governance";
 import {
   deleteControlCenterEntity,
@@ -109,6 +110,13 @@ export async function deleteControlCenterEntityAction(formData: FormData) {
     actorMemberId:member.id,
     actorEmail:member.email,
   });
+  if (type === "projects") {
+    await deleteShowcaseProjectBySlug(entityId,member.email);
+    revalidatePath("/tr");
+    revalidatePath("/en");
+    revalidatePath("/tr/projects");
+    revalidatePath("/en/projects");
+  }
   revalidateControlSurfaces(type,entityId);
   redirect("/portal/control-center?type=" + encodeURIComponent(type) + "&deleted=" + encodeURIComponent(entityId));
 }
