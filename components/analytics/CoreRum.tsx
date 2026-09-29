@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { rumSurfaceForPath,sanitizeRumPath } from "@/lib/platform/rum";
 
 type RumMetric = {
   name:"LCP"|"CLS"|"INP"|"TTFB";
@@ -8,12 +9,6 @@ type RumMetric = {
   path:string;
   surface:"portal"|"admin"|"public";
 };
-
-function surfaceFor(path:string):RumMetric["surface"]{
-  if(path.startsWith("/portal")) return "portal";
-  if(path.startsWith("/admin")) return "admin";
-  return "public";
-}
 
 function send(metric:RumMetric){
   const body=JSON.stringify(metric);
@@ -35,8 +30,8 @@ export default function CoreRum(){
     if(process.env.NODE_ENV!=="production") return;
 
     const path=location.pathname;
-    const surface=surfaceFor(path);
-    const safePath=path.split("?")[0].slice(0,160);
+    const surface=rumSurfaceForPath(path);
+    const safePath=sanitizeRumPath(path);
     const emit=(name:RumMetric["name"],value:number)=>{
       if(!Number.isFinite(value)||value<0) return;
       send({name,value:Math.round(value*100)/100,path:safePath,surface});
