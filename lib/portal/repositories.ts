@@ -304,6 +304,57 @@ export async function listAccessibleExternalRepositories(member: PortalMember) {
   });
 }
 
+export type RepositoryCatalogItem = {
+  id:string;
+  name:string;
+  kind:"workspace"|"external";
+  href:string | null;
+  slug:string | null;
+  projectSlug:string | null;
+  teamCode:string | null;
+  visibility:string;
+  defaultBranch:string | null;
+  status:string;
+  source:string;
+};
+
+export async function listAccessibleRepositoryCatalog(member: PortalMember) {
+  const [native,external]=await Promise.all([
+    listAccessibleNativeRepositories(member),
+    listAccessibleExternalRepositories(member),
+  ]);
+
+  const workspace=native.map((repo)=>({
+    id:"workspace:"+repo.id,
+    name:repo.name,
+    kind:"workspace" as const,
+    href:"/portal/repositories/"+encodeURIComponent(repo.slug),
+    slug:repo.slug,
+    projectSlug:repo.project_slug,
+    teamCode:repo.team_code,
+    visibility:repo.visibility,
+    defaultBranch:repo.default_branch,
+    status:repo.status,
+    source:"CORE workspace",
+  }));
+
+  const mirrors=external.map((repo)=>({
+    id:"external:"+repo.id,
+    name:repo.name,
+    kind:"external" as const,
+    href:repo.repo_url,
+    slug:null,
+    projectSlug:repo.project_slug,
+    teamCode:repo.team_code,
+    visibility:repo.visibility,
+    defaultBranch:repo.default_branch,
+    status:repo.health,
+    source:repo.provider || "external",
+  }));
+
+  return [...workspace,...mirrors].sort((a,b)=>a.name.localeCompare(b.name,"tr"));
+}
+
 export async function listAccessibleNativeRepositories(member: PortalMember) {
   let rows: NativeRepositoryRecord[] = [];
   try {
