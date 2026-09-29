@@ -79,7 +79,8 @@ export async function listMeetings(memberId: string, limit=120) {
     "OR (s.id IS NOT NULL AND s.visibility='members') " +
     "OR (s.id IS NULL AND m.team_code IS NULL) " +
     "OR ((s.visibility='team' OR (s.id IS NULL AND m.team_code IS NOT NULL)) AND EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=COALESCE(m.team_code,s.team_code) AND tm.member_id=? AND tm.status='active')) " +
-    "ORDER BY CASE m.status WHEN 'live' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END,m.starts_at DESC LIMIT ?"
+    "ORDER BY CASE m.status WHEN 'live' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END," +
+    "CASE WHEN m.status IN ('live','scheduled') THEN datetime(m.starts_at) END ASC,datetime(m.starts_at) DESC LIMIT ?"
   ).bind(memberId,memberId,memberId,limit).all<Record<string, unknown>>();
   return response.results ?? [];
 }
@@ -472,9 +473,13 @@ export async function createBudgetEntry(input:{
   return id;
 }
 
-export async function approveBudgetEntry(entryId:string, approverId:string, status:"approved"|"rejected") {
+export async function approveBudgetEntry(entryId:string, approverId:string, status:"approved"|"rejected", allowSelfApproval=false) {
   await ensurePortalCollaborationFinanceSchema();
-  await db().prepare(
+  const database=db();
+  const entry=await database.prepare("SELECT created_by,status FROM portal_budget_entries WHERE id=? LIMIT 1").bind(entryId).first<{created_by:string;status:string}>();
+  if(!entry || entry.status!=="pending") throw new Error("Bekleyen bütçe hareketi bulunamadı.");
+  if(!allowSelfApproval && entry.created_by===approverId) throw new Error("Kendi bütçe hareketinizi onaylayamazsınız.");
+  await database.prepare(
     "UPDATE portal_budget_entries SET status=?,approved_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending'"
   ).bind(status,approverId,entryId).run();
 }
