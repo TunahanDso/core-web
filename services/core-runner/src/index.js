@@ -548,7 +548,7 @@ export default {
         isolation:"cloudflare-container",
         workflow:true,
         liveTerminal:true,
-        terminalTransport:"websocket",
+        terminalTransport:"container-websocket",
         network:"deny",
       });
     }
