@@ -8,6 +8,8 @@ on:
       - "desktop/**"
       - "components/portal/PortalDesktopExperience.tsx"
       - "app/portal/(member)/layout.tsx"
+      - "app/portal/(member)/security/page.tsx"
+      - "app/api/portal/desktop/**"
       - "app/globals.css"
       - "package.json"
       - ".github/workflows/desktop-native.yml"
@@ -18,6 +20,8 @@ on:
       - "desktop/**"
       - "components/portal/PortalDesktopExperience.tsx"
       - "app/portal/(member)/layout.tsx"
+      - "app/portal/(member)/security/page.tsx"
+      - "app/api/portal/desktop/**"
       - "app/globals.css"
       - "package.json"
       - ".github/workflows/desktop-native.yml"
@@ -56,16 +60,59 @@ jobs:
       - name: Build release executable
         run: cargo build --release --manifest-path src-tauri/Cargo.toml
 
-      - name: Stage portable executable
+      - name: Stage portable executable and checksum
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          Copy-Item "src-tauri/target/release/core-desktop.exe" "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
+          $target = "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
+          Copy-Item "src-tauri/target/release/core-desktop.exe" $target
+          $hash = (Get-FileHash $target -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  YTU-CORE-Desktop-Windows-x64.exe" | Set-Content "artifacts/YTU-CORE-Desktop-Windows-x64.exe.sha256"
 
       - name: Upload Windows portable artifact
         uses: actions/upload-artifact@v4
         with:
           name: YTU-CORE-Desktop-Windows-x64
-          path: artifacts/YTU-CORE-Desktop-Windows-x64.exe
+          path: |
+            artifacts/YTU-CORE-Desktop-Windows-x64.exe
+            artifacts/YTU-CORE-Desktop-Windows-x64.exe.sha256
           if-no-files-found: error
           retention-days: 14
+
+  publish-windows-latest:
+    name: Publish desktop-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-windows-portable
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: YTU-CORE-Desktop-Windows-x64
+          path: release
+
+      - name: Publish stable latest channel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="desktop-latest"
+          EXE="release/YTU-CORE-Desktop-Windows-x64.exe"
+          SHA="release/YTU-CORE-Desktop-Windows-x64.exe.sha256"
+
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "YTÜ CORE Desktop — Latest" --notes "Rolling Windows x64 desktop channel. Build: $GITHUB_SHA" --latest=false
+          fi
+
+          git tag -f "$TAG" "$GITHUB_SHA"
+          git push --force origin "refs/tags/$TAG"
+
+          gh release upload "$TAG" "$EXE" "$SHA" --clobber
+          gh release edit "$TAG" --title "YTÜ CORE Desktop — Latest" --notes "Rolling Windows x64 desktop channel. Build: $GITHUB_SHA"
