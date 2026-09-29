@@ -65,3 +65,22 @@ That query flag activates the desktop-density layer without forking the portal U
 10. Signed Windows/macOS/Linux releases and updater.
 
 See `desktop/PERFORMANCE.md` before adding any background service, polling loop, additional WebView or native plugin.
+
+
+## Stable Windows download channel
+
+After merge to `main`, the desktop workflow publishes the last successful Windows x64 executable to the rolling GitHub release tag `desktop-latest`.
+
+The member-facing Portal never links to a transient Actions artifact. It links to:
+
+```text
+/api/portal/desktop/download/windows
+```
+
+That authenticated route redirects to the fixed release asset:
+
+```text
+desktop-latest/YTU-CORE-Desktop-Windows-x64.exe
+```
+
+Every successful main desktop build overwrites that asset and its SHA-256 companion. A failed build never replaces the previous working download.
