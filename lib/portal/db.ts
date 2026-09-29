@@ -44,6 +44,23 @@ export async function getPortalMetrics(memberId: string) {
   };
 }
 
+export async function getPortalShellCounts(memberId: string) {
+  const row = await database().prepare(
+    "SELECT " +
+      "(SELECT COUNT(*) FROM portal_tasks WHERE status!='done') AS open_tasks," +
+      "(SELECT COUNT(*) FROM portal_notifications WHERE (member_id=? OR member_id IS NULL) AND read_at IS NULL) AS unread_notifications," +
+      "(SELECT COUNT(*) FROM portal_mail_participants p LEFT JOIN portal_mail_state s ON s.thread_id=p.thread_id AND s.member_id=p.member_id WHERE p.member_id=? AND COALESCE(s.folder,'inbox')='inbox' AND COALESCE(s.unread,0)=1) AS unread_mail," +
+      "(SELECT COUNT(*) FROM portal_messages msg WHERE datetime(msg.created_at)>datetime(COALESCE((SELECT cr.last_read_at FROM portal_channel_reads cr WHERE cr.channel_id=msg.channel_id AND cr.member_id=?),'1970-01-01'))) AS unread_chat"
+  ).bind(memberId,memberId,memberId).first<Record<string, unknown>>();
+
+  return {
+    tasks: Number(row?.open_tasks || 0),
+    notifications: Number(row?.unread_notifications || 0),
+    mail: Number(row?.unread_mail || 0),
+    chat: Number(row?.unread_chat || 0),
+  };
+}
+
 export async function listPortalMembers() {
   const db = database();
   try {
