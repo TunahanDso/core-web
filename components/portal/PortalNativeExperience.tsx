@@ -85,7 +85,10 @@ const quickActions = [
   ["Yeni görev", "/portal/tasks#create-task", "İş oluştur veya görev panosuna git"],
   ["Mail yaz", "/portal/mail?compose=1", "CORE iç yazışmasını başlat"],
   ["Vault'a yükle", "/portal/library#upload", "Dosya ve teknik veri ekle"],
+  ["Toplantı planla", "/portal/meetings?create=meeting", "Ses, görüntü, karar ve rapor çalışma alanı"],
+  ["Oylamalara git", "/portal/polls", "Takım ve toplantı kararları"],
   ["Takvime git", "/portal/calendar", "Toplantı, test ve saha planı"],
+  ["Bütçeyi aç", "/portal/budget", "Gelir, gider ve tahsisler"],
   ["Stok işlemi", "/portal/inventory", "Parça ve ekipman hareketi"],
 ] as const;
 
@@ -103,6 +106,9 @@ const routeTitles = new Map<string, string>([
   ["/portal/mail", "Mail"],
   ["/portal/library", "Vault"],
   ["/portal/calendar", "Takvim"],
+  ["/portal/meetings", "Toplantılar"],
+  ["/portal/polls", "Oylamalar"],
+  ["/portal/budget", "Bütçe"],
   ["/portal/notifications", "Bildirimler"],
   ["/portal/inventory", "Stok"],
   ["/portal/projects", "Projeler"],
