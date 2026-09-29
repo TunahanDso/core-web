@@ -17322,3 +17322,26 @@ html[data-core-native="native-v2"] .portalToolBody{
     grid-template-columns:1fr;
   }
 }
+
+/* Desktop top bar must shrink instead of forcing horizontal overflow. */
+html.coreDesktopRuntime .portalTopbar{
+  min-width:0;
+  grid-template-columns:minmax(150px,.45fr) minmax(260px,620px) auto;
+  gap:14px;
+}
+html.coreDesktopRuntime .portalGlobalSearch,
+html.coreDesktopRuntime .portalTopActions,
+html.coreDesktopRuntime .portalIdentity{
+  min-width:0;
+}
+@media(max-width:1180px){
+  html.coreDesktopRuntime .portalTopbar{
+    grid-template-columns:minmax(240px,1fr) auto;
+  }
+  html.coreDesktopRuntime .portalTopbar>div:first-child{
+    display:none;
+  }
+  html.coreDesktopRuntime .portalIdentity>div{
+    display:none;
+  }
+}
