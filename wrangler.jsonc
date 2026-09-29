@@ -52,7 +52,7 @@
     "PORTAL_ANDROID_PACKAGE": "com.ytucore.portal",
     "PORTAL_IOS_BUNDLE_ID": "com.ytucore.portal",
     "PORTAL_MAIL_REPLY_TO": "portal@ytucore.com",
-    "CORE_RUNNER_URL": "https://core-runner.oyuncunun61.workers.dev",
+    "CORE_RUNNER_URL": "https://runner.ytucore.com",
     "PORTAL_MEETING_PROVIDER": "",
     "PORTAL_MEETING_PROVIDER_URL": ""
   },
