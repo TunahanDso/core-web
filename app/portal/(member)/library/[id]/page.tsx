@@ -3,6 +3,7 @@ import { PortalPageHeader } from "@/components/portal/PortalPage";
 import VaultModelViewer from "@/components/portal/VaultModelViewer";
 import KiCadBoardPreview from "@/components/portal/KiCadBoardPreview";
 import VaultCodeReader from "@/components/portal/VaultCodeReader";
+import VaultSourceBrowser from "@/components/portal/VaultSourceBrowser";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
   formatVaultBytes,
@@ -55,7 +56,7 @@ export default async function VaultFilePage({
 
   const previewKind = String(file.preview_kind || "download");
   const extension = String(file.extension || "").toLowerCase();
-  const textPreview = ["text","pcb-source"].includes(previewKind)
+  const textPreview = previewKind === "text"
     ? await readPortalVaultTextPreview(fileId)
     : null;
   const sourceUrl = "/api/portal/vault/" + encodeURIComponent(fileId);
@@ -112,16 +113,35 @@ export default async function VaultFilePage({
           <VaultModelViewer src={sourceUrl} filename={String(file.original_name)} />
         ) : null}
 
-        {previewKind === "pcb-source" && extension === "kicad_pcb" && textPreview?.text ? (
-          <KiCadBoardPreview source={textPreview.text} />
+        {previewKind === "pcb-source" && extension === "kicad_pcb" ? (
+          <div className="vaultPcbWorkspace">
+            <KiCadBoardPreview
+              src={sourceUrl}
+              filename={String(file.original_name)}
+              sizeBytes={Number(file.size_bytes || 0)}
+            />
+            <VaultSourceBrowser
+              fileId={fileId}
+              revision={Number(file.revision || 1)}
+              filename={String(file.original_name)}
+            />
+          </div>
         ) : null}
 
-        {["text","pcb-source"].includes(previewKind) && textPreview ? (
+        {previewKind === "text" && textPreview ? (
           <VaultCodeReader
             source={textPreview.text || "Önizleme boyut sınırını aşıyor; dosyayı indirerek aç."}
             filename={String(file.original_name)}
             extension={extension}
             truncated={Boolean(textPreview.truncated)}
+          />
+        ) : null}
+
+        {previewKind === "pcb-source" && extension !== "kicad_pcb" ? (
+          <VaultSourceBrowser
+            fileId={fileId}
+            revision={Number(file.revision || 1)}
+            filename={String(file.original_name)}
           />
         ) : null}
 
