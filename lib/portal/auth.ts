@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
 
-const SESSION_COOKIE = "core_portal_session";
+const SESSION_COOKIE = "__Host-core_portal_session";
+const LEGACY_SESSION_COOKIE = "core_portal_session";
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
 // Cloudflare Workers WebCrypto currently rejects PBKDF2 iteration counts above 100,000.
 const PBKDF2_ITERATIONS = 100000;
@@ -194,9 +195,9 @@ export async function createPortalSession(memberId: string) {
     .run();
 
   const jar = await cookies();
-  // Clear the legacy path-scoped cookie before issuing the API-compatible root cookie.
+  // Remove every legacy cookie variant before issuing the host-only root cookie.
   for (const path of ["/", "/portal"]) {
-    jar.set(SESSION_COOKIE, "", {
+    jar.set(LEGACY_SESSION_COOKIE, "", {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
@@ -215,7 +216,7 @@ export async function createPortalSession(memberId: string) {
 
 export async function clearPortalSession() {
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
+  const token = jar.get(SESSION_COOKIE)?.value ?? jar.get(LEGACY_SESSION_COOKIE)?.value;
 
   if (token && env.DB) {
     const hash = await sha256Hex(token);
@@ -223,7 +224,7 @@ export async function clearPortalSession() {
   }
 
   for (const path of ["/", "/portal"]) {
-    jar.set(SESSION_COOKIE, "", {
+    jar.set(LEGACY_SESSION_COOKIE, "", {
       httpOnly: true,
       secure: true,
       sameSite: "lax",
@@ -231,12 +232,19 @@ export async function clearPortalSession() {
       maxAge: 0,
     });
   }
+  jar.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
 }
 
 export async function getPortalMember(): Promise<PortalMember | null> {
   if (!env.DB) return null;
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
+  const token = jar.get(SESSION_COOKIE)?.value ?? jar.get(LEGACY_SESSION_COOKIE)?.value;
   if (!token) return null;
 
   const hash = await sha256Hex(token);
@@ -331,7 +339,7 @@ export async function loginPortalMember(email: string, password: string) {
 
 export async function promoteLegacyPortalSessionCookie() {
   const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
+  const token = jar.get(SESSION_COOKIE)?.value ?? jar.get(LEGACY_SESSION_COOKIE)?.value;
   if (!token || !env.DB) return false;
 
   const hash = await sha256Hex(token);
@@ -341,8 +349,14 @@ export async function promoteLegacyPortalSessionCookie() {
   ).bind(hash).first<{ ok: number }>();
   if (!valid) return false;
 
-  // Writing a root-scoped cookie makes authenticated /api/portal routes available
-  // without invalidating the existing D1 session token.
+  // Promote legacy sessions into a host-only cookie without rotating the D1 token.
+  jar.set(LEGACY_SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
   jar.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: true,
