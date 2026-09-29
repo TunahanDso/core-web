@@ -205,6 +205,7 @@ export async function updatePortalRoleProfile(input: {
   description: string;
   capabilities: string[];
   actorEmail: string;
+  confirmation?: string;
 }) {
   const roleKey = input.roleKey.trim();
   if (!/^[a-z0-9_-]{2,40}$/.test(roleKey)) throw new Error("Geçersiz rol anahtarı.");
@@ -214,9 +215,20 @@ export async function updatePortalRoleProfile(input: {
 
   const database = db();
   const existing = await database.prepare(
-    "SELECT role_key,scope FROM portal_role_profiles WHERE role_key=? LIMIT 1"
-  ).bind(roleKey).first<{ role_key:string; scope:string }>();
+    "SELECT role_key,scope,capabilities_json FROM portal_role_profiles WHERE role_key=? LIMIT 1"
+  ).bind(roleKey).first<{ role_key:string; scope:string; capabilities_json:string }>();
   if (!existing) throw new Error("Rol profili bulunamadı.");
+
+  let previous:string[]=[];
+  try{
+    const parsed=JSON.parse(existing.capabilities_json || "[]");
+    if(Array.isArray(parsed)) previous=parsed.map((item)=>String(item));
+  }catch{}
+  const highRisk=new Set(["portal.admin","roles.manage","teams.manage","control.projects","control.vehicles","project.map.edit","vault.approve"]);
+  const addedHighRisk=capabilities.filter((capability)=>highRisk.has(capability)&&!previous.includes(capability));
+  if(addedHighRisk.length && String(input.confirmation||"").trim() !== "APPLY "+roleKey){
+    throw new Error("Yüksek yetki eklemek için APPLY "+roleKey+" onayı gerekli.");
+  }
 
   await database.batch([
     database.prepare(
@@ -224,7 +236,13 @@ export async function updatePortalRoleProfile(input: {
     ).bind(input.description.trim(),JSON.stringify(capabilities),roleKey),
     database.prepare(
       "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.role.profile.update','role',?,?)"
-    ).bind(input.actorEmail,roleKey,JSON.stringify({ scope:existing.scope,capabilities })),
+    ).bind(input.actorEmail,roleKey,JSON.stringify({
+      scope:existing.scope,
+      previousCapabilities:previous,
+      capabilities,
+      added:capabilities.filter((item)=>!previous.includes(item)),
+      removed:previous.filter((item)=>!capabilities.includes(item)),
+    })),
   ]);
 }
 
