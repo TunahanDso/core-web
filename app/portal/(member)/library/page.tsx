@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function PortalKütüphanePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ q?: string; kind?: string; state?: string }>;
+  searchParams?: Promise<{ q?: string; kind?: string; state?: string; upload?: string }>;
 }) {
   const query = searchParams ? await searchParams : {};
   const q = String(query.q || "").trim();
@@ -31,7 +31,7 @@ export default async function PortalKütüphanePage({
         code="DOSYALAR"
         title="Mühendislik Dosyaları"
         lead="Teknik dosyaları proje, revizyon ve sahiplik bağlamıyla bul, incele ve sürümle."
-        action={<a className="portalPrimaryButton" href="#upload">YÜKLE ↑</a>}
+        action={<a className="portalPrimaryButton" href="/portal/library?upload=1#upload">YÜKLE ↑</a>}
       />
 
       <section className="vaultLibraryToolbar portalWorkbenchToolbar">
@@ -95,7 +95,7 @@ export default async function PortalKütüphanePage({
         />
       )}
 
-      <details className="portalPanel vaultUploadDrawer" id="upload">
+      <details className="portalPanel vaultUploadDrawer" id="upload" open={String(query.upload || "") === "1"}>
         <summary>
           <div><span>DOSYA YÜKLE</span><b>Yeni Vault kaydı oluştur</b></div>
           <small>R2 + REVISION + CHECKSUM</small>
