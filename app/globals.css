@@ -918,8 +918,8 @@ footer{border-top:1px solid #13161b}
   to{transform:rotate(-342deg)}
 }
 @keyframes coreBreath{
-  0%,100%{box-shadow:0 0 42px rgba(255,101,0,.12),inset 0 0 20px rgba(255,101,0,.07)}
-  50%{box-shadow:0 0 82px rgba(255,101,0,.28),inset 0 0 30px rgba(255,101,0,.13)}
+  0%,100%{transform:scale(1);opacity:.86}
+  50%{transform:scale(1.018);opacity:1}
 }
 @keyframes nodeSignal{
   0%,100%{border-color:#353b45}
@@ -930,8 +930,8 @@ footer{border-top:1px solid #13161b}
   to{background-position:-40% 0}
 }
 @keyframes hubPulse{
-  0%,100%{box-shadow:0 0 30px rgba(255,101,0,.1)}
-  50%{box-shadow:0 0 58px rgba(255,101,0,.25)}
+  0%,100%{transform:scale(1);opacity:.88}
+  50%{transform:scale(1.025);opacity:1}
 }
 @keyframes livePulse{
   0%,100%{opacity:.55;transform:scale(.85)}
@@ -2110,8 +2110,8 @@ footer{border-top:1px solid #13161b}
 .wbBuild{animation-delay:-2.5s}
 .wbField{animation-delay:-3.7s}
 @keyframes studentFloat{
-  0%,100%{margin-top:0}
-  50%{margin-top:-8px}
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
 }
 
 @media(max-width:1250px){
@@ -4106,3 +4106,12 @@ html,body{max-width:100%;overflow-x:clip}
 
 
 /* =========================================================
+
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after {
+    scroll-behavior:auto !important;
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
