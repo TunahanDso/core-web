@@ -13248,3 +13248,21 @@ html.coreDesktopRuntime .portalChatLayout{
     transition-duration:.001ms!important;
   }
 }
+
+
+@media(max-width:1280px){
+  html.coreDesktopRuntime .mailboxWorkbench{
+    height:calc(100dvh - 148px);
+    min-height:0;
+    grid-template-columns:140px minmax(300px,1fr) minmax(280px,320px);
+    overflow:hidden;
+  }
+  html.coreDesktopRuntime .mailboxCompose{
+    grid-column:auto;
+    max-height:none;
+    border-top:0;
+  }
+  html.coreDesktopRuntime .mailboxMain{
+    border-right:1px solid var(--portal-line);
+  }
+}
