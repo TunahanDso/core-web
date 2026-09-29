@@ -15,8 +15,8 @@ import {
   queuePortalDesignDerivativeAction,
   setPortalVaultApprovalAction,
   setPortalVaultLifecycleAction,
-  uploadPortalVaultVersionAction,
 } from "@/app/portal/vault-actions";
+import VaultRevisionUploadForm from "@/components/portal/VaultRevisionUploadForm";
 
 export const dynamic = "force-dynamic";
 
@@ -203,12 +203,7 @@ export default async function VaultFilePage({
       {canManage ? (
         <section className="portalPanel vaultRevisionPanel">
           <div className="portalPanelHead"><span>YENİ REVISION</span><small>KAYNAK DOSYA GEÇMİŞİ KORUNUR</small></div>
-          <form className="portalFormGrid" action={uploadPortalVaultVersionAction}>
-            <input type="hidden" name="fileId" value={fileId} />
-            <label className="portalFormWide"><span>Yeni dosya</span><input name="file" type="file" required /></label>
-            <label className="portalFormWide"><span>Revision notu</span><input name="note" placeholder="R2: konnektör yerleşimi ve güç katı güncellendi" /></label>
-            <button className="portalPrimaryButton" type="submit">YENİ REVISION YÜKLE →</button>
-          </form>
+          <VaultRevisionUploadForm fileId={fileId} />
           <div className="vaultGovernanceActions">
             <form action={setPortalVaultLifecycleAction}>
               <input type="hidden" name="fileId" value={fileId} />
