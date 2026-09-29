@@ -1,9 +1,9 @@
 import { env } from "cloudflare:workers";
+import { collaborationDb } from "@/lib/platform/databases";
 import { ensurePortalCollaborationFinanceSchema } from "@/lib/portal/bootstrap";
 
 function db() {
-  if (!env.DB) throw new Error("DB binding is not available.");
-  return env.DB;
+  return collaborationDb();
 }
 
 type PortalPollRecord = Record<string, unknown> & {
