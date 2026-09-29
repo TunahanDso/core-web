@@ -337,18 +337,22 @@ export async function sendPortalTestEmail(input: {
 }
 
 export function portalMailProviderStatus() {
+  const isolated = Boolean(((env as unknown as Record<string,unknown>).MAIL_SERVICE as {fetch?:unknown}|undefined)?.fetch);
   const cloudflare = Boolean(env.EMAIL && typeof env.EMAIL.send === "function");
   const resend = typeof env.RESEND_API_KEY === "string" && Boolean(env.RESEND_API_KEY);
 
   return {
-    configured: cloudflare || resend,
-    provider: cloudflare
-      ? (resend ? "Cloudflare Email Service · Resend fallback" : "Cloudflare Email Service")
-      : resend
-        ? "Resend"
-        : "Yapılandırılmadı",
+    configured: isolated || cloudflare || resend,
+    provider: isolated
+      ? (resend ? "CORE Mail Service · Resend fallback" : "CORE Mail Service")
+      : cloudflare
+        ? (resend ? "Cloudflare Email Service · Resend fallback" : "Cloudflare Email Service")
+        : resend
+          ? "Resend"
+          : "Yapılandırılmadı",
     from: mailFrom(),
     replyTo: mailReplyTo(),
+    isolated,
     cloudflare,
     resend,
   };
