@@ -22,6 +22,21 @@ export const PORTAL_CAPABILITY_OPTIONS = [
 
 export type PortalCapability = typeof PORTAL_CAPABILITY_OPTIONS[number];
 
+export const PORTAL_SENSITIVE_CAPABILITIES = new Set<PortalCapability>([
+  "portal.admin",
+  "roles.manage",
+  "teams.manage",
+  "control.projects",
+  "control.vehicles",
+  "project.map.edit",
+  "vault.approve",
+]);
+
+export function isSensitivePortalCapability(value:string): value is PortalCapability {
+  return PORTAL_SENSITIVE_CAPABILITIES.has(value as PortalCapability);
+}
+
+
 export type PortalTeamRole =
   | "owner"
   | "captain"
