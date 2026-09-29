@@ -1,4 +1,5 @@
 "use client";
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -96,7 +97,7 @@ export default function VaultCodeReader({
         </div>
       </header>
 
-      <div className={"vaultCodeViewport " + (wrap ? "wrap" : "")} ref={containerRef}>
+      <ResizableWorkspace mode="surface" storageKey="code-reader" label="Kod görünümü"><div className={"vaultCodeViewport " + (wrap ? "wrap" : "")} ref={containerRef}>
         <table>
           <tbody>
             {lines.map((line,index) => {
@@ -111,7 +112,7 @@ export default function VaultCodeReader({
             })}
           </tbody>
         </table>
-      </div>
+      </div></ResizableWorkspace>
 
       <footer>
         <span>Salt okunur kaynak görünümü</span>

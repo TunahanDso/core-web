@@ -1,4 +1,5 @@
 "use client";
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -126,7 +127,7 @@ export default function VaultSourceBrowser({
       {loading&&!chunk?<div className="vaultSourceLoading">R2 kaynağından güvenli pencere okunuyor…</div>:null}
 
       {chunk?(
-        <div className="vaultSourceViewport">
+        <ResizableWorkspace mode="surface" storageKey="source-browser" label="Kaynak görünümü"><div className="vaultSourceViewport">
           <table>
             <tbody>
               {lines.map((line,index)=>{
@@ -140,7 +141,7 @@ export default function VaultSourceBrowser({
               })}
             </tbody>
           </table>
-        </div>
+        </div></ResizableWorkspace>
       ):null}
 
       <footer>

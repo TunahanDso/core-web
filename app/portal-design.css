@@ -342,7 +342,7 @@ html[data-portal-theme="aurora"] :is(.portalPageHeader,.portalDashboardHeader) {
 html[data-portal-theme="aurora"] .portalApp .portalPrimaryButton { background:linear-gradient(120deg,#c4a7ff,#91edff); color:#141a31; box-shadow:0 4px 20px #8f78ff30; }
 html[data-portal-theme="aurora"] .portalCommandTrigger { border-color:#74709d; background:#1b203d; }
 @media (prefers-reduced-motion:reduce) { html[data-portal-theme="aurora"] * { text-shadow:none; } }
-.portalApp :is(.repoWorkspaceHero,.repoServiceNotice,.repoWorkspaceToolbar,.repoCodePanel,.repoWorkspaceSide,.repoManifestGrid,.repoReviewSnapshot,.repoReviewToolbar,.repoReviewLayout,.repoComparePanel,.liveTerminalShell) {
+.portalApp :is(.repoWorkspaceHero,.repoServiceNotice,.repoWorkspaceToolbar,.repoCodePanel,.repoWorkspaceSide,.repoManifestGrid,.repoReviewSnapshot,.repoReviewToolbar,.repoReviewLayout,.repoResizableReview,.repoComparePanel,.liveTerminalShell) {
   --core-text:#f0f4fc; --core-text-secondary:#d1dbea; --core-text-muted:#b5c3d6; --core-text-quiet:#b5c3d6;
   --core-surface-base:#171e2b; --core-surface-subtle:#121923; --core-surface-hover:#263044;
   --core-border:#45516a; --core-accent:#ffbd8c;
@@ -364,3 +364,57 @@ html[data-portal-theme="aurora"] .portalCommandTrigger { border-color:#74709d; b
   .mailAppTopActions { flex-wrap:wrap; }
 }
 @media (max-width:600px) { .mailCompactFolderSelect>span { display:none; } }
+
+/* Flat, scrollable navigation: every permitted module remains directly accessible. */
+.portalApp .portalNav.portalNavFlat { display:grid; gap:3px; align-content:start; }
+.portalNavFlat>a { display:grid; }
+/* Workbench sizing stays local and does not remount editors or active terminals. */
+.workbenchResizeRoot { min-width:0; max-width:100%; margin-block:8px; }
+.workbenchResizeToolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; color:var(--core-text-muted); font-size:12px; }
+.workbenchResizeToolbar button { flex-shrink:0; min-height:32px; padding:5px 9px; border:1px solid var(--core-border); border-radius:6px; color:var(--core-text); background:var(--core-surface-base); cursor:pointer; }
+.workbenchSplit { display:grid; grid-template-columns:minmax(0,var(--workbench-split)) 14px minmax(0,1fr); align-items:stretch; }
+.workbenchSplitPane { min-width:0; overflow-wrap:anywhere; }
+.workbenchSplitPane>.repoWorkspaceSide, .workbenchSplitPane>.repoReviewFiles { position:static; }
+.workbenchResizeHandle { position:relative; display:flex; align-items:center; justify-content:center; touch-action:none; user-select:none; color:var(--core-text-muted); background:var(--core-surface-subtle); border:1px solid var(--core-border); border-radius:5px; z-index:3; }
+.workbenchResizeHandle:is(.between,.right) { cursor:col-resize; min-width:14px; }
+.workbenchResizeHandle:is(.top,.bottom) { cursor:row-resize; height:14px; }
+.workbenchResizeHandle span { display:block; width:3px; height:32px; border-radius:2px; background:var(--core-text-muted); pointer-events:none; }
+.workbenchResizeHandle:is(.top,.bottom) span { width:40px; height:3px; }
+.workbenchResizeHandle:is(:hover,:focus-visible), .resizing .workbenchResizeHandle { border-color:var(--core-focus); background:var(--core-surface-selected); }
+.workbenchSurface { position:relative; width:var(--workbench-width); min-width:min(360px,100%); max-width:100%; padding-right:14px; box-sizing:border-box; }
+.workbenchSurfaceContent { height:var(--workbench-height); min-height:0; overflow:auto; }
+.workbenchSurface>.right { position:absolute; right:0; top:14px; bottom:14px; width:14px; }
+.resizing { user-select:none; }
+.resizing iframe { pointer-events:none; }
+.workbenchSurfaceContent>:is(.vaultModelCanvas,.pcbCanvas,.vaultCodeViewport,.vaultSourceViewport) { height:100%; min-height:0; max-height:none; width:100%; margin:0; }
+.workbenchSurfaceContent>.vaultModelCanvas canvas, .workbenchSurfaceContent>.pcbCanvas svg { display:block; width:100%; height:100%; min-height:0; }
+.workbenchSurfaceContent>.liveTerminalShell { height:100%; margin:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; }
+.workbenchSurfaceContent .liveTerminalCanvas { height:100%; min-height:0; }
+.vaultResizableMetadata .vaultDetailGrid { display:grid; grid-template-columns:minmax(0,1fr); }
+.vaultResizableMetadata :is(.vaultDerivativeGrid,.portalFormGrid) { grid-template-columns:minmax(0,1fr); }
+.vaultResizableMetadata .vaultVersionList article { grid-template-columns:auto minmax(0,1fr); }
+.vaultResizableMetadata .vaultVersionList article :is(code,a) { grid-column:2; }
+.vaultResizableDetail .vaultPreviewShell { margin-top:0; }
+.vaultResizableDetail .vaultFileActions, .vaultResizableDetail :is(.vaultViewerTools,.pcbLayerTools) { flex-wrap:wrap; }
+.vaultPcbWorkspace.expanded .workbenchResizeRoot, .vaultCodeReader.expanded .workbenchResizeRoot { min-height:0; margin:0; }
+.vaultPcbWorkspace.expanded .workbenchResizeToolbar, .vaultCodeReader.expanded .workbenchResizeToolbar,
+.vaultPcbWorkspace.expanded .workbenchResizeHandle, .vaultCodeReader.expanded .workbenchResizeHandle { display:none; }
+.vaultPcbWorkspace.expanded .workbenchSurface, .vaultCodeReader.expanded .workbenchSurface { width:100%; height:100%; padding:0; }
+.vaultPcbWorkspace.expanded .workbenchSurfaceContent, .vaultCodeReader.expanded .workbenchSurfaceContent { height:100%; }
+@container portal-workspace (max-width:900px) {
+  .workbenchSplit { display:block; }
+  .workbenchSplit>.between { display:none; }
+  .workbenchSplitPane+.workbenchResizeHandle+.workbenchSplitPane { margin-top:16px; }
+  .workbenchSurface { width:100%; padding-right:0; }
+  .workbenchSurface>.right { display:none; }
+
+}
+
+.workbenchSplitPane { container:workbench-pane / inline-size; }
+@container workbench-pane (max-width:600px) {
+  .vaultPreviewShell>.portalPanelHead, .vaultModelViewer>header, .pcbPreview>header, .vaultCodeReader>header, .vaultSourceBrowser>header { display:flex; flex-direction:column; align-items:stretch; gap:10px; }
+  .vaultModelStats, .pcbInspectorBar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .vaultCodeTools, .vaultSourceWindowActions { display:flex; flex-wrap:wrap; }
+  .repoTreeRow { grid-template-columns:auto minmax(0,1fr); }
+  .repoTreeRow :is(small,code) { grid-column:2; }
+}

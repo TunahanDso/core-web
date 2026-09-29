@@ -1,4 +1,5 @@
 "use client";
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 
 import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
@@ -183,7 +184,7 @@ export default function LiveCodeTerminal({
   };
 
   return (
-    <section className="liveTerminalShell">
+    <ResizableWorkspace mode="surface" storageKey="live-terminal" label="Terminal" initialHeight={640}><section className="liveTerminalShell">
       <header className="liveTerminalToolbar">
         <div className="liveTerminalIdentity">
           <span className={"liveTerminalDot " + connection} />
@@ -212,6 +213,6 @@ export default function LiveCodeTerminal({
         <span>30 DK OTURUM</span>
         <span>STDIN / STDOUT STREAM</span>
       </footer>
-    </section>
+    </section></ResizableWorkspace>
   );
 }

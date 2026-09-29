@@ -1,3 +1,4 @@
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
@@ -91,6 +92,7 @@ export default async function VaultFilePage({
         <article><span>SHA-256</span><b className="vaultChecksum">{String(file.checksum_sha256).slice(0,12)}…</b><small>integrity</small></article>
       </section>
 
+      <ResizableWorkspace storageKey="vault-detail" label="Önizleme ve dosya bilgileri" initialSplit={70} className="vaultResizableDetail">
       <section className="vaultPreviewShell">
         <div className="portalPanelHead">
           <span>ÖNİZLEME / {previewKind.toUpperCase()}</span>
@@ -157,6 +159,7 @@ export default async function VaultFilePage({
         ) : null}
       </section>
 
+      <div className="vaultResizableMetadata">
       {needsDerivative ? (
         <details className="portalPanel vaultDerivativePanel">
           <summary className="portalPanelSummary"><div><span>ÖNİZLEME TÜREVİ</span><b>Dönüştürme ve 3B türev işleri</b></div><small>AYRINTILAR</small></summary>
@@ -244,6 +247,8 @@ export default async function VaultFilePage({
           </div>
         </details>
       ) : null}
+      </div>
+      </ResizableWorkspace>
     </>
   );
 }

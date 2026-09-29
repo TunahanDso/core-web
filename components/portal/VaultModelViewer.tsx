@@ -1,4 +1,5 @@
 "use client";
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -71,6 +72,17 @@ export default function VaultModelViewer({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelRef = useRef<Model | null>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const [viewport,setViewport] = useState({width:0,height:0});
+  useEffect(()=>{
+    const canvas=canvasRef.current;if(!canvas)return;
+    let frame=0;
+    const observer=new ResizeObserver(()=>{
+      cancelAnimationFrame(frame);
+      frame=requestAnimationFrame(()=>{const rect=canvas.getBoundingClientRect();setViewport(old=>old.width===rect.width && old.height===rect.height?old:{width:rect.width,height:rect.height});});
+    });
+    observer.observe(canvas);
+    return()=>{observer.disconnect();cancelAnimationFrame(frame);};
+  },[]);
   const [error,setError] = useState("");
   const [busy,setBusy] = useState(true);
   const [mode,setMode] = useState<"rotate" | "pan">("rotate");
@@ -125,8 +137,8 @@ export default function VaultModelViewer({
 
     const rect=canvas.getBoundingClientRect();
     const dpr=Math.min(window.devicePixelRatio||1,2);
-    const width=Math.max(320,Math.floor(rect.width));
-    const height=Math.max(300,Math.floor(rect.height));
+    const width=Math.max(1,Math.floor(rect.width));
+    const height=Math.max(1,Math.floor(rect.height));
     canvas.width=Math.floor(width*dpr);
     canvas.height=Math.floor(height*dpr);
     const ctx=canvas.getContext("2d");
@@ -212,7 +224,7 @@ export default function VaultModelViewer({
     ctx.strokeStyle="rgba(255,101,0,.72)";
     ctx.lineWidth=1.5;
     ctx.strokeRect(10.5,10.5,width-21,height-21);
-  },[camera,busy,error,renderMode,projection,axes]);
+  },[camera,busy,error,renderMode,projection,axes,viewport]);
 
   function reset(){
     setCamera({rx:-0.35,ry:0.55,zoom:1,px:0,py:0});
@@ -244,7 +256,7 @@ export default function VaultModelViewer({
         <div><span>TRI</span><b>{stats.triangles.toLocaleString("tr-TR")}</b></div>
       </div>
 
-      <div className="vaultModelCanvas">
+      <ResizableWorkspace mode="surface" storageKey="cad-canvas" label="CAD görünümü"><div className="vaultModelCanvas">
         <canvas
           ref={canvasRef}
           onPointerDown={(event)=>{
@@ -269,7 +281,7 @@ export default function VaultModelViewer({
         />
         {busy?<div className="vaultViewerOverlay">MODEL HAZIRLANIYOR…</div>:null}
         {error?<div className="vaultViewerOverlay error">{error}</div>:null}
-      </div>
+      </div></ResizableWorkspace>
       <footer>Orbit / pan / zoom · solid + wireframe · ortho / perspective · STL / OBJ / GLB / embedded glTF · ölçüler model birimindedir</footer>
     </section>
   );
