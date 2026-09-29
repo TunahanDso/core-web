@@ -1,6 +1,7 @@
 name: Desktop Native
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "src-tauri/**"
@@ -36,3 +37,35 @@ jobs:
           workspaces: src-tauri
       - name: Check desktop shell
         run: cargo check --manifest-path src-tauri/Cargo.toml
+
+  build-windows-portable:
+    name: Build Windows portable
+    needs: rust-check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build release executable
+        run: cargo build --release --manifest-path src-tauri/Cargo.toml
+
+      - name: Stage portable executable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item "src-tauri/target/release/core-desktop.exe" "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
+
+      - name: Upload Windows portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YTU-CORE-Desktop-Windows-x64
+          path: artifacts/YTU-CORE-Desktop-Windows-x64.exe
+          if-no-files-found: error
+          retention-days: 14
