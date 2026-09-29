@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { codeLabDb } from "@/lib/platform/databases";
 import runnerContract from "@/config/core-runner-tasks.json";
 import type { PortalMember } from "@/lib/portal/auth";
 import { ensurePortalCodeLabSchema } from "@/lib/portal/bootstrap";
@@ -9,8 +10,7 @@ import {
 } from "@/lib/portal/repositories";
 
 function database() {
-  if (!env.DB) throw new Error("Portal database binding is not available.");
-  return env.DB;
+  return codeLabDb();
 }
 
 function mediaBucket() {
