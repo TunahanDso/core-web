@@ -1,0 +1,19 @@
+name: Live E2E Smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify live YTÜ CORE
+        env:
+          E2E_BASE_URL: https://ytucore.com
+        run: node tests/e2e/live-smoke.mjs
