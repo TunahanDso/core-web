@@ -4105,8 +4105,6 @@ html,body{max-width:100%;overflow-x:clip}
 }
 
 
-/* =========================================================
-
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after {
     scroll-behavior:auto !important;
