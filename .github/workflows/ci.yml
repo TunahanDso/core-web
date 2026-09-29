@@ -488,9 +488,26 @@ jobs:
               if (!modelViewer.includes(required)) throw new Error(`3D engineering viewer missing: ${required}`);
             }
             const pcbViewer = fs.readFileSync("components/portal/KiCadBoardPreview.tsx", "utf8");
-            for (const required of ["segmentRe", "viaRe", "selectedNet", "F.Cu", "B.Cu"]) {
+            for (const required of ["segmentRe", "viaRe", "selectedNet", "F.Cu", "B.Cu", "response.body?.getReader()", "R2 source okunuyor"]) {
               if (!pcbViewer.includes(required)) throw new Error(`KiCad engineering viewer missing: ${required}`);
             }
+            const vaultSourceBrowser = fs.readFileSync("components/portal/VaultSourceBrowser.tsx", "utf8");
+            for (const required of ["CHUNK_BYTES", "/source?", "192 KB pencere", "SONRAKİ"]) {
+              if (!vaultSourceBrowser.includes(required)) throw new Error(`Large Vault source browser missing: ${required}`);
+            }
+            const vaultSourceApi = fs.readFileSync("app/api/portal/vault/[id]/source/route.ts", "utf8");
+            if (!vaultSourceApi.includes("readPortalVaultTextChunk") || !vaultSourceApi.includes("Cache-Control")) {
+              throw new Error("Large Vault source API is incomplete.");
+            }
+            const vaultSourceService = fs.readFileSync("lib/portal/vault.ts", "utf8");
+            if (!vaultSourceService.includes("readPortalVaultTextChunk") || !vaultSourceService.includes("range: { offset, length }")) {
+              throw new Error("Vault service must use R2 ranged reads for large source browsing.");
+            }
+            const vaultDetailSource = fs.readFileSync("app/portal/(member)/library/[id]/page.tsx", "utf8");
+            if (!vaultDetailSource.includes("VaultSourceBrowser") || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
+              throw new Error("KiCad Vault detail must use large-file viewer + chunked source browser.");
+            }
+            console.log("VA-03 large KiCad streaming viewer and ranged source browser validated.");
             console.log("GV-01 role-driven authorization, team CRUD, entity cards and V9 engineering controls validated.");
 
             const portalAuth = fs.readFileSync("lib/portal/auth.ts", "utf8");
