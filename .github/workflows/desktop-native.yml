@@ -60,19 +60,42 @@ jobs:
       - name: Build release executable
         run: cargo build --release --manifest-path src-tauri/Cargo.toml
 
-      - name: Stage portable executable and checksum
+      - name: Stage release executable
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item "src-tauri/target/release/core-desktop.exe" "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
+
+      - name: Require signing material for stable builds
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERT_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_CERT_PFX_BASE64 }}
+          WINDOWS_SIGNING_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_PASSWORD)) {
+            throw "Stable CORE Desktop release blocked: Windows code-signing secrets are not configured."
+          }
+          [IO.File]::WriteAllBytes("$env:RUNNER_TEMP/core-desktop-signing.pfx",[Convert]::FromBase64String($env:WINDOWS_SIGNING_CERT_PFX_BASE64))
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Filter signtool.exe -Recurse | Where-Object { $_.FullName -match "\\x64\\signtool.exe$" } | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { throw "signtool.exe not found on Windows runner." }
+          & $signtool.FullName sign /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" /f "$env:RUNNER_TEMP/core-desktop-signing.pfx" /p "$env:WINDOWS_SIGNING_CERT_PASSWORD" "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
+          if ($LASTEXITCODE -ne 0) { throw "Authenticode signing failed." }
+          & $signtool.FullName verify /pa /all "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
+          if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed." }
+          Remove-Item "$env:RUNNER_TEMP/core-desktop-signing.pfx" -Force
+
+      - name: Create checksum
+        shell: pwsh
+        run: |
           $target = "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
-          Copy-Item "src-tauri/target/release/core-desktop.exe" $target
           $hash = (Get-FileHash $target -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  YTU-CORE-Desktop-Windows-x64.exe" | Set-Content "artifacts/YTU-CORE-Desktop-Windows-x64.exe.sha256"
 
-      - name: Upload Windows portable artifact
+      - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: YTU-CORE-Desktop-Windows-x64
+          name: ${{ github.event_name == 'pull_request' && 'YTU-CORE-Desktop-Windows-x64-UNSIGNED-DEV' || 'YTU-CORE-Desktop-Windows-x64-SIGNED' }}
           path: |
             artifacts/YTU-CORE-Desktop-Windows-x64.exe
             artifacts/YTU-CORE-Desktop-Windows-x64.exe.sha256
@@ -91,10 +114,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download Windows artifact
+      - name: Download signed Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: YTU-CORE-Desktop-Windows-x64
+          name: YTU-CORE-Desktop-Windows-x64-SIGNED
           path: release
 
       - name: Publish stable latest channel
