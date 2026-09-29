@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-export type Theme = "system" | "light" | "dark";
+export type Theme = "system" | "light" | "dark" | "aurora";
 export type Density = "compact" | "comfortable";
 const eventName = "core:appearance";
 
@@ -29,5 +29,5 @@ export function useTheme() {
 export function applyTheme(preference: Theme) {
   const root = document.documentElement;
   root.dataset.portalThemePreference = preference;
-  root.dataset.portalTheme = preference === "dark" || (preference === "system" && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  root.dataset.portalTheme = preference === "aurora" ? "aurora" : preference === "dark" || (preference === "system" && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
 }

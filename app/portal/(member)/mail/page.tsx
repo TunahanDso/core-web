@@ -1,3 +1,5 @@
+import MailFolderSelect from "@/components/portal/MailFolderSelect";
+import PendingSubmitButton from "@/components/portal/PendingSubmitButton";
 import Link from "next/link";
 import { PortalEmpty } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -87,7 +89,7 @@ export default async function PortalMailPage({
     ? folderRaw as PortalMailboxFolder | "drafts"
     : "inbox";
   const section = String(query.section || "mail") === "groups" ? "groups" : "mail";
-  const q = String(query.q || "").trim().toLowerCase();
+  const q = String(query.q || "").trim().toLocaleLowerCase("tr-TR");
   const unreadOnly = String(query.filter || "") === "unread";
 
   const [members, counts, drafts, vaultFiles, groups, joinableGroups] = await Promise.all([
@@ -107,13 +109,13 @@ export default async function PortalMailPage({
     if (unreadOnly && Number(thread.unread || 0) < 1) return false;
     if (!q) return true;
     return [thread.subject,thread.preview,thread.last_author]
-      .some((value) => String(value || "").toLowerCase().includes(q));
+      .some((value) => String(value || "").toLocaleLowerCase("tr-TR").includes(q));
   });
 
   const filteredDrafts = drafts.filter((item) => {
     if (!q) return true;
     return [item.subject,item.body]
-      .some((value) => String(value || "").toLowerCase().includes(q));
+      .some((value) => String(value || "").toLocaleLowerCase("tr-TR").includes(q));
   });
 
   const threadId = String(query.thread || "");
@@ -171,7 +173,7 @@ export default async function PortalMailPage({
   };
 
   const activeFolderLabel = folderLabels.find(([value]) => value === folder)?.[1] || "Gelen";
-  const composeCloseHref = queryHref({folder,thread:threadId || undefined});
+  const composeCloseHref = queryHref({folder,thread:threadId || undefined,q:query.q,filter:query.filter});
   const replyOpen = Boolean(selectedThread) && String(query.reply || "") === "1";
 
   return (
@@ -200,20 +202,21 @@ export default async function PortalMailPage({
         )}
 
         <div className="mailAppTopActions">
+          <MailFolderSelect folder={folder} options={folderLabels.map(([value,label])=>({value,label}))} />
           <Link prefetch={false} className={section === "groups" ? "active" : ""} href="/portal/mail?section=groups">Gruplar</Link>
-          <a className="primary" href={queryHref({folder,thread:threadId || undefined,compose:"1"})}>+ Yeni yazışma</a>
+          <Link prefetch={false} className="primary" href={queryHref({folder,thread:threadId || undefined,compose:"1",q:query.q,filter:query.filter})}>+ Yeni yazışma</Link>
         </div>
       </header>
 
       <div className="mailAppBody">
         <aside className="mailAppRail">
-          <a className="mailRailCompose" href={queryHref({folder,thread:threadId || undefined,compose:"1"})}>
+          <Link prefetch={false} className="mailRailCompose" href={queryHref({folder,thread:threadId || undefined,compose:"1",q:query.q,filter:query.filter})}>
             <span>＋</span><b>Yeni</b>
-          </a>
+          </Link>
 
           <nav aria-label="Mail klasörleri">
             {folderLabels.map(([value,label,code]) => (
-              <a
+              <Link prefetch={false}
                 href={queryHref({folder:value})}
                 className={section === "mail" && folder === value ? "active" : ""}
                 key={value}
@@ -221,7 +224,7 @@ export default async function PortalMailPage({
                 <span>{code}</span>
                 <b>{label}</b>
                 <em>{folderCount(value)}</em>
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -243,12 +246,12 @@ export default async function PortalMailPage({
                   <small>{folder === "drafts" ? filteredDrafts.length : filteredThreads.length} kayıt</small>
                 </div>
                 <div className="mailListFilters">
-                  <a
+                  <Link prefetch={false}
                     className={unreadOnly ? "active" : ""}
                     href={queryHref({folder,filter:unreadOnly ? undefined : "unread",q:query.q})}
                   >
                     Okunmamış
-                  </a>
+                  </Link>
                 </div>
               </header>
 
@@ -256,14 +259,14 @@ export default async function PortalMailPage({
                 {folder === "drafts" ? (
                   filteredDrafts.length ? filteredDrafts.map((item) => (
                     <article className="mailListRow draft" key={String(item.id)}>
-                      <a className="mailListRowOpen" href={queryHref({folder:"drafts",draft:String(item.id)})}>
+                      <Link prefetch={false} className="mailListRowOpen" href={queryHref({folder:"drafts",draft:String(item.id)})}>
                         <span className="mailUnreadDot">DR</span>
                         <div>
                           <header><b>{String(item.subject || "Konusuz taslak")}</b></header>
                           <p>{String(item.body || "Boş taslak")}</p>
                           <small>Taslak · {String(item.updated_at)}</small>
                         </div>
-                      </a>
+                      </Link>
                       <form action={deleteMailboxDraftAction}>
                         <input type="hidden" name="draftId" value={String(item.id)} />
                         <button type="submit" title="Taslağı sil">×</button>
@@ -279,6 +282,8 @@ export default async function PortalMailPage({
                       <form action={openMailboxThreadAction} className="mailListOpenForm">
                         <input type="hidden" name="threadId" value={String(thread.id)} />
                         <input type="hidden" name="folder" value={folder} />
+                        <input type="hidden" name="q" value={String(query.q||"")} />
+                        <input type="hidden" name="filter" value={String(query.filter||"")} />
                         <button className="mailListRowOpen" type="submit">
                           <span className="mailUnreadDot">{isUnread ? "●" : "○"}</span>
                           <div>
@@ -300,7 +305,7 @@ export default async function PortalMailPage({
                       </form>
                     </article>
                   );
-                }) : <PortalEmpty title="Bu klasör temiz." text="Burada gösterilecek yazışma yok." />}
+                }) : <PortalEmpty title={q || unreadOnly ? "Aramana uygun yazışma yok." : "Bu klasör temiz."} text={q || unreadOnly ? "Aramayı veya okunmamış filtresini değiştirerek tekrar deneyebilirsin." : "Burada gösterilecek yazışma yok."} />}
               </div>
             </section>
 
@@ -308,7 +313,7 @@ export default async function PortalMailPage({
               {selectedThread ? (
                 <>
                   <header className="mailReaderHeader">
-                    <a className="mailMobileBack" href={queryHref({folder})}>← Liste</a>
+                    <Link prefetch={false} className="mailMobileBack" href={queryHref({folder,q:query.q,filter:query.filter})}>← Liste</Link>
                     <div className="mailReaderSubject">
                       <span>YAZIŞMA</span>
                       <h1>{String(selectedThread.thread.subject)}</h1>
@@ -320,8 +325,8 @@ export default async function PortalMailPage({
                     </div>
 
                     <div className="mailReaderActions">
-                      <a className="primary" href={queryHref({folder,thread:threadId,reply:"1"})}>Yanıtla</a>
-                      <a href={queryHref({folder,thread:threadId,compose:"1",forward:threadId})}>İlet</a>
+                      <Link prefetch={false} className="primary" href={queryHref({folder,thread:threadId,reply:"1",q:query.q,filter:query.filter})}>Yanıtla</Link>
+                      <Link prefetch={false} href={queryHref({folder,thread:threadId,compose:"1",forward:threadId,q:query.q,filter:query.filter})}>İlet</Link>
                       <form action={mutateMailboxThreadAction}>
                         <input type="hidden" name="threadId" value={threadId} />
                         <input type="hidden" name="returnTo" value={queryHref({folder})} />
@@ -383,7 +388,7 @@ export default async function PortalMailPage({
                         <input type="hidden" name="threadId" value={threadId} />
                         <div className="mailInlineReplyHead">
                           <div><b>Tümünü yanıtla</b><small>{threadParticipants.length} katılımcı</small></div>
-                          <a href={queryHref({folder,thread:threadId})}>Kapat</a>
+                          <Link prefetch={false} href={queryHref({folder,thread:threadId,q:query.q,filter:query.filter})}>Kapat</Link>
                         </div>
                         <textarea name="body" rows={5} placeholder="Yanıtını yaz..." autoFocus required />
                         {vaultFiles.length ? (
@@ -400,13 +405,13 @@ export default async function PortalMailPage({
                           </details>
                         ) : null}
                         <div className="mailInlineReplyActions">
-                          <button className="portalPrimaryButton" type="submit">Gönder</button>
+                          <PendingSubmitButton className="portalPrimaryButton" pendingLabel="Gönderiliyor…">Gönder</PendingSubmitButton>
                         </div>
                       </form>
                     ) : (
-                      <a className="mailReplyLauncher" href={queryHref({folder,thread:threadId,reply:"1"})}>
+                      <Link prefetch={false} className="mailReplyLauncher" href={queryHref({folder,thread:threadId,reply:"1",q:query.q,filter:query.filter})}>
                         <span>↩</span><b>Yanıtla</b><small>Bu yazışmadaki herkese</small>
-                      </a>
+                      </Link>
                     )}
                   </footer>
                 </>
@@ -429,7 +434,7 @@ export default async function PortalMailPage({
 
               <div className="mailGroupsList">
                 {groups.length ? groups.map((group) => (
-                  <a
+                  <Link prefetch={false}
                     className={String(group.id) === selectedGroupId ? "active" : ""}
                     href={queryHref({section:"groups",group:String(group.id)})}
                     key={String(group.id)}
@@ -439,7 +444,7 @@ export default async function PortalMailPage({
                       <b>{String(group.name)}</b>
                       <small>{String(group.member_count || 0)} üye · {String(group.access_mode) === "locked" ? "erişim kodlu" : "özel"}</small>
                     </div>
-                  </a>
+                  </Link>
                 )) : <PortalEmpty title="Henüz grubun yok." text="Sık kullandığın ekipleri alıcı grubu yaparak tek seçimle mail gönderebilirsin." />}
               </div>
 
@@ -468,7 +473,7 @@ export default async function PortalMailPage({
                       <h2>{String(selectedGroup.name)}</h2>
                       <p>{String(selectedGroup.description || "Açıklama yok.")}</p>
                     </div>
-                    <a className="portalPrimaryButton" href={queryHref({compose:"1",section:"mail",group:selectedGroupId})}>Bu gruba yaz</a>
+                    <Link prefetch={false} className="portalPrimaryButton" href={queryHref({compose:"1",section:"mail",group:selectedGroupId})}>Bu gruba yaz</Link>
                   </header>
 
                   <div className="mailGroupMemberList">
@@ -507,7 +512,7 @@ export default async function PortalMailPage({
                 <span>{draft ? "TASLAK" : forward ? "İLET" : "YENİ YAZIŞMA"}</span>
                 <b>{draft ? String(draft.subject || "Taslağı düzenle") : "CORE Mail"}</b>
               </div>
-              <a href={composeCloseHref} aria-label="Yazmayı kapat">×</a>
+              <Link prefetch={false} href={composeCloseHref} aria-label="Yazmayı kapat">×</Link>
             </header>
 
             <form action={createMailboxThreadAction}>
@@ -573,9 +578,9 @@ export default async function PortalMailPage({
               </details>
 
               <footer>
-                <button className="portalPrimaryButton" type="submit">Gönder</button>
-                <button className="portalOutlineButton" formAction={saveMailboxDraftAction} formNoValidate type="submit">Taslağa kaydet</button>
-                <a href={composeCloseHref}>Vazgeç</a>
+                <PendingSubmitButton className="portalPrimaryButton" pendingLabel="Gönderiliyor…">Gönder</PendingSubmitButton>
+                <PendingSubmitButton className="portalOutlineButton" formAction={saveMailboxDraftAction} formNoValidate pendingLabel="Kaydediliyor…">Taslağa kaydet</PendingSubmitButton>
+                <Link prefetch={false} href={composeCloseHref}>Vazgeç</Link>
               </footer>
             </form>
           </section>

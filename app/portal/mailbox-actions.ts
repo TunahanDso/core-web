@@ -114,7 +114,11 @@ export async function openMailboxThreadAction(formData: FormData) {
   revalidatePath("/portal/mail");
   const folder = textValue(formData,"folder");
   const targetFolder = ["inbox","sent","starred","archive","trash"].includes(folder) ? folder : "inbox";
-  redirect("/portal/mail?folder=" + targetFolder + "&thread=" + encodeURIComponent(threadId));
+  const query = new URLSearchParams({folder:targetFolder,thread:threadId});
+  const q=textValue(formData,"q");
+  if(q) query.set("q",q);
+  if(textValue(formData,"filter")==="unread") query.set("filter","unread");
+  redirect("/portal/mail?"+query.toString());
 }
 
 export async function mutateMailboxThreadAction(formData: FormData) {

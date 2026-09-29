@@ -23,7 +23,7 @@ export default function PortalThemeControl() {
         applyTheme(next);
         savePreference("core.portal.theme", next);
       }}>
-        <option value="system">Sistem</option><option value="light">Açık</option><option value="dark">Koyu</option>
+        <option value="system">Sistem</option><option value="light">Açık</option><option value="dark">Koyu</option><option value="aurora">Aurora ✦</option>
       </select>
     </label>
   );
