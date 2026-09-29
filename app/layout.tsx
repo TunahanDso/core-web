@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import CoreRum from "@/components/analytics/CoreRum";
 
 export const metadata: Metadata = {
   title: "YTÜ CORE",
@@ -15,7 +16,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <body>{children}</body>
+      <body>{children}<CoreRum /></body>
     </html>
   );
 }
