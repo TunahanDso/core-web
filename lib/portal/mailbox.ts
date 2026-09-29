@@ -242,6 +242,8 @@ function mailGroupBase64ToBytes(value: string) {
 }
 
 async function deriveMailGroupAccessHash(code: string, salt: Uint8Array) {
+  const saltBuffer = new ArrayBuffer(salt.byteLength);
+  new Uint8Array(saltBuffer).set(salt);
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(code),
@@ -250,7 +252,7 @@ async function deriveMailGroupAccessHash(code: string, salt: Uint8Array) {
     ["deriveBits"]
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt: saltBuffer, iterations: 100000, hash: "SHA-256" },
     key,
     256
   );
