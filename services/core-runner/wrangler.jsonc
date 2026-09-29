@@ -4,6 +4,12 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-28",
   "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    {
+      "pattern": "runner.ytucore.com",
+      "custom_domain": true
+    }
+  ],
   "containers": [
     {
       "class_name": "RunnerContainer",
