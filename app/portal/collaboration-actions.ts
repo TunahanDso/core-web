@@ -97,6 +97,10 @@ export async function setMeetingStatusAction(formData: FormData) {
     throw new Error("Toplantı ve durum gerekli.");
   }
   await setMeetingStatus(meetingId,statusRaw as "scheduled"|"live"|"completed"|"cancelled",member.id,member.email);
+  if(statusRaw==="completed"){
+    await generateMeetingReport(meetingId,member.id,member.email);
+    revalidatePath("/portal/archive");
+  }
   revalidatePath("/portal/meetings");
   revalidatePath("/portal/meetings/"+meetingId);
   redirect("/portal/meetings/"+encodeURIComponent(meetingId)+"?status="+encodeURIComponent(statusRaw));
@@ -258,7 +262,7 @@ export async function createBudgetAllocationAction(formData: FormData) {
   await createBudgetAllocation({
     accountId,
     category:textValue(formData,"category") || "general",
-    amountMinor:parseMinor(formData.get("amount")),
+    amountMinor:parsePositiveMinor(formData.get("amount")),
     periodStart:textValue(formData,"periodStart") || null,
     periodEnd:textValue(formData,"periodEnd") || null,
     notes:textValue(formData,"notes"),
