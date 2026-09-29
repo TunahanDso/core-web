@@ -58,6 +58,7 @@ export default function PortalNav({ canControl }: { canControl: boolean }) {
       <Link
         className={isActive?"active":""}
         href={href}
+        prefetch={false}
         key={href}
         aria-current={isActive?"page":undefined}
         aria-label={label}
