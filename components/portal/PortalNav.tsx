@@ -12,7 +12,7 @@ export default function PortalNav({ canControl }: { canControl: boolean }) {
         <section key={group.label}>
           <p>{group.label}</p>
           {group.items
-            .filter(([, href]) => href !== "/portal/control" || canControl)
+            .filter(([, href]) => !["/portal/control","/portal/control-center"].includes(href) || canControl)
             .map(([label, href, code]) => {
             const active =
               href === "/portal"
