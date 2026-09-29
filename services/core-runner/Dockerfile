@@ -9,11 +9,15 @@ RUN apt-get update \
  && useradd --create-home --uid 10001 runner
 
 WORKDIR /opt/core-runner
+RUN npm install --prefix /opt/core-runner ws@8.18.3
 COPY sandbox_server.py /opt/core-runner/sandbox_server.py
-RUN chmod 0555 /opt/core-runner/sandbox_server.py \
- && mkdir -p /tmp/core-runner \
- && chown -R runner:runner /tmp/core-runner /opt/core-runner
+COPY terminal_server.cjs /opt/core-runner/terminal_server.cjs
+COPY start.sh /opt/core-runner/start.sh
+RUN chmod 0555 /opt/core-runner/sandbox_server.py /opt/core-runner/terminal_server.cjs \
+ && chmod 0555 /opt/core-runner/start.sh \
+ && mkdir -p /tmp/core-runner /tmp/core-terminal \
+ && chown -R runner:runner /tmp/core-runner /tmp/core-terminal /opt/core-runner
 
 USER runner
-EXPOSE 8080
-CMD ["python3", "/opt/core-runner/sandbox_server.py"]
+EXPOSE 8080 8081
+CMD ["/opt/core-runner/start.sh"]
