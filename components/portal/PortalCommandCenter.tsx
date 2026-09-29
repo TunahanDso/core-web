@@ -47,9 +47,23 @@ const quickCommands: CommandItem[] = [
   {
     label: "Takvime etkinlik ekle",
     hint: "Hızlı işlem",
-    href: "/portal/calendar#create-event",
+    href: "/portal/calendar?create=1",
     code: "+CL",
     keywords: "takvim etkinlik toplantı test ekle",
+  },
+  {
+    label: "Toplantı planla",
+    hint: "Hızlı işlem",
+    href: "/portal/meetings?create=meeting",
+    code: "+MT",
+    keywords: "toplantı meeting ses görüntü planla",
+  },
+  {
+    label: "Genel oylama aç",
+    hint: "Hızlı işlem",
+    href: "/portal/polls?create=1",
+    code: "+VT",
+    keywords: "oylama vote karar anket",
   },
   {
     label: "Stok hareketi aç",
@@ -57,6 +71,13 @@ const quickCommands: CommandItem[] = [
     href: "/portal/inventory?action=movement",
     code: "+ST",
     keywords: "stok envanter giriş çıkış parça",
+  },
+  {
+    label: "Bütçe hareketi",
+    hint: "Hızlı işlem",
+    href: "/portal/budget",
+    code: "+BG",
+    keywords: "bütçe gelir gider para finans ledger",
   },
 ];
 
@@ -228,7 +249,7 @@ export default function PortalCommandCenter() {
                   <span>⌕</span>
                   <div>
                     <b>“{query.trim()}” için tüm portalda ara</b>
-                    <small>Görev · Vault · repo · stok · üye</small>
+                    <small>Görev · Vault · toplantı · bütçe · repo · üye</small>
                   </div>
                   <i>↵</i>
                 </button>
