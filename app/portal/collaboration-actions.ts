@@ -90,7 +90,7 @@ export async function setMeetingStatusAction(formData: FormData) {
   if(!meetingId || !["scheduled","live","completed","cancelled"].includes(statusRaw)) {
     throw new Error("Toplantı ve durum gerekli.");
   }
-  await setMeetingStatus(meetingId,statusRaw as "scheduled"|"live"|"completed"|"cancelled",member.email);
+  await setMeetingStatus(meetingId,statusRaw as "scheduled"|"live"|"completed"|"cancelled",member.id,member.email);
   revalidatePath("/portal/meetings");
   revalidatePath("/portal/meetings/"+meetingId);
   redirect("/portal/meetings/"+encodeURIComponent(meetingId)+"?status="+encodeURIComponent(statusRaw));
