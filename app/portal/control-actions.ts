@@ -360,6 +360,7 @@ export async function updatePortalRoleProfileAction(formData: FormData) {
     description:text(formData,"description"),
     capabilities:formData.getAll("capability").map((item) => String(item)),
     actorEmail:member.email,
+    confirmation:text(formData,"confirmation"),
   });
   revalidatePath("/portal/members");
   revalidatePath("/portal/control");
