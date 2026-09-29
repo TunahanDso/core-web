@@ -186,26 +186,7 @@ export async function deletePortalTeam(input: {
   ).bind(teamCode).first<{ code:string; name:string }>();
   if (!existing) throw new Error("Takım bulunamadı.");
 
-  const members = await database.prepare(
-    "SELECT id,teams_json FROM portal_members WHERE teams_json LIKE ?"
-  ).bind("%" + teamCode + "%").all<{ id:string; teams_json:string }>();
-
-  const legacyUpdates = (members.results ?? []).map((member) => {
-    let teams: string[] = [];
-    try {
-      const parsed = JSON.parse(member.teams_json || "[]");
-      if (Array.isArray(parsed)) teams = parsed.map((item) => String(item));
-    } catch {
-      teams = [];
-    }
-    const next = teams.filter((item) => code(item) !== teamCode);
-    return database.prepare(
-      "UPDATE portal_members SET teams_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?"
-    ).bind(JSON.stringify(next),member.id);
-  });
-
   await database.batch([
-    ...legacyUpdates,
     database.prepare("UPDATE portal_tasks SET team_code=NULL WHERE team_code=?").bind(teamCode),
     database.prepare("UPDATE portal_resources SET team_code=NULL WHERE team_code=?").bind(teamCode),
     database.prepare("UPDATE portal_repositories SET team_code=NULL WHERE team_code=?").bind(teamCode),
@@ -225,7 +206,6 @@ export async function deletePortalTeam(input: {
     ).bind(input.actorEmail,teamCode,JSON.stringify({
       name:existing.name,
       detached:["tasks","resources","repositories","channels","calendar","vault","native-repositories","projects","vehicles"],
-      legacyMembershipsUpdated:legacyUpdates.length,
     })),
   ]);
   return true;
@@ -240,28 +220,13 @@ export async function removePortalTeamMembership(input: {
   if (!teamCode || !input.memberId) throw new Error("Takım ve üye gerekli.");
   const database = db();
 
-  const member = await database.prepare(
-    "SELECT teams_json FROM portal_members WHERE id=? LIMIT 1"
-  ).bind(input.memberId).first<{ teams_json:string }>();
-  let teams: string[] = [];
-  try {
-    const parsed = JSON.parse(member?.teams_json || "[]");
-    if (Array.isArray(parsed)) teams = parsed.map((item) => String(item));
-  } catch {
-    teams = [];
-  }
-  const next = teams.filter((item) => code(item) !== teamCode);
-
   await database.batch([
     database.prepare(
       "DELETE FROM portal_team_memberships WHERE team_code=? AND member_id=?"
     ).bind(teamCode,input.memberId),
     database.prepare(
-      "UPDATE portal_members SET teams_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?"
-    ).bind(JSON.stringify(next),input.memberId),
-    database.prepare(
       "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.team.membership.remove','team',?,?)"
-    ).bind(input.actorEmail,teamCode,JSON.stringify({ memberId:input.memberId })),
+    ).bind(input.actorEmail,teamCode,JSON.stringify({ memberId:input.memberId, authority:"portal_team_memberships" })),
   ]);
 }
 
