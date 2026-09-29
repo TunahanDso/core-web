@@ -477,7 +477,7 @@ jobs:
             for (const href of ["/portal/meetings","/portal/polls","/portal/budget"]) {
               if (!portalModules.includes(href)) throw new Error(`Portal navigation missing module: ${href}`);
             }
-            if (!portalCss.includes("CORE V12 WAVE 3 — CHAT / MEETINGS / POLLS / BUDGET / TODAY")) {
+            if (!fs.readFileSync("app/globals.css", "utf8").includes("CORE V12 WAVE 3 — CHAT / MEETINGS / POLLS / BUDGET / TODAY")) {
               throw new Error("CORE V12 wave three style contract is missing.");
             }
             console.log("CORE V12 wave three collaboration/finance contract validated.");
