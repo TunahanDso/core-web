@@ -156,7 +156,6 @@ export async function createVaultUploadSession(input: {
 
   return {
     sessionId,
-    capabilityToken,
     fileId,
     revision,
     expiresAt,
