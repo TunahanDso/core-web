@@ -1,6 +1,6 @@
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
-import { uploadPortalVaultAction } from "@/app/portal/vault-actions";
+import VaultUploadForm from "@/components/portal/VaultUploadForm";
 import { listPortalResources } from "@/lib/portal/db";
 import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
 import { portalResourceKindLabel } from "@/lib/portal/labels";
@@ -40,44 +40,7 @@ export default async function PortalKütüphanePage({
 
       <section className="portalPanel portalCreatePanel vaultUploadPanel" id="upload">
         <div className="portalPanelHead"><span>VAULT'A DOSYA YÜKLE</span><small>İLK DALGA · TEK DOSYA ≤ 25 MB</small></div>
-        <form className="portalFormGrid" action={uploadPortalVaultAction}>
-          <label>
-            <span>Tür</span>
-            <select name="kind" defaultValue="document">
-              <option value="document">Doküman</option>
-              <option value="library">Kütüphane</option>
-              <option value="procedure">Prosedür</option>
-              <option value="dataset">Veri Seti</option>
-              <option value="code">Kod</option>
-              <option value="firmware">Firmware</option>
-              <option value="simulation">Simülasyon</option>
-              <option value="drawing">Çizim</option>
-              <option value="mechanical">Mekanik</option>
-              <option value="cad">CAD</option>
-              <option value="pcb">PCB</option>
-              <option value="electronics">Elektronik</option>
-              <option value="bom">BOM</option>
-              <option value="media">Medya</option>
-              <option value="archive">Arşiv</option>
-            </select>
-          </label>
-          <label><span>Başlık</span><input name="title" placeholder="HYD-01 güç dağıtım kartı R1" required /></label>
-          <label><span>Takım</span><input name="teamCode" placeholder="MAR / SYS / EMB" /></label>
-          <label><span>Proje slug</span><input name="projectSlug" placeholder="hydronom" /></label>
-          <label>
-            <span>Görünürlük</span>
-            <select name="visibility" defaultValue="members">
-              <option value="members">Tüm üyeler</option>
-              <option value="team">Takım</option>
-              <option value="leads">Liderler</option>
-              <option value="admins">Admin</option>
-            </select>
-          </label>
-          <label className="portalFormWide"><span>Dosya</span><input name="file" type="file" required /></label>
-          <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={3} placeholder="Bu revision neyi içeriyor, hangi kararın kanıtı?" /></label>
-          <label className="portalFormWide"><span>Etiketler</span><input name="tags" placeholder="navigation, imu, smoke-test, pcb-r1" /></label>
-          <button type="submit" className="portalPrimaryButton">R2 VAULT'A YÜKLE →</button>
-        </form>
+        <VaultUploadForm />
       </section>
 
       <section className="vaultSearchBar">
