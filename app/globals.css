@@ -12026,3 +12026,67 @@ html[data-core-native="native-v2"] .portalDeviceActions{
     flex-direction:column;
   }
 }
+
+.vaultPcbWorkspaceTabs{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:11px 12px;
+  border:1px solid #dedfd9;
+  border-radius:14px;
+  background:linear-gradient(180deg,#fff,#faf9f7);
+}
+.vaultPcbWorkspaceTabs>div{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.vaultPcbWorkspaceTabs>div span{
+  color:#d45f00;
+  font:900 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.1em;
+}
+.vaultPcbWorkspaceTabs>div b{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+}
+.vaultPcbWorkspaceTabs nav{
+  display:flex;
+  gap:5px;
+  padding:3px;
+  border:1px solid #e1ddd8;
+  border-radius:10px;
+  background:#f4f2ef;
+}
+.vaultPcbWorkspaceTabs button{
+  min-height:31px;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  padding:0 10px;
+  color:#77716b;
+  font:900 7px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.05em;
+  cursor:pointer;
+}
+.vaultPcbWorkspaceTabs button.active{
+  background:#17191d;
+  color:#fff;
+  box-shadow:0 3px 10px rgba(24,22,20,.16);
+}
+
+@media(max-width:620px){
+  .vaultPcbWorkspaceTabs{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .vaultPcbWorkspaceTabs nav{
+    width:100%;
+  }
+  .vaultPcbWorkspaceTabs button{
+    flex:1;
+  }
+}
