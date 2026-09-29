@@ -16688,3 +16688,18 @@ html[data-density="comfortable"] .portalDataTable thead th{
   .budgetSummaryStrip{grid-template-columns:1fr}
   .portalDashboardMetricStrip{grid-template-columns:1fr 1fr}
 }
+
+.chatMobileBack{display:none}
+@media(max-width:760px){
+  .chatMobileBack{
+    width:32px;
+    height:32px;
+    display:grid;
+    place-items:center;
+    border:1px solid var(--core-border);
+    border-radius:7px;
+    background:#fff;
+    color:var(--core-text-secondary);
+    font-size:12px;
+  }
+}
