@@ -1,0 +1,11 @@
+{
+  "identifier": "main-window",
+  "description": "Minimal IPC surface for the authenticated YTÜ CORE desktop portal. Native engineering privileges are added separately and explicitly.",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["https://ytucore.com/*"]
+  },
+  "permissions": [
+    "core:app:default"
+  ]
+}

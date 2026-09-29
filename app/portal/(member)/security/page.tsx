@@ -30,6 +30,31 @@ export default async function PortalSecurityPage() {
         <article><span>GÜVEN MODELİ</span><h3>Device registry + trust state</h3><p>APNs / FCM token registry aktif. Trusted işareti cihaz tercihidir; parola, oturum veya rol kontrolünü asla atlamaz.</p><b>PUSH + TRUST + REVOKE</b></article>
       </section>
 
+      <section className="portalPanel portalDesktopDownloadPanel">
+        <div className="portalPanelHead">
+          <span>CORE DESKTOP / WORKBENCH</span>
+          <small>STABLE LATEST CHANNEL</small>
+        </div>
+        <div className="portalDesktopDownloadGrid">
+          <article>
+            <div>
+              <span className="portalDesktopPlatform">WINDOWS · X64</span>
+              <h3>CORE Desktop Workbench</h3>
+              <p>Portalın tam masaüstü istemcisi. Vault, repo, mühendislik araçları ve ilerleyen native atölye özellikleri aynı CORE hesabıyla çalışır.</p>
+            </div>
+            <a className="portalPrimaryButton portalDesktopDownloadButton" href="/api/portal/desktop/download/windows">
+              WINDOWS UYGULAMASINI İNDİR ↓
+            </a>
+          </article>
+          <aside>
+            <span>GÜNCELLEME MODELİ</span>
+            <b>DAİMA SON BAŞARILI BUILD</b>
+            <p>Bu portal bağlantısı sabittir. Her başarılı <code>main</code> masaüstü build'inde <code>desktop-latest</code> paketi aynı dosya adıyla yenilenir; başarısız build eski çalışan sürümün üzerine yazamaz.</p>
+            <small>Şimdilik imzasız developer preview · Windows SmartScreen uyarısı gösterebilir.</small>
+          </aside>
+        </div>
+      </section>
+
       <section className="portalPanel portalMobileDevicePanel">
         <div className="portalPanelHead">
           <span>MOBİL KURULUMLAR</span>

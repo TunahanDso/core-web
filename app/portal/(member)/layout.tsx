@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import PortalShell from "@/components/portal/PortalShell";
 import PortalPwaClient from "@/components/portal/PortalPwaClient";
 import PortalNativeExperience from "@/components/portal/PortalNativeExperience";
+import PortalDesktopExperience from "@/components/portal/PortalDesktopExperience";
 import { portalRoleLabel } from "@/lib/portal/labels";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { getPortalMetrics, listPortalChannelsForMember } from "@/lib/portal/db";
@@ -46,6 +47,7 @@ export default async function PortalMemberLayout({
   return (
     <PortalShell member={member}>
       {children}
+      <PortalDesktopExperience />
       <PortalPwaClient />
       <PortalNativeExperience
         memberName={member.fullName || member.email}
