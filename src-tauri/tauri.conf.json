@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "YTÜ CORE",
+  "version": "0.1.0",
+  "identifier": "com.ytucore.desktop",
+  "build": {
+    "frontendDist": "https://ytucore.com/portal?desktop=1"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "YTÜ CORE — Workbench",
+        "url": "https://ytucore.com/portal?desktop=1",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1080,
+        "minHeight": 680,
+        "resizable": true,
+        "maximized": false,
+        "fullscreen": false,
+        "decorations": true,
+        "visible": true,
+        "devtools": false,
+        "backgroundColor": "#f4f5f2"
+      }
+    ],
+    "security": {
+      "freezePrototype": true,
+      "capabilities": ["main-window"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "shortDescription": "YTÜ CORE engineering workbench",
+    "longDescription": "Native desktop workspace for YTÜ CORE engineering, project and team operations."
+  }
+}

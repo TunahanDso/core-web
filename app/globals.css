@@ -12090,3 +12090,117 @@ html[data-core-native="native-v2"] .portalDeviceActions{
     flex:1;
   }
 }
+
+
+/* =========================================================
+   CORE DESKTOP WORKBENCH — native desktop runtime surface
+   Keep this layer deliberately cheap: no permanent animation,
+   no blur stack and no hidden secondary webviews.
+   ========================================================= */
+
+.portalDesktopStatus{display:none}
+
+html.coreDesktopRuntime,
+html.coreDesktopRuntime body{
+  background:#f4f5f2;
+  overscroll-behavior:none;
+}
+
+html.coreDesktopRuntime .portalApp{
+  grid-template-columns:296px minmax(0,1fr);
+  min-height:100dvh;
+}
+
+html.coreDesktopRuntime .portalSidebar{
+  height:100dvh;
+  padding:18px 14px 42px;
+  scrollbar-gutter:stable;
+}
+
+html.coreDesktopRuntime .portalTopbar{
+  min-height:64px;
+  padding:10px 30px;
+  background:#fafbf8;
+  backdrop-filter:none;
+}
+
+html.coreDesktopRuntime .portalContent{
+  padding:28px 30px 52px;
+}
+
+html.coreDesktopRuntime .portalModuleGrid{
+  grid-template-columns:repeat(6,minmax(0,1fr));
+}
+
+html.coreDesktopRuntime .portalModuleGrid>a{
+  min-height:196px;
+}
+
+html.coreDesktopRuntime .portalModuleGrid h3{
+  margin-top:38px;
+}
+
+html.coreDesktopRuntime .portalPanel,
+html.coreDesktopRuntime .portalHero,
+html.coreDesktopRuntime .portalModuleGrid>a,
+html.coreDesktopRuntime .portalMetrics article,
+html.coreDesktopRuntime .portalAnalyticsGrid article{
+  contain:layout paint;
+}
+
+html.coreDesktopRuntime .portalDesktopStatus{
+  position:fixed;
+  z-index:120;
+  left:296px;
+  right:0;
+  bottom:0;
+  min-height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:0 16px;
+  border-top:1px solid #d9ddd7;
+  background:#17191d;
+  color:#c9ced4;
+  font:800 8px ui-monospace,monospace;
+  letter-spacing:.075em;
+  user-select:none;
+}
+
+.portalDesktopProduct,
+.portalDesktopRuntimeState{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.portalDesktopProduct b{color:#ff6500}
+.portalDesktopProduct em{
+  color:#8d959d;
+  font-style:normal;
+  font-weight:800;
+}
+
+.portalDesktopRuntimeState i{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#66d184;
+  box-shadow:0 0 0 3px rgba(102,209,132,.11);
+}
+
+.portalDesktopRuntimeState small{
+  color:#737b84;
+  font:inherit;
+}
+
+.portalDesktopHint{color:#737b84}
+
+@media(max-width:1280px){
+  html.coreDesktopRuntime .portalApp{grid-template-columns:260px minmax(0,1fr)}
+  html.coreDesktopRuntime .portalDesktopStatus{left:260px}
+  html.coreDesktopRuntime .portalContent{padding-left:22px;padding-right:22px}
+  html.coreDesktopRuntime .portalTopbar{padding-left:22px;padding-right:22px}
+  html.coreDesktopRuntime .portalModuleGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
