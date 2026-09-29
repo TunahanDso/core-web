@@ -11,6 +11,7 @@ on:
       - "app/portal/(member)/security/page.tsx"
       - "app/api/portal/desktop/**"
       - "app/globals.css"
+      - "app/workspace.css"
       - "package.json"
       - ".github/workflows/desktop-native.yml"
   push:
@@ -23,6 +24,7 @@ on:
       - "app/portal/(member)/security/page.tsx"
       - "app/api/portal/desktop/**"
       - "app/globals.css"
+      - "app/workspace.css"
       - "package.json"
       - ".github/workflows/desktop-native.yml"
 
