@@ -3,57 +3,64 @@ import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalResources } from "@/lib/portal/db";
 import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
 
-export const dynamic = "force-dynamic";
+export const dynamic="force-dynamic";
 
-export default async function PortalArchivePage() {
-  const member = await requirePortalMember();
-  const [archived, explicitArchive, legacy] = await Promise.all([
-    listPortalVaultFiles({ lifecycle: "archived", limit: 300, viewer: member }),
-    listPortalVaultFiles({ kind: "archive", lifecycle: "active", limit: 150, viewer: member }),
+export default async function PortalArchivePage({
+  searchParams,
+}:{
+  searchParams?:Promise<{q?:string}>;
+}){
+  const query=searchParams ? await searchParams : {};
+  const member=await requirePortalMember();
+  const [archived,explicitArchive,legacy]=await Promise.all([
+    listPortalVaultFiles({lifecycle:"archived",limit:300,viewer:member}),
+    listPortalVaultFiles({kind:"archive",lifecycle:"active",limit:150,viewer:member}),
     listPortalResources("archive"),
   ]);
-
-  const files = [...archived, ...explicitArchive.filter((candidate) =>
-    !archived.some((item) => String(item.id) === String(candidate.id))
-  )];
+  const files=[...archived,...explicitArchive.filter(candidate=>!archived.some(item=>String(item.id)===String(candidate.id)))];
+  const q=String(query.q||"").trim().toLocaleLowerCase("tr-TR");
+  const fileRows=files.filter(item=>!q||[item.title,item.description,item.original_name,item.project_slug,item.team_code].some(v=>String(v||"").toLocaleLowerCase("tr-TR").includes(q)));
+  const resourceRows=legacy.filter(item=>!q||[item.title,item.description,item.project_slug,item.team_code].some(v=>String(v||"").toLocaleLowerCase("tr-TR").includes(q)));
 
   return (
     <>
       <PortalPageHeader
-        code="AR / ARŞİV"
+        code="ARŞİV"
         title="Mühendislik Arşivi"
-        lead="Emekli tasarımlar, tarihsel test kanıtları ve eski revision kaynakları silinmeden CORE Vault yaşam döngüsünde korunur."
-        action={<a className="portalOutlineButton" href="/portal/library?state=archived">VAULT ARŞİVİNİ AÇ →</a>}
+        lead="Emekli tasarımlar, tarihsel kanıtlar ve toplantı raporlarını silmeden, kaynağıyla birlikte koru."
+        action={<a className="portalOutlineButton" href="/portal/library?state=archived">Vault arşivi</a>}
       />
 
-      {files.length ? (
-        <div className="vaultFileGrid">
-          {files.map((item) => (
-            <a href={"/portal/library/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
-              <header><span>ARCHIVE</span><small>R{String(item.revision)}</small></header>
-              <div className="vaultFileIcon">{String(item.extension || "ARC").toUpperCase()}</div>
-              <h3>{String(item.title)}</h3>
-              <p>{String(item.description || item.original_name)}</p>
-              <footer><span>{String(item.project_slug || item.team_code || "CORE")}</span><small>{formatVaultBytes(item.size_bytes)}</small></footer>
-            </a>
-          ))}
-        </div>
-      ) : <PortalEmpty title="Vault arşivi boş." text="Bir tasarım veya dosya yaşam döngüsünü Arşiv yaptığında burada görünür." />}
+      <section className="portalRegistryToolbar">
+        <form action="/portal/archive" method="get">
+          <label className="grow"><span>ARA</span><input name="q" defaultValue={String(query.q||"")} placeholder="Dosya, toplantı raporu, proje..."/></label>
+          <button type="submit">ARA</button>
+          {q?<a className="subtle" href="/portal/archive">Temizle</a>:null}
+        </form>
+        <div className="portalRegistrySummary"><span>KAYIT</span><b>{fileRows.length+resourceRows.length}</b><small>arşiv öğesi</small></div>
+      </section>
 
-      {legacy.length ? (
-        <section className="portalPanel vaultLegacyIndex">
-          <div className="portalPanelHead"><span>V1 TARİHSEL İNDEKS</span><small>{legacy.length} KAYIT · SİLİNMEDİ</small></div>
-          <div className="portalResourceGrid">
-            {legacy.map((item) => (
-              <article key={String(item.id)}>
-                <div><span>LEGACY</span><small>{String(item.team_code || "CORE")}</small></div>
-                <h3>{String(item.title)}</h3><p>{String(item.description || "")}</p>
-                <footer><small>{String(item.project_slug || "archive")}</small>{item.external_url ? <a href={String(item.external_url)}>AÇ ↗</a> : <span>INDEX</span>}</footer>
-              </article>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      {(fileRows.length||resourceRows.length)?(
+        <div className="portalDataTableShell">
+          <table className="portalDataTable portalArchiveDataTable">
+            <thead><tr><th scope="col">Arşiv kaydı</th><th scope="col">Kaynak</th><th scope="col">Revizyon</th><th scope="col">Kapsam</th><th scope="col">Boyut</th><th scope="col">İşlem</th></tr></thead>
+            <tbody>
+              {fileRows.map(item=>(
+                <tr key={"vault:"+String(item.id)}>
+                  <td className="primaryCell"><a href={"/portal/library/"+encodeURIComponent(String(item.id))}><b>{String(item.title)}</b><small>{String(item.description||item.original_name)}</small></a></td>
+                  <td>Vault</td><td className="mono">R{String(item.revision)}</td><td className="mono">{String(item.project_slug||item.team_code||"CORE")}</td><td className="numeric">{formatVaultBytes(item.size_bytes)}</td><td className="rowActions"><a href={"/portal/library/"+encodeURIComponent(String(item.id))}>Aç</a></td>
+                </tr>
+              ))}
+              {resourceRows.map(item=>(
+                <tr key={"resource:"+String(item.id)}>
+                  <td className="primaryCell"><div><b>{String(item.title)}</b><small>{String(item.description||"")}</small></div></td>
+                  <td>{String(item.tags_json||"").includes("meeting")?"Toplantı raporu":"Legacy / Resource"}</td><td className="mono">—</td><td className="mono">{String(item.project_slug||item.team_code||"CORE")}</td><td className="numeric">—</td><td className="rowActions">{item.external_url?<a href={String(item.external_url)}>Aç</a>:null}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ):<PortalEmpty title="Arşiv boş." text="Dosya yaşam döngüsü Arşiv olduğunda veya toplantı raporu üretildiğinde burada görünür."/>}
     </>
   );
 }
