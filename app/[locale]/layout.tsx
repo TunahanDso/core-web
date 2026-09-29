@@ -25,10 +25,11 @@ export async function generateMetadata({
       ? "YTÜ CORE — Yıldız Teknik Üniversitesi öğrenci mühendislik takımı. Otonom sistemler, araştırma, üretim ve saha doğrulaması."
       : "YTÜ CORE — Yıldız Technical University student engineering team for autonomous systems, research, building and field validation.",
     alternates: {
-      canonical: `/${locale}`,
+      canonical: `https://ytucore.com/${locale}`,
       languages: {
-        "tr-TR": "/tr",
-        en: "/en",
+        tr: "https://ytucore.com/tr",
+        en: "https://ytucore.com/en",
+        "x-default": "https://ytucore.com/tr",
       },
     },
   };
