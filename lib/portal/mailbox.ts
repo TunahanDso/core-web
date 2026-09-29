@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { listPortalMailThreads } from "@/lib/portal/db";
+import { ensurePortalMailWorkspaceSchema } from "@/lib/portal/bootstrap";
 
 function database() {
   if (!env.DB) throw new Error("Portal database binding is not available.");
@@ -266,6 +267,7 @@ function constantTimeStringEqual(left: string, right: string) {
 }
 
 export async function listPortalMailGroups(memberId: string) {
+  await ensurePortalMailWorkspaceSchema();
   try {
     const response = await database().prepare(
       "SELECT g.id,g.name,g.description,g.owner_id,g.access_mode,g.created_at,g.updated_at," +
@@ -280,6 +282,7 @@ export async function listPortalMailGroups(memberId: string) {
 }
 
 export async function listPortalJoinableMailGroups(memberId: string) {
+  await ensurePortalMailWorkspaceSchema();
   try {
     const response = await database().prepare(
       "SELECT g.id,g.name,g.description,g.owner_id,g.access_mode,g.created_at,g.updated_at," +
@@ -295,6 +298,7 @@ export async function listPortalJoinableMailGroups(memberId: string) {
 }
 
 export async function listPortalMailGroupMembers(groupId: string, viewerId: string) {
+  await ensurePortalMailWorkspaceSchema();
   const access = await database().prepare(
     "SELECT 1 AS ok FROM portal_mail_group_members WHERE group_id=? AND member_id=? LIMIT 1"
   ).bind(groupId,viewerId).first<{ ok: number }>();
@@ -309,6 +313,7 @@ export async function listPortalMailGroupMembers(groupId: string, viewerId: stri
 }
 
 export async function createPortalMailGroup(input: {
+  await ensurePortalMailWorkspaceSchema();
   ownerId: string;
   name: string;
   description: string;
@@ -346,6 +351,7 @@ export async function createPortalMailGroup(input: {
 }
 
 export async function joinPortalMailGroup(input: {
+  await ensurePortalMailWorkspaceSchema();
   groupId: string;
   memberId: string;
   accessCode: string;
@@ -370,6 +376,7 @@ export async function joinPortalMailGroup(input: {
 }
 
 export async function deletePortalMailGroup(groupId: string, ownerId: string) {
+  await ensurePortalMailWorkspaceSchema();
   const owned = await database().prepare(
     "SELECT 1 AS ok FROM portal_mail_groups WHERE id=? AND owner_id=? LIMIT 1"
   ).bind(groupId,ownerId).first<{ ok: number }>();
@@ -378,6 +385,7 @@ export async function deletePortalMailGroup(groupId: string, ownerId: string) {
 }
 
 export async function resolvePortalMailGroupRecipients(groupIds: string[], memberId: string) {
+  await ensurePortalMailWorkspaceSchema();
   const ids = Array.from(new Set(groupIds.filter(Boolean))).slice(0,20);
   if (!ids.length) return [] as string[];
 
@@ -399,6 +407,7 @@ export async function resolvePortalMailGroupRecipients(groupIds: string[], membe
 }
 
 export async function linkPortalMailThreadGroups(threadId: string, groupIds: string[], memberId: string) {
+  await ensurePortalMailWorkspaceSchema();
   const ids = Array.from(new Set(groupIds.filter(Boolean))).slice(0,20);
   if (!ids.length) return;
   const db = database();
@@ -418,6 +427,7 @@ export async function linkPortalMailThreadGroups(threadId: string, groupIds: str
 }
 
 export async function listPortalMailThreadGroups(threadId: string, memberId: string) {
+  await ensurePortalMailWorkspaceSchema();
   const participant = await database().prepare(
     "SELECT 1 AS ok FROM portal_mail_participants WHERE thread_id=? AND member_id=? LIMIT 1"
   ).bind(threadId,memberId).first<{ ok: number }>();
