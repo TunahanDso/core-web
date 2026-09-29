@@ -342,7 +342,7 @@ html[data-portal-theme="aurora"] :is(.portalPageHeader,.portalDashboardHeader) {
 html[data-portal-theme="aurora"] .portalApp .portalPrimaryButton { background:linear-gradient(120deg,#c4a7ff,#91edff); color:#141a31; box-shadow:0 4px 20px #8f78ff30; }
 html[data-portal-theme="aurora"] .portalCommandTrigger { border-color:#74709d; background:#1b203d; }
 @media (prefers-reduced-motion:reduce) { html[data-portal-theme="aurora"] * { text-shadow:none; } }
-.portalApp :is(.repoWorkspaceHero,.repoServiceNotice,.repoWorkspaceToolbar,.repoCodePanel,.repoWorkspaceSide,.repoManifestGrid,.repoReviewSnapshot,.repoReviewToolbar,.repoReviewLayout,.repoResizableReview,.repoComparePanel,.liveTerminalShell) {
+.portalApp :is(.repoWorkspaceHero,.repoServiceNotice,.repoWorkspaceToolbar,.repoCodePanel,.repoWorkspaceSide,.repoManifestGrid,.repoReviewSnapshot,.repoReviewToolbar,.repoReviewLayout,.repoResizableReview .workbenchSplit,.repoComparePanel,.liveTerminalShell) {
   --core-text:#f0f4fc; --core-text-secondary:#d1dbea; --core-text-muted:#b5c3d6; --core-text-quiet:#b5c3d6;
   --core-surface-base:#171e2b; --core-surface-subtle:#121923; --core-surface-hover:#263044;
   --core-border:#45516a; --core-accent:#ffbd8c;
@@ -410,11 +410,7 @@ html[data-portal-theme="aurora"] .portalCommandTrigger { border-color:#74709d; b
 
 }
 
-.workbenchSplitPane { container:workbench-pane / inline-size; }
-@container workbench-pane (max-width:600px) {
-  .vaultPreviewShell>.portalPanelHead, .vaultModelViewer>header, .pcbPreview>header, .vaultCodeReader>header, .vaultSourceBrowser>header { display:flex; flex-direction:column; align-items:stretch; gap:10px; }
-  .vaultModelStats, .pcbInspectorBar { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .vaultCodeTools, .vaultSourceWindowActions { display:flex; flex-wrap:wrap; }
-  .repoTreeRow { grid-template-columns:auto minmax(0,1fr); }
-  .repoTreeRow :is(small,code) { grid-column:2; }
-}
+.vaultResizableDetail :is(.vaultModelViewer>header,.pcbPreview>header,.vaultCodeReader>header,.vaultSourceBrowser>header) { display:flex; flex-wrap:wrap; gap:10px; }
+.vaultResizableDetail :is(.vaultCodeTools,.vaultSourceWindowActions) { display:flex; flex-wrap:wrap; }
+.vaultResizableDetail :is(.vaultModelStats,.pcbInspectorBar) { display:grid; grid-template-columns:repeat(auto-fit,minmax(72px,1fr)); }
+.portalApp .vaultCodeReader { --core-surface-base:#171e2b; --core-surface-subtle:#121923; --core-surface-selected:#39281f; --core-border:#45516a; --core-focus:#ffbd8c; }
