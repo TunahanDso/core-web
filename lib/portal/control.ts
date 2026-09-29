@@ -53,48 +53,18 @@ export async function getPortalTeam(codeValue: string) {
 
 export async function listPortalTeamMembers(teamCode: string) {
   const normalized = code(teamCode);
-  const explicit: Record<string, unknown>[] = [];
   try {
     const response = await db().prepare(
-      "SELECT tm.team_code,tm.team_role,tm.status,tm.capabilities_json,m.id,m.full_name,m.email,m.role,m.teams_json,m.last_login_at " +
+      "SELECT tm.team_code,tm.team_role,tm.status,tm.capabilities_json,m.id,m.full_name,m.email,m.role,m.last_login_at " +
       "FROM portal_team_memberships tm JOIN portal_members m ON m.id=tm.member_id " +
       "WHERE tm.team_code=? AND tm.status='active' ORDER BY " +
       "CASE tm.team_role WHEN 'owner' THEN 0 WHEN 'captain' THEN 1 WHEN 'lead' THEN 2 WHEN 'engineer' THEN 3 WHEN 'contributor' THEN 4 ELSE 5 END," +
       "m.full_name"
     ).bind(normalized).all<Record<string, unknown>>();
-    explicit.push(...(response.results ?? []));
+    return response.results ?? [];
   } catch {
-    // V6 may not be applied yet. Legacy membership fallback is handled below.
+    return [];
   }
-
-  const known = new Set(explicit.map((item) => String(item.id)));
-  try {
-    const legacy = await db().prepare(
-      "SELECT id,full_name,email,role,teams_json,last_login_at FROM portal_members WHERE status='active' ORDER BY full_name"
-    ).all<Record<string, unknown>>();
-    for (const member of legacy.results ?? []) {
-      if (known.has(String(member.id))) continue;
-      let teams: string[] = [];
-      try {
-        const parsed = JSON.parse(String(member.teams_json || "[]"));
-        if (Array.isArray(parsed)) teams = parsed.map((item) => String(item).trim().toUpperCase());
-      } catch {
-        teams = [];
-      }
-      if (!teams.includes(normalized)) continue;
-      explicit.push({
-        ...member,
-        team_code: normalized,
-        team_role: String(member.role) === "lead" ? "lead" : "engineer",
-        status: "active",
-        capabilities_json: "[]",
-        legacy: 1,
-      });
-    }
-  } catch {
-    // If the legacy member table is unavailable, return what the V6 query produced.
-  }
-  return explicit;
 }
 
 export async function listPortalCapabilityGrants() {
