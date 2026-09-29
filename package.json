@@ -23,7 +23,7 @@
     "mobile:open:ios": "cap open ios",
     "mobile:configure:android": "node mobile/scripts/configure-native.mjs android",
     "mobile:configure:ios": "node mobile/scripts/configure-native.mjs ios",
-    "runner:check": "node --check services/core-runner/src/index.js && python3 -m py_compile services/core-runner/sandbox_server.py",
+    "runner:check": "node --check services/core-runner/src/index.js && node --check services/core-runner/terminal_server.cjs && sh -n services/core-runner/start.sh && python3 -m py_compile services/core-runner/sandbox_server.py",
     "runner:deploy": "wrangler deploy -c services/core-runner/wrangler.jsonc"
   },
   "dependencies": {
