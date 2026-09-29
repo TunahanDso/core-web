@@ -493,6 +493,7 @@ export default async function PortalControlPlanePage({
                 <form className="portalFormGrid compact portalCapabilityGrant" action={grantPortalCapabilityAction}>
                   <label><span>Üye</span><select name="memberId">{activeMembers.map((item)=><option value={String(item.id)} key={String(item.id)}>{String(item.full_name || item.email)} · {portalRoleLabelDetailed(String(item.role))}</option>)}</select></label>
                   <label><span>Capability</span><input name="capability" placeholder="teams.read_all" required /></label>
+                  <label className="portalFormWide"><span>Kritik grant onayı</span><input name="confirmation" autoComplete="off" placeholder="Gerekirse: GRANT capability.adı" /><small>Kritik yetkilerde capability adını GRANT önekiyle aynen yaz.</small></label>
                   <button className="portalPrimaryButton" type="submit">Capability grant</button>
                 </form>
               </div>
