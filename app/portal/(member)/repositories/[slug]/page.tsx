@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -139,7 +140,7 @@ export default async function PortalRepositoryWorkspacePage({
         code="RP / REPOSITORY WORKSPACE"
         title={repo.name}
         lead="Kod ağacı, sürüm geçmişi, paket manifestleri ve karşılaştırma yüzeyi. Git nesnelerinin kaynağı CORE Repo Service'tir; D1 yalnızca portal kimliği ve yönetişimi tutar."
-        action={<a className="portalOutlineButton" href="/portal/repositories">← REPOSITORIES</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/repositories">← REPOSITORIES</Link>}
       />
 
       <section className="repoWorkspaceHero">
@@ -485,12 +486,12 @@ export default async function PortalRepositoryWorkspacePage({
                 <b>Satır bazlı diff, thread ve review sonucu</b>
                 <small>Review immutable base/head commit snapshot'ına sabitlenir.</small>
               </div>
-              <a
+              <Link prefetch={false}
                 className="portalPrimaryButton"
                 href={"/portal/repositories/" + encodeURIComponent(repo.slug) + "/review?base=" + encodeURIComponent(workspace.compare.base) + "&head=" + encodeURIComponent(workspace.compare.head) + "&view=split"}
               >
                 CODE REVIEW AÇ →
-              </a>
+              </Link>
             </div>
           </>
         ) : (

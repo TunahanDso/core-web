@@ -26,3 +26,7 @@ out
 *-pass.txt
 pfx-base64.txt
 desktop/pki/private/
+
+# Generated Next/TypeScript artifacts
+next-env.d.ts
+tsconfig.tsbuildinfo

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import LiveCodeTerminal from "@/components/portal/LiveCodeTerminal";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
@@ -47,7 +48,7 @@ export default async function PortalCodeTerminalPage({
         code="CL / LIVE TERMINAL"
         title={String(terminal.repo_name || terminal.repository_slug)}
         lead="Immutable repository snapshot üzerinde açılan, stdin/stdout akışı WebSocket ile taşınan izole CORE Runner terminali."
-        action={<a className="portalOutlineButton" href="/portal/code-lab">← CODE LAB</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/code-lab">← CODE LAB</Link>}
       />
 
       {query.created === "1" ? <div className="portalSuccess">Live terminal workspace hazırlandı. Shell bağlantısı açılıyor.</div> : null}
@@ -92,7 +93,7 @@ export default async function PortalCodeTerminalPage({
           <span>TERMINAL OTURUMU BAĞLANTIYA KAPALI</span>
           <h2>{String(terminal.status).toUpperCase()}</h2>
           <p>Bu oturum sona ermiş, süresi dolmuş veya hazırlık sırasında hata almış olabilir. Code Lab üzerinden yeni bir terminal açabilirsin.</p>
-          <a className="portalPrimaryButton" href="/portal/code-lab">YENİ TERMINAL AÇ →</a>
+          <Link prefetch={false} className="portalPrimaryButton" href="/portal/code-lab">YENİ TERMINAL AÇ →</Link>
         </section>
       )}
 

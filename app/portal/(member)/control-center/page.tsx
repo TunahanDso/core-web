@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import ControlCenterRegistry from "@/components/portal/ControlCenterRegistry";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
@@ -66,7 +67,7 @@ export default async function PortalControlCenterPage({
         code="CC / CONTROL CENTER"
         title="CORE Control Center"
         lead="Yetkili roller için merkezi registry yönetimi. Üye, rol, takım, proje, görev, araç, repo, Vault ve envanter kayıtlarını tek yüzeyden ara, düzenle ve güvenli lifecycle işlemlerini uygula."
-        action={<a className="portalOutlineButton" href="/portal/control">AĞIR KONTROL →</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/control">AĞIR KONTROL →</Link>}
       />
 
       {query.saved ? <div className="portalSuccess">Kayıt güncellendi: {query.saved}</div> : null}

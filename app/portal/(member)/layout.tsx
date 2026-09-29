@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import PortalShell from "@/components/portal/PortalShell";
 import { portalRoleLabel } from "@/lib/portal/labels";
 import { requirePortalMember } from "@/lib/portal/auth";
-import { getPortalShellCounts } from "@/lib/portal/db";
 import { portalMemberCapabilitySet } from "@/lib/portal/governance";
 import { portalMobilePublicConfig } from "@/lib/portal/mobile";
 import PortalRuntimeLoader from "@/components/portal/PortalRuntimeLoader";
@@ -28,10 +27,7 @@ export default async function PortalMemberLayout({
   children: React.ReactNode;
 }) {
   const member = await requirePortalMember();
-  const [counts, capabilitySet] = await Promise.all([
-    getPortalShellCounts(member.id),
-    portalMemberCapabilitySet(member),
-  ]);
+  const capabilitySet = await portalMemberCapabilitySet(member);
   const canControl = ["portal.admin","control.projects","control.vehicles","teams.manage","roles.manage"]
     .some((capability) => capabilitySet.has(capability));
   const initials = member.fullName
@@ -48,7 +44,6 @@ export default async function PortalMemberLayout({
         portalRole={member.role}
         canControl={canControl}
         memberInitials={initials}
-        counts={counts}
         mobileConfig={mobileConfig}
       />
     </PortalShell>

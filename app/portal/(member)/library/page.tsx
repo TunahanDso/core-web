@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import VaultUploadForm from "@/components/portal/VaultUploadForm";
@@ -31,7 +32,7 @@ export default async function PortalKütüphanePage({
         code="VAULT"
         title="Mühendislik Dosyaları"
         lead="Dosyaları revizyon, tür, kapsam, onay durumu ve boyut bilgisiyle tek registry içinde yönet."
-        action={<a className="portalPrimaryButton" href="/portal/library?upload=1#upload">+ DOSYA YÜKLE</a>}
+        action={<Link prefetch={false} className="portalPrimaryButton" href="/portal/library?upload=1#upload">+ DOSYA YÜKLE</Link>}
       />
 
       <section className="portalRegistryToolbar vaultLibraryToolbar">
@@ -62,7 +63,7 @@ export default async function PortalKütüphanePage({
             </select>
           </label>
           <button type="submit">UYGULA</button>
-          {(q || kind || lifecycle !== "active") ? <a className="subtle" href="/portal/library">Temizle</a> : null}
+          {(q || kind || lifecycle !== "active") ? <Link prefetch={false} className="subtle" href="/portal/library">Temizle</Link> : null}
         </form>
         <div className="portalRegistrySummary">
           <span>SONUÇ</span>
@@ -90,10 +91,10 @@ export default async function PortalKütüphanePage({
               {vaultFiles.map((item)=>(
                 <tr key={String(item.id)}>
                   <td className="primaryCell">
-                    <a href={"/portal/library/" + encodeURIComponent(String(item.id))}>
+                    <Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(item.id))}>
                       <b>{String(item.title)}</b>
                       <small>{String(item.original_name || item.description || "")}</small>
-                    </a>
+                    </Link>
                   </td>
                   <td><div className="portalFileTypeCell"><span>{String(item.extension || "FILE").slice(0,8).toUpperCase()}</span><small>{String(item.kind)}</small></div></td>
                   <td className="mono">R{String(item.revision)}</td>
@@ -101,7 +102,7 @@ export default async function PortalKütüphanePage({
                   <td className="numeric">{formatVaultBytes(item.size_bytes)}</td>
                   <td><span className={"portalStatusText "+String(item.approval_state)}>{String(item.approval_state)}</span></td>
                   <td>{String(item.preview_kind || "—")}</td>
-                  <td className="rowActions"><a href={"/portal/library/" + encodeURIComponent(String(item.id))}>İncele</a></td>
+                  <td className="rowActions"><Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(item.id))}>İncele</Link></td>
                 </tr>
               ))}
             </tbody>

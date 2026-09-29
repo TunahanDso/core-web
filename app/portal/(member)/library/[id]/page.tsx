@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import VaultCodeReader from "@/components/portal/VaultCodeReader";
@@ -75,7 +76,7 @@ export default async function VaultFilePage({
         code="DOSYA"
         title={String(file.title)}
         lead={String(file.description || "Sürümlenen teknik dosya.")}
-        action={<a className="portalOutlineButton" href="/portal/library">← VAULT</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/library">← VAULT</Link>}
       />
 
       {query.uploaded ? <div className="portalSuccess">Dosya R2 Vault'a kaydedildi ve ilk revision oluşturuldu.</div> : null}

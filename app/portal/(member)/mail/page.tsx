@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { getPortalMailThread, listPortalMembers } from "@/lib/portal/db";
@@ -199,7 +200,7 @@ export default async function PortalMailPage({
         )}
 
         <div className="mailAppTopActions">
-          <a className={section === "groups" ? "active" : ""} href="/portal/mail?section=groups">Gruplar</a>
+          <Link prefetch={false} className={section === "groups" ? "active" : ""} href="/portal/mail?section=groups">Gruplar</Link>
           <a className="primary" href={queryHref({folder,thread:threadId || undefined,compose:"1"})}>+ Yeni yazışma</a>
         </div>
       </header>
@@ -226,11 +227,11 @@ export default async function PortalMailPage({
 
           <div className="mailRailDivider" />
 
-          <a className={"mailRailGroups "+(section === "groups" ? "active" : "")} href="/portal/mail?section=groups">
+          <Link prefetch={false} className={"mailRailGroups "+(section === "groups" ? "active" : "")} href="/portal/mail?section=groups">
             <span>GR</span>
             <b>Gruplar</b>
             <em>{groups.length || ""}</em>
-          </a>
+          </Link>
         </aside>
 
         {section === "mail" ? (
@@ -423,7 +424,7 @@ export default async function PortalMailPage({
             <div className="mailGroupsListPane">
               <header className="mailPaneHeader">
                 <div><b>Gruplarım</b><small>Tek seferde bir ekibe yaz</small></div>
-                <a className="portalPrimaryButton" href="/portal/mail?section=groups&groupCreate=1">+ Grup oluştur</a>
+                <Link prefetch={false} className="portalPrimaryButton" href="/portal/mail?section=groups&groupCreate=1">+ Grup oluştur</Link>
               </header>
 
               <div className="mailGroupsList">
@@ -461,7 +462,7 @@ export default async function PortalMailPage({
               {selectedGroup ? (
                 <>
                   <header>
-                    <a className="mailMobileBack" href="/portal/mail?section=groups">← Gruplar</a>
+                    <Link prefetch={false} className="mailMobileBack" href="/portal/mail?section=groups">← Gruplar</Link>
                     <div>
                       <span>{String(selectedGroup.access_mode) === "locked" ? "ERİŞİM KODLU GRUP" : "ÖZEL GRUP"}</span>
                       <h2>{String(selectedGroup.name)}</h2>
@@ -584,7 +585,7 @@ export default async function PortalMailPage({
           <section className="mailComposeSurface mailGroupCreateSurface">
             <header>
               <div><span>ALICI GRUBU</span><b>Yeni grup oluştur</b></div>
-              <a href="/portal/mail?section=groups" aria-label="Grup oluşturmayı kapat">×</a>
+              <Link prefetch={false} href="/portal/mail?section=groups" aria-label="Grup oluşturmayı kapat">×</Link>
             </header>
             <form action={createMailboxGroupAction}>
               <label className="mailComposeSubject">
@@ -618,7 +619,7 @@ export default async function PortalMailPage({
 
               <footer>
                 <button className="portalPrimaryButton" type="submit">Grubu oluştur</button>
-                <a href="/portal/mail?section=groups">Vazgeç</a>
+                <Link prefetch={false} href="/portal/mail?section=groups">Vazgeç</Link>
               </footer>
             </form>
           </section>

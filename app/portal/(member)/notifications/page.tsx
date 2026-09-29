@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createNotificationAction, markAllNotificationsReadAction, markNotificationReadAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -25,13 +26,13 @@ export default async function PortalNotificationsPage({
         code="BİLDİRİMLER"
         title="Bildirim Merkezi"
         lead="Toplantı davetleri, oylamalar, görevler, stok ve sistem uyarılarını tek kayıt akışında gör."
-        action={canWrite?<a className="portalPrimaryButton" href="/portal/notifications?create=1">+ BİLDİRİM YAYINLA</a>:undefined}
+        action={canWrite?<Link prefetch={false} className="portalPrimaryButton" href="/portal/notifications?create=1">+ BİLDİRİM YAYINLA</Link>:undefined}
       />
 
       <section className="portalRegistryToolbar">
         <nav className="portalSegmentedControl">
-          <a className={filter==="all"?"active":""} href="/portal/notifications">Tümü · {notifications.length}</a>
-          <a className={filter==="unread"?"active":""} href="/portal/notifications?filter=unread">Okunmamış · {unreadCount}</a>
+          <Link prefetch={false} className={filter==="all"?"active":""} href="/portal/notifications">Tümü · {notifications.length}</Link>
+          <Link prefetch={false} className={filter==="unread"?"active":""} href="/portal/notifications?filter=unread">Okunmamış · {unreadCount}</Link>
         </nav>
         <div className="portalRegistrySummary"><span>OKUNMAMIŞ</span><b>{unreadCount}</b><small>bildirim</small></div>
         {unreadCount?<form action={markAllNotificationsReadAction}><button className="portalRegistryActionButton" type="submit">Tümünü okundu yap</button></form>:null}
@@ -40,7 +41,7 @@ export default async function PortalNotificationsPage({
       {query.create==="1"&&canWrite?(
         <section className="portalToolSurface">
           <div className="portalToolBody">
-            <div className="portalInlineToolHead"><div><b>Bildirim yayınla</b><small>Doğrudan bir üyeye veya tüm CORE'a.</small></div><a href="/portal/notifications">Kapat</a></div>
+            <div className="portalInlineToolHead"><div><b>Bildirim yayınla</b><small>Doğrudan bir üyeye veya tüm CORE'a.</small></div><Link prefetch={false} href="/portal/notifications">Kapat</Link></div>
             <form className="portalFormGrid" action={createNotificationAction}>
               <label><span>Başlık</span><input name="title" required autoFocus/></label>
               <label><span>Tür</span><select name="kind"><option value="info">Bilgi</option><option value="warning">Uyarı</option><option value="action">İşlem</option><option value="success">Başarılı</option></select></label>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalResources } from "@/lib/portal/db";
@@ -49,7 +50,7 @@ export default async function PortalDokümanlarPage({
         code="DOKÜMANLAR"
         title="Teknik Dokümanlar"
         lead="Rapor, prosedür, veri seti, çizim ve kod kanıtlarını revizyon, kapsam ve dosya türüyle karşılaştır."
-        action={<a className="portalOutlineButton" href="/portal/library">Vault</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/library">Vault</Link>}
       />
 
       <section className="portalRegistryToolbar">
@@ -79,7 +80,7 @@ export default async function PortalDokümanlarPage({
             </select>
           </label>
           <button type="submit">UYGULA</button>
-          {(q || kind || project) ? <a className="subtle" href="/portal/documents">Temizle</a> : null}
+          {(q || kind || project) ? <Link prefetch={false} className="subtle" href="/portal/documents">Temizle</Link> : null}
         </form>
         <div className="portalRegistrySummary">
           <span>SONUÇ</span>
@@ -107,10 +108,10 @@ export default async function PortalDokümanlarPage({
               {documents.map((item)=>(
                 <tr key={String(item.id)}>
                   <td className="primaryCell">
-                    <a href={"/portal/library/" + encodeURIComponent(String(item.id))}>
+                    <Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(item.id))}>
                       <b>{String(item.title)}</b>
                       <small>{String(item.description || item.original_name)}</small>
-                    </a>
+                    </Link>
                   </td>
                   <td><span className="portalStatusText">{String(item.kind)}</span></td>
                   <td className="mono">R{String(item.revision)}</td>
@@ -118,7 +119,7 @@ export default async function PortalDokümanlarPage({
                   <td className="numeric">{formatVaultBytes(item.size_bytes)}</td>
                   <td><span className={"portalStatusText "+String(item.approval_state)}>{String(item.approval_state)}</span></td>
                   <td>{String(item.preview_kind || "—")}</td>
-                  <td className="rowActions"><a href={"/portal/library/" + encodeURIComponent(String(item.id))}>Aç</a></td>
+                  <td className="rowActions"><Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(item.id))}>Aç</Link></td>
                 </tr>
               ))}
             </tbody>

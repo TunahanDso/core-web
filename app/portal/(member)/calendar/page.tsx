@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createCalendarEventAction } from "@/app/portal/actions";
 import { listPortalCalendar } from "@/lib/portal/db";
@@ -30,7 +31,7 @@ export default async function PortalCalendarPage({
         code="TAKVİM"
         title="Operasyon Takvimi"
         lead="Toplantılar, saha testleri, incelemeler, teslimler ve yarışma kilometre taşlarını aynı zaman registry'sinde izle."
-        action={<a className="portalPrimaryButton" href="/portal/calendar?create=1">+ ETKİNLİK EKLE</a>}
+        action={<Link prefetch={false} className="portalPrimaryButton" href="/portal/calendar?create=1">+ ETKİNLİK EKLE</Link>}
       />
 
       <section className="portalRegistryToolbar">
@@ -38,16 +39,16 @@ export default async function PortalCalendarPage({
           <label className="grow"><span>ARA</span><input name="q" defaultValue={String(query.q||"")} placeholder="Etkinlik, toplantı, konum..."/></label>
           <label><span>KAPSAM</span><select name="scope" defaultValue={scope}><option value="">Tümü</option>{scopes.map(s=><option value={s} key={s}>{s}</option>)}</select></label>
           <button type="submit">UYGULA</button>
-          {(q||scope)?<a className="subtle" href="/portal/calendar">Temizle</a>:null}
+          {(q||scope)?<Link prefetch={false} className="subtle" href="/portal/calendar">Temizle</Link>:null}
         </form>
         <div className="portalRegistrySummary"><span>ETKİNLİK</span><b>{visible.length}</b><small>takvim kaydı</small></div>
-        <a className="subtle" href="/portal/meetings">Toplantılar</a>
+        <Link prefetch={false} className="subtle" href="/portal/meetings">Toplantılar</Link>
       </section>
 
       {query.create==="1"?(
         <section className="portalToolSurface">
           <div className="portalToolBody">
-            <div className="portalInlineToolHead"><div><b>Etkinlik ekle</b><small>Toplantı planlamak için Toplantılar modülünü kullan; oradan takvime otomatik düşer.</small></div><a href="/portal/calendar">Kapat</a></div>
+            <div className="portalInlineToolHead"><div><b>Etkinlik ekle</b><small>Toplantı planlamak için Toplantılar modülünü kullan; oradan takvime otomatik düşer.</small></div><Link prefetch={false} href="/portal/calendar">Kapat</Link></div>
             <form className="portalFormGrid" action={createCalendarEventAction}>
               <label><span>Başlık</span><input name="title" required autoFocus/></label>
               <label><span>Konum</span><input name="location"/></label>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { formatVaultBytes, listPortalVaultFiles } from "@/lib/portal/vault";
@@ -20,7 +21,7 @@ export default async function PortalMechanicalPage() {
         code="MC / MEKANİK & CAD"
         title="Mekanik Tasarım Alanı"
         lead="Kaynak CAD dosyaları, mesh modelleri, teknik çizimler ve browser türevleri proje revision'larıyla aynı Vault üzerinde."
-        action={<a className="portalOutlineButton" href="/portal/library">VAULT'A DOSYA YÜKLE →</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/library">VAULT'A DOSYA YÜKLE →</Link>}
       />
 
       <section className="mechanicalFormatMatrix">
@@ -36,13 +37,13 @@ export default async function PortalMechanicalPage() {
       {mechanical.length ? (
         <div className="vaultFileGrid">
           {mechanical.map((item) => (
-            <a href={"/portal/library/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
+            <Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
               <header><span>{String(item.kind).toUpperCase()}</span><small>R{String(item.revision)}</small></header>
               <div className="vaultFileIcon">{String(item.extension || "CAD").toUpperCase()}</div>
               <h3>{String(item.title)}</h3>
               <p>{String(item.description || item.original_name)}</p>
               <footer><span>{String(item.project_slug || item.team_code || "CORE")}</span><small>{formatVaultBytes(item.size_bytes)} · {String(item.preview_kind)}</small></footer>
-            </a>
+            </Link>
           ))}
         </div>
       ) : <PortalEmpty title="Mekanik rafı hazır." text="İlk STL, OBJ, STEP, IGES veya native CAD dosyasını Vault üzerinden yükle." />}

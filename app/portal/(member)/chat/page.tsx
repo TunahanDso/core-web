@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty } from "@/components/portal/PortalPage";
 import { openChatChannelAction, sendChatMessageAction } from "@/app/portal/actions";
 import { listPortalChannelsForMember, listPortalMessages } from "@/lib/portal/db";
@@ -34,8 +35,8 @@ export default async function PortalChatPage({
           <button type="submit">Ara</button>
         </form>
         <div className="chatAppTopActions">
-          <a href="/portal/meetings">Toplantılar</a>
-          <a href="/portal/mail">Mail</a>
+          <Link prefetch={false} href="/portal/meetings">Toplantılar</Link>
+          <Link prefetch={false} href="/portal/mail">Mail</Link>
         </div>
       </header>
 
@@ -63,7 +64,7 @@ export default async function PortalChatPage({
           {selected?(
             <>
               <header className="chatConversationHeader">
-                <div><a className="chatMobileBack" href="/portal/chat?browse=1">←</a><span>#</span><div><b>{String(selected.name)}</b><small>{String(selected.description||"CORE takım kanalı")}</small></div></div>
+                <div><Link prefetch={false} className="chatMobileBack" href="/portal/chat?browse=1">←</Link><span>#</span><div><b>{String(selected.name)}</b><small>{String(selected.description||"CORE takım kanalı")}</small></div></div>
                 <small>{messages.length} mesaj</small>
               </header>
 

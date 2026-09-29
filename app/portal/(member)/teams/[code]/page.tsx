@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -74,7 +75,7 @@ export default async function PortalTeamDetailPage({
         code={"TM / " + teamCode}
         title={String(team.name)}
         lead={String(team.description || team.domain || "CORE takım çalışma alanı.")}
-        action={<a className="portalOutlineButton" href="/portal/teams">← TAKIMLAR</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/teams">← TAKIMLAR</Link>}
       />
 
       {query.created === "1" ? <div className="portalSuccess">Takım registry kaydı oluşturuldu.</div> : null}
@@ -95,11 +96,11 @@ export default async function PortalTeamDetailPage({
           <div className="portalPanelHead"><span>PROJELER</span><small>{teamProjects.length}</small></div>
           <div className="portalTeamProjectList">
             {teamProjects.length ? teamProjects.map((project) => (
-              <a href={"/portal/projects/" + encodeURIComponent(String(project.slug))} key={String(project.slug)}>
+              <Link prefetch={false} href={"/portal/projects/" + encodeURIComponent(String(project.slug))} key={String(project.slug)}>
                 <span>{String(project.status).toUpperCase()}</span>
                 <div><b>{String(project.title)}</b><small>{String(project.summary || project.domain || "")}</small></div>
                 <em>{String(project.readiness || 0)}%</em>
-              </a>
+              </Link>
             )) : <p className="portalMuted">Takıma bağlı internal proje yok.</p>}
           </div>
         </section>
@@ -123,11 +124,11 @@ export default async function PortalTeamDetailPage({
           <div className="portalPanelHead"><span>AKTİF GÖREVLER</span><small>{teamTasks.length}</small></div>
           <div className="portalTeamTaskList">
             {teamTasks.filter((item) => String(item.status) !== "done").slice(0,12).map((task) => (
-              <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
+              <Link prefetch={false} href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
                 <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                 <div><b>{String(task.title)}</b><small>{String(task.assignee_name || "Atanmamış")}</small></div>
                 <em>{portalTaskStatusLabel(String(task.status))}</em>
-              </a>
+              </Link>
             ))}
           </div>
         </section>
@@ -136,11 +137,11 @@ export default async function PortalTeamDetailPage({
           <div className="portalPanelHead"><span>TAKIM ÜYELERİ</span><small>{members.length}</small></div>
           <div className="portalTeamMemberList">
             {members.length ? members.map((item) => (
-              <a href={"/portal/members/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
+              <Link prefetch={false} href={"/portal/members/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
                 <span>{String(item.full_name || item.email).split(/\s+/).slice(0,2).map((part) => part[0]).join("").toUpperCase()}</span>
                 <div><b>{String(item.full_name || item.email)}</b><small>{String(item.email)}</small></div>
                 <em>{portalRoleLabelDetailed(String(item.team_role))}</em>
-              </a>
+              </Link>
             )) : <p className="portalMuted">V6 takım üyeliği henüz atanmadı.</p>}
           </div>
         </section>
@@ -151,10 +152,10 @@ export default async function PortalTeamDetailPage({
           <div className="portalPanelHead"><span>VAULT / SON DOSYALAR</span><small>{teamVault.length}</small></div>
           <div className="portalTeamVaultList">
             {teamVault.slice(0,10).map((file) => (
-              <a href={"/portal/library/" + encodeURIComponent(String(file.id))} key={String(file.id)}>
+              <Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(file.id))} key={String(file.id)}>
                 <span>{String(file.extension || file.kind).toUpperCase()}</span>
                 <div><b>{String(file.title)}</b><small>R{String(file.revision)} · {String(file.approval_state)}</small></div>
-              </a>
+              </Link>
             ))}
           </div>
         </section>
@@ -163,10 +164,10 @@ export default async function PortalTeamDetailPage({
           <div className="portalPanelHead"><span>REPOLAR</span><small>{teamRepos.length}</small></div>
           <div className="portalTeamVaultList">
             {teamRepos.length ? teamRepos.map((repo) => (
-              <a href="/portal/repositories" key={String(repo.id)}>
+              <Link prefetch={false} href="/portal/repositories" key={String(repo.id)}>
                 <span>GIT</span>
                 <div><b>{String(repo.name)}</b><small>{String(repo.visibility || "private")}</small></div>
-              </a>
+              </Link>
             )) : <p className="portalMuted">Takıma bağlı repo kaydı yok.</p>}
           </div>
         </section>

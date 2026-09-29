@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { createTaskAction } from "@/app/portal/actions";
@@ -82,7 +83,7 @@ export default async function PortalProjectWorkspacePage({
         action={
           publicProject
             ? <a className="portalOutlineButton" href={"/tr/projects/" + publicProject.slug} target="_blank">VİTRİNDE AÇ ↗</a>
-            : <a className="portalOutlineButton" href="/portal/project-map">PROJECT MAP →</a>
+            : <Link prefetch={false} className="portalOutlineButton" href="/portal/project-map">PROJECT MAP →</Link>
         }
       />
 
@@ -111,14 +112,14 @@ export default async function PortalProjectWorkspacePage({
 
       <section className="portalSplit portalProjectWork">
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>AKTİF GÖREVLER</span><a href={"/portal/tasks?project=" + encodeURIComponent(projectSlug)}>Tüm görevler →</a></div>
+          <div className="portalPanelHead"><span>AKTİF GÖREVLER</span><Link prefetch={false} href={"/portal/tasks?project=" + encodeURIComponent(projectSlug)}>Tüm görevler →</Link></div>
           <div className="portalProfessionalList">
             {openTasks.length ? openTasks.slice(0, 12).map((task) => (
-              <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
+              <Link prefetch={false} href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
                 <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                 <div><b>{String(task.title)}</b><small>{String(task.assignee_name || "Atanmamış")}</small></div>
                 <em>{portalTaskStatusLabel(String(task.status))}</em>
-              </a>
+              </Link>
             )) : <p className="portalMuted">Bu projede açık görev yok.</p>}
           </div>
         </div>
@@ -152,14 +153,14 @@ export default async function PortalProjectWorkspacePage({
 
       <section className="portalProjectColumns">
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>CORE VAULT</span><a href={"/portal/library?q=" + encodeURIComponent(projectSlug)}>Vault →</a></div>
+          <div className="portalPanelHead"><span>CORE VAULT</span><Link prefetch={false} href={"/portal/library?q=" + encodeURIComponent(projectSlug)}>Vault →</Link></div>
           <div className="portalProfessionalList">
             {projectVault.length ? projectVault.slice(0, 12).map((file) => (
-              <a href={"/portal/library/" + encodeURIComponent(String(file.id))} key={String(file.id)}>
+              <Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(file.id))} key={String(file.id)}>
                 <span>{String(file.extension || file.kind).toUpperCase()}</span>
                 <div><b>{String(file.title)}</b><small>R{String(file.revision)} · {String(file.approval_state)}</small></div>
                 <em>{String(file.lifecycle_state).toUpperCase()}</em>
-              </a>
+              </Link>
             )) : workspace.resources.length ? workspace.resources.slice(0, 12).map((item) => (
               <div key={String(item.id)}>
                 <span>{portalResourceKindLabel(String(item.kind))}</span>
@@ -171,14 +172,14 @@ export default async function PortalProjectWorkspacePage({
         </div>
 
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>ARAÇLAR</span><a href="/portal/ops">Vehicle registry →</a></div>
+          <div className="portalPanelHead"><span>ARAÇLAR</span><Link prefetch={false} href="/portal/ops">Vehicle registry →</Link></div>
           <div className="portalProfessionalList">
             {projectVehicles.length ? projectVehicles.map((vehicle) => (
-              <a href="/portal/ops" key={String(vehicle.id)}>
+              <Link prefetch={false} href="/portal/ops" key={String(vehicle.id)}>
                 <span>{String(vehicle.code)}</span>
                 <div><b>{String(vehicle.name)}</b><small>{String(vehicle.platform_type || vehicle.domain || "")}</small></div>
                 <em>{String(vehicle.lifecycle || vehicle.status).toUpperCase()}</em>
-              </a>
+              </Link>
             )) : <p className="portalMuted">Projeye bağlı araç kaydı yok.</p>}
           </div>
         </div>
@@ -186,14 +187,14 @@ export default async function PortalProjectWorkspacePage({
 
       <section className="portalProjectColumns">
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>CORE NATIVE REPO</span><a href="/portal/repositories">Repo servisi →</a></div>
+          <div className="portalPanelHead"><span>CORE NATIVE REPO</span><Link prefetch={false} href="/portal/repositories">Repo servisi →</Link></div>
           <div className="portalProfessionalList">
             {projectNativeRepos.length ? projectNativeRepos.map((repo) => (
-              <a href="/portal/repositories" key={String(repo.id)}>
+              <Link prefetch={false} href="/portal/repositories" key={String(repo.id)}>
                 <span>CORE GIT</span>
                 <div><b>{String(repo.name)}</b><small>{String(repo.default_branch || "main")} · {String(repo.visibility)}</small></div>
                 <em>{String(repo.status || "").toUpperCase()}</em>
-              </a>
+              </Link>
             )) : workspace.repositories.length ? workspace.repositories.map((repo) => (
               <a href={String(repo.repo_url)} target="_blank" rel="noreferrer" key={String(repo.id)}>
                 <span>GIT</span>
@@ -205,7 +206,7 @@ export default async function PortalProjectWorkspacePage({
         </div>
 
         <div className="portalPanel">
-          <div className="portalPanelHead"><span>MAP CONTEXT</span><a href="/portal/project-map">Haritada aç →</a></div>
+          <div className="portalPanelHead"><span>MAP CONTEXT</span><Link prefetch={false} href="/portal/project-map">Haritada aç →</Link></div>
           <div className="portalProjectMapSummary">
             <b>{teamCode || "CORE"}</b>
             <span>→</span>

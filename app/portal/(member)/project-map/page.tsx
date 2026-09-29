@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import ProjectMappingCanvas, {
   type ProjectMapEdge,
@@ -243,7 +244,7 @@ export default async function PortalProjectMapPage() {
         code="MAP / ENGINEERING GRAPH"
         title="Proje Mapping"
         lead="Takımlar, projeler, araçlar ve repolar arasındaki sahiplik ve bağımlılıkları tek mühendislik haritasında gör."
-        action={<a className="portalOutlineButton" href="/portal/control">CONTROL PLANE →</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/control">CONTROL PLANE →</Link>}
       />
 
       {nodes.length ? (

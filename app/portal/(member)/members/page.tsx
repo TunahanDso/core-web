@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { updatePortalRoleProfileAction } from "@/app/portal/control-actions";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -118,7 +119,7 @@ export default async function PortalMembersPage({
                 </select>
               </label>
               <button type="submit">UYGULA</button>
-              {(q || statusFilter || roleFilter) ? <a className="subtle" href="/portal/members">Temizle</a> : null}
+              {(q || statusFilter || roleFilter) ? <Link prefetch={false} className="subtle" href="/portal/members">Temizle</Link> : null}
             </form>
             <div className="portalRegistrySummary">
               <span>SONUÇ</span>
@@ -149,10 +150,10 @@ export default async function PortalMembersPage({
                     return (
                       <tr key={String(item.id)}>
                         <td className="primaryCell">
-                          <a className="portalMemberTableIdentity" href={"/portal/members/" + encodeURIComponent(String(item.id))}>
+                          <Link prefetch={false} className="portalMemberTableIdentity" href={"/portal/members/" + encodeURIComponent(String(item.id))}>
                             <span>{initials}</span>
                             <div><b>{name}</b><small>{String(item.email)}</small></div>
-                          </a>
+                          </Link>
                         </td>
                         <td><span className={"portalStatusText "+status}>{portalMemberStatusLabel(status)}</span></td>
                         <td><b>{portalRoleLabelDetailed(String(item.role))}</b></td>
@@ -163,7 +164,7 @@ export default async function PortalMembersPage({
                           </div>
                         </td>
                         <td className="mono">{shortLastSeen(item.last_login_at)}</td>
-                        <td className="rowActions"><a href={"/portal/members/" + encodeURIComponent(String(item.id))}>Profili aç</a></td>
+                        <td className="rowActions"><Link prefetch={false} href={"/portal/members/" + encodeURIComponent(String(item.id))}>Profili aç</Link></td>
                       </tr>
                     );
                   })}

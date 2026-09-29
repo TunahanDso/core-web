@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createInventoryMovementAction, upsertInventoryAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -98,7 +99,7 @@ export default async function PortalInventoryPage({
               <span>Düşük stok</span>
             </label>
             <button type="submit">UYGULA</button>
-            {(q || lowOnly) ? <a className="subtle" href="/portal/inventory">Temizle</a> : null}
+            {(q || lowOnly) ? <Link prefetch={false} className="subtle" href="/portal/inventory">Temizle</Link> : null}
           </form>
         ) : (
           <div className="portalRegistryTabs">
@@ -113,8 +114,8 @@ export default async function PortalInventoryPage({
         </div>
 
         <nav className="portalSegmentedControl" aria-label="Envanter görünümü">
-          <a className={view === "stock" ? "active" : ""} href="/portal/inventory">Stok</a>
-          <a className={view === "history" ? "active" : ""} href="/portal/inventory?view=history">Hareketler</a>
+          <Link prefetch={false} className={view === "stock" ? "active" : ""} href="/portal/inventory">Stok</Link>
+          <Link prefetch={false} className={view === "history" ? "active" : ""} href="/portal/inventory?view=history">Hareketler</Link>
         </nav>
 
         {canWrite ? (

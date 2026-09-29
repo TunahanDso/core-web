@@ -1,5 +1,6 @@
 "use client";
 
+import PortalThemeControl from "./PortalThemeControl";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
@@ -154,7 +155,7 @@ export default function PortalNativeExperience({
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recentRoutes, setRecentRoutes] = useState<string[]>([]);
   const visibleNativeModules = nativeModules.filter(
-    (item) => item.href !== "/portal/control" || canControl
+    (item) => !["/portal/control", "/portal/control-center"].includes(item.href) || canControl
   );
   const [connected, setConnected] = useState(true);
   const [connectionType, setConnectionType] = useState<ConnectionType>("unknown");
@@ -603,6 +604,7 @@ export default function PortalNativeExperience({
               <button type="button" onClick={() => setMoreOpen(false)}>KAPAT</button>
             </header>
 
+            <div className="portalAppearancePanel"><b>Görünüm</b><PortalThemeControl /></div>
             <div className="nativeMemberCard">
               <span className="nativeMemberAvatar">{memberInitials}</span>
               <div><b>{memberName}</b><small>{memberRole} · PUSH {pushState.toUpperCase()}</small></div>
@@ -644,7 +646,7 @@ export default function PortalNativeExperience({
                   <p>{group.label}</p>
                   <div>
                     {group.items
-                      .filter(([, href]) => href !== "/portal/control" || canControl)
+                      .filter(([, href]) => !["/portal/control", "/portal/control-center"].includes(href) || canControl)
                       .map(([label, href, code]) => (
                       <div className={"nativeModuleItem " + (activeTab(href) ? "active" : "")} key={href}>
                         <button type="button" className="nativeModuleOpen" onClick={() => navigate(href)}>

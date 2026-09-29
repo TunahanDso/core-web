@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalMembers } from "@/lib/portal/db";
@@ -55,8 +56,8 @@ export default async function PortalMeetingsPage({
 
       <section className="portalRegistryToolbar">
         <nav className="portalSegmentedControl">
-          <a className={section==="meetings"?"active":""} href="/portal/meetings">Toplantılar</a>
-          <a className={section==="spaces"?"active":""} href="/portal/meetings?section=spaces">Alanlar</a>
+          <Link prefetch={false} className={section==="meetings"?"active":""} href="/portal/meetings">Toplantılar</Link>
+          <Link prefetch={false} className={section==="spaces"?"active":""} href="/portal/meetings?section=spaces">Alanlar</Link>
         </nav>
 
         {section==="meetings"?(
@@ -76,7 +77,7 @@ export default async function PortalMeetingsPage({
               </select>
             </label>
             <button type="submit">UYGULA</button>
-            {(q||status)?<a className="subtle" href="/portal/meetings">Temizle</a>:null}
+            {(q||status)?<Link prefetch={false} className="subtle" href="/portal/meetings">Temizle</Link>:null}
           </form>
         ):(
           <div className="portalRegistryTabs"><span className="portalMuted">Ayrı ekipler ve çalışma grupları için kalıcı meeting space'ler.</span></div>
@@ -88,7 +89,7 @@ export default async function PortalMeetingsPage({
           <small>kayıt</small>
         </div>
 
-        {section==="spaces"?<a className="primary" href="/portal/meetings?section=spaces&create=space">+ Alan oluştur</a>:null}
+        {section==="spaces"?<Link prefetch={false} className="primary" href="/portal/meetings?section=spaces&create=space">+ Alan oluştur</Link>:null}
       </section>
 
       {create==="meeting"?(
@@ -96,7 +97,7 @@ export default async function PortalMeetingsPage({
           <div className="portalToolBody">
             <div className="portalInlineToolHead">
               <div><b>Toplantı planla</b><small>Takvim kaydı ve katılımcı bildirimleri otomatik oluşturulur.</small></div>
-              <a href="/portal/meetings">Kapat</a>
+              <Link prefetch={false} href="/portal/meetings">Kapat</Link>
             </div>
             <form className="portalFormGrid" action={createMeetingAction}>
               <label className="portalFormWide"><span>Başlık</span><input name="title" required autoFocus /></label>
@@ -155,7 +156,7 @@ export default async function PortalMeetingsPage({
           <div className="portalToolBody">
             <div className="portalInlineToolHead">
               <div><b>Toplantı alanı oluştur</b><small>Örn. CORE Marine Weekly, Elektronik Tasarım Kurulu, Yönetim.</small></div>
-              <a href="/portal/meetings?section=spaces">Kapat</a>
+              <Link prefetch={false} href="/portal/meetings?section=spaces">Kapat</Link>
             </div>
             <form className="portalFormGrid" action={createMeetingSpaceAction}>
               <label><span>Alan adı</span><input name="name" required autoFocus /></label>
@@ -201,7 +202,7 @@ export default async function PortalMeetingsPage({
               <tbody>
                 {filtered.map((item)=>(
                   <tr key={String(item.id)}>
-                    <td className="primaryCell"><a href={"/portal/meetings/"+encodeURIComponent(String(item.id))}><b>{String(item.title)}</b><small>{String(item.team_code||item.project_slug||item.creator_name||"CORE")}</small></a></td>
+                    <td className="primaryCell"><Link prefetch={false} href={"/portal/meetings/"+encodeURIComponent(String(item.id))}><b>{String(item.title)}</b><small>{String(item.team_code||item.project_slug||item.creator_name||"CORE")}</small></Link></td>
                     <td className="mono">{String(item.starts_at).replace("T"," ").slice(0,16)}</td>
                     <td>{String(item.space_name||"Genel")}</td>
                     <td className="numeric">{String(item.participant_count||0)}</td>
@@ -209,7 +210,7 @@ export default async function PortalMeetingsPage({
                     <td className="numeric">{String(item.poll_count||0)}</td>
                     <td><span className={"portalStatusText "+(Number(item.report_count)>0?"done":"")}>{Number(item.report_count)>0?"Hazır":"Bekliyor"}</span></td>
                     <td><span className={"portalStatusText "+String(item.status)}>{String(item.status)}</span></td>
-                    <td className="rowActions"><a href={"/portal/meetings/"+encodeURIComponent(String(item.id))}>Odayı aç</a></td>
+                    <td className="rowActions"><Link prefetch={false} href={"/portal/meetings/"+encodeURIComponent(String(item.id))}>Odayı aç</Link></td>
                   </tr>
                 ))}
               </tbody>
