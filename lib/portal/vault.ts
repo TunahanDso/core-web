@@ -377,6 +377,58 @@ export async function getPortalVaultObjectDescriptor(fileId: string, revision?: 
   };
 }
 
+export async function readPortalVaultTextChunk(
+  fileId: string,
+  revision: number | null | undefined,
+  offsetInput = 0,
+  limitInput = 192 * 1024
+) {
+  const descriptor = await getPortalVaultObjectDescriptor(fileId, revision);
+  if (!descriptor) return null;
+
+  const offset = Math.max(0, Math.min(Number(offsetInput || 0), descriptor.sizeBytes));
+  const limit = Math.max(4 * 1024, Math.min(Number(limitInput || 192 * 1024), 512 * 1024));
+  const remaining = Math.max(0, descriptor.sizeBytes - offset);
+  const length = Math.min(limit, remaining);
+
+  if (!length) {
+    return {
+      text: "",
+      offset,
+      nextOffset: offset,
+      eof: true,
+      totalBytes: descriptor.sizeBytes,
+      revision: descriptor.revision,
+      originalName: descriptor.originalName,
+    };
+  }
+
+  const rangedBucket = mediaBucket() as unknown as {
+    get(
+      key: string,
+      options: { range: { offset: number; length: number } }
+    ): Promise<{ body: ReadableStream<Uint8Array> } | null>;
+  };
+  const object = await rangedBucket.get(descriptor.objectKey, {
+    range: { offset, length },
+  });
+  if (!object) return null;
+
+  const bytes = await new Response(object.body).arrayBuffer();
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  const nextOffset = Math.min(descriptor.sizeBytes, offset + bytes.byteLength);
+
+  return {
+    text,
+    offset,
+    nextOffset,
+    eof: nextOffset >= descriptor.sizeBytes,
+    totalBytes: descriptor.sizeBytes,
+    revision: descriptor.revision,
+    originalName: descriptor.originalName,
+  };
+}
+
 export async function readPortalVaultTextPreview(fileId: string, revision?: number | null) {
   const descriptor = await getPortalVaultObjectDescriptor(fileId, revision);
   if (!descriptor) return null;
