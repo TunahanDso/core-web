@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import VaultModelViewer from "@/components/portal/VaultModelViewer";
-import KiCadBoardPreview from "@/components/portal/KiCadBoardPreview";
 import VaultCodeReader from "@/components/portal/VaultCodeReader";
-import VaultSourceBrowser from "@/components/portal/VaultSourceBrowser";
+import VaultPcbWorkspace from "@/components/portal/VaultPcbWorkspace";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
   formatVaultBytes,
@@ -114,18 +113,13 @@ export default async function VaultFilePage({
         ) : null}
 
         {previewKind === "pcb-source" && extension === "kicad_pcb" ? (
-          <div className="vaultPcbWorkspace">
-            <KiCadBoardPreview
-              src={sourceUrl}
-              filename={String(file.original_name)}
-              sizeBytes={Number(file.size_bytes || 0)}
-            />
-            <VaultSourceBrowser
-              fileId={fileId}
-              revision={Number(file.revision || 1)}
-              filename={String(file.original_name)}
-            />
-          </div>
+          <VaultPcbWorkspace
+            fileId={fileId}
+            sourceUrl={sourceUrl}
+            filename={String(file.original_name)}
+            sizeBytes={Number(file.size_bytes || 0)}
+            revision={Number(file.revision || 1)}
+          />
         ) : null}
 
         {previewKind === "text" && textPreview ? (
@@ -138,11 +132,11 @@ export default async function VaultFilePage({
         ) : null}
 
         {previewKind === "pcb-source" && extension !== "kicad_pcb" ? (
-          <VaultSourceBrowser
-            fileId={fileId}
-            revision={Number(file.revision || 1)}
-            filename={String(file.original_name)}
-          />
+          <div className="vaultConversionPanel">
+            <span>PCB KAYNAK DOSYASI</span>
+            <h3>Bu kaynak formatı indirilebilir ve revision geçmişinde korunur.</h3>
+            <p>İnteraktif kart geometrisi şu anda .kicad_pcb için etkin. Diğer PCB üretim çıktıları ham kaynak olarak Vault'ta tutulur.</p>
+          </div>
         ) : null}
 
         {previewKind === "cad-source" ? (
