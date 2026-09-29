@@ -8,6 +8,8 @@ export const portalNavigation = [
       ["Takımlar", "/portal/teams", "TM"],
       ["Görevler", "/portal/tasks", "PM"],
       ["Takvim", "/portal/calendar", "CL"],
+      ["Toplantılar", "/portal/meetings", "MT"],
+      ["Oylamalar", "/portal/polls", "VT"],
       ["Bildirimler", "/portal/notifications", "NT"],
     ],
   },
@@ -36,6 +38,7 @@ export const portalNavigation = [
     label: "OPERASYON",
     items: [
       ["Stok & Envanter", "/portal/inventory", "ST"],
+      ["Bütçe", "/portal/budget", "BG"],
       ["Canlı Araç", "/portal/ops", "OP"],
       ["Etkinlik Geçmişi", "/portal/activity", "AC"],
       ["İstatistikler", "/portal/analytics", "AN"],
@@ -60,6 +63,9 @@ export const portalModuleCards = [
   ["İç Yazışma", "Kalıcı karar ve devir teslim yazışmaları.", "/portal/mail", "ML"],
   ["Canlı Araç", "Salt okunur araç durumu ve onaylı telemetri.", "/portal/ops", "OP"],
   ["Takvim", "Testler, toplantılar, son tarihler ve saha operasyonları.", "/portal/calendar", "CL"],
+  ["Toplantılar", "Ses/görüntü odaları, kararlar, oylamalar ve otomatik arşiv raporları.", "/portal/meetings", "MT"],
+  ["Oylamalar", "Genel, takım ve toplantı kararlarını kayıtlı oy akışıyla yönet.", "/portal/polls", "VT"],
+  ["Bütçe", "Takım/proje finansını ledger, tahsis, taahhüt ve onay akışıyla izle.", "/portal/budget", "BG"],
   ["İstatistikler", "Takım, içerik ve operasyon sağlığına tek bakış.", "/portal/analytics", "AN"],
   ["Control Center", "Yetkili roller için merkezi kayıt, düzenleme ve lifecycle yönetimi.", "/portal/control-center", "CC"],
 ] as const;
