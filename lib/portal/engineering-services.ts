@@ -33,7 +33,7 @@ export function getEngineeringServiceStatus() {
     repository: {
       configured: Boolean(externalRepository || embeddedRepository),
       url: externalRepository ? repositoryUrl : null,
-      mode: externalRepository ? "external" : embeddedRepository ? "embedded-r2" : "offline",
+      mode: externalRepository ? "external" : embeddedRepository ? "snapshot-r2" : "offline",
       embedded: embeddedRepository,
     },
     runner: {
@@ -120,7 +120,7 @@ export async function createNativeRepository(input: {
       name: input.name,
       slug: input.slug,
       serviceRepositoryId: payload.id,
-      engine: payload.engine || (url ? "external" : "embedded-r2"),
+      engine: payload.engine || (url ? "external-git-service" : "snapshot-r2"),
       headSha: payload.headSha || null,
     })),
   ]);
