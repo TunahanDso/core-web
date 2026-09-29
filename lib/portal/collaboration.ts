@@ -171,9 +171,14 @@ export async function createMeeting(input: {
   return id;
 }
 
-export async function setMeetingStatus(meetingId: string, status: "scheduled"|"live"|"completed"|"cancelled", actorEmail: string) {
+export async function setMeetingStatus(meetingId: string, status: "scheduled"|"live"|"completed"|"cancelled", memberId: string, actorEmail: string) {
   await ensurePortalCollaborationFinanceSchema();
   const database=db();
+  const meeting=await database.prepare("SELECT created_by FROM portal_meetings WHERE id=? LIMIT 1").bind(meetingId).first<{created_by:string}>();
+  const privileged=meeting?.created_by===memberId || Boolean(await database.prepare(
+    "SELECT 1 AS ok FROM portal_meeting_participants WHERE meeting_id=? AND member_id=? AND participant_role IN ('host','moderator') LIMIT 1"
+  ).bind(meetingId,memberId).first<{ok:number}>());
+  if(!privileged) throw new Error("Toplantı durumunu yalnız host veya moderatör değiştirebilir.");
   await database.batch([
     database.prepare("UPDATE portal_meetings SET status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(status,meetingId),
     database.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'meeting.status','meeting',?,?)")
