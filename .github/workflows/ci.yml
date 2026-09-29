@@ -50,6 +50,8 @@ jobs:
             console.log("D1 seed runner uses atomic batch() with quote-aware SQL parsing.");
 
             const portalBootstrap = fs.readFileSync("lib/portal/bootstrap.ts", "utf8");
+            const portalGeneratedSchema = fs.readFileSync("lib/portal/schema.generated.ts", "utf8");
+            const portalSchema = portalBootstrap + "\n" + portalGeneratedSchema;
             if (portalBootstrap.includes("db.exec(PORTAL_SCHEMA_SQL)")) {
               throw new Error("Portal bootstrap must not execute the full schema through D1 exec().");
             }
@@ -105,7 +107,7 @@ jobs:
               "portal_budget_entries"
             ];
             for (const table of portalV4Tables) {
-              if (!portalBootstrap.includes(table)) {
+              if (!portalSchema.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
@@ -147,7 +149,7 @@ jobs:
               "dispatch_token",
               "ensurePortalCodeLabSchema"
             ]) {
-              if (!portalBootstrap.includes(required)) throw new Error(`CL-01 bootstrap missing: ${required}`);
+              if (!portalSchema.includes(required)) throw new Error(`CL-01 bootstrap missing: ${required}`);
             }
             if (!codeLabPage.includes("listAccessibleNativeRepositories") || codeLabPage.includes("listNativeRepositories()")) {
               throw new Error("Code Lab repository selector must enforce member-scoped repository access.");
