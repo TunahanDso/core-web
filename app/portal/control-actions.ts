@@ -161,7 +161,7 @@ export async function upsertPortalProjectControlAction(formData: FormData) {
   revalidatePath("/en/projects");
   revalidatePath("/tr/projects/" + projectSlug);
   revalidatePath("/en/projects/" + projectSlug);
-  redirect("/portal/control?edit=" + encodeURIComponent(projectSlug) + "&saved=1#project-control");
+  redirect("/portal/control?section=projects&edit=" + encodeURIComponent(projectSlug) + "&saved=1");
 }
 
 export async function deletePortalProjectControlAction(formData: FormData) {
@@ -183,7 +183,7 @@ export async function deletePortalProjectControlAction(formData: FormData) {
   revalidatePath("/en");
   revalidatePath("/tr/projects");
   revalidatePath("/en/projects");
-  redirect("/portal/control?deleted=" + encodeURIComponent(projectSlug) + "#project-control");
+  redirect("/portal/control?section=projects&deleted=" + encodeURIComponent(projectSlug));
 }
 
 export async function resetPortalProjectCatalogAction(formData: FormData) {
@@ -203,7 +203,7 @@ export async function resetPortalProjectCatalogAction(formData: FormData) {
   revalidatePath("/en");
   revalidatePath("/tr/projects");
   revalidatePath("/en/projects");
-  redirect("/portal/control?reset=" + internalCount + "-" + showcaseCount + "#project-control");
+  redirect("/portal/control?section=projects&reset=" + internalCount + "-" + showcaseCount);
 }
 
 export async function upsertPortalVehicleControlAction(formData: FormData) {
@@ -226,7 +226,7 @@ export async function upsertPortalVehicleControlAction(formData: FormData) {
   revalidatePath("/portal/ops");
   revalidatePath("/portal/project-map");
   revalidatePath("/portal/control");
-  redirect("/portal/control?vehicle=1");
+  redirect("/portal/control?section=vehicles&vehicle=1");
 }
 
 export async function upsertPortalTeamMembershipAction(formData: FormData) {
@@ -245,7 +245,7 @@ export async function upsertPortalTeamMembershipAction(formData: FormData) {
 
   revalidatePath("/portal/teams");
   revalidatePath("/portal/control");
-  redirect("/portal/control?membership=1");
+  redirect("/portal/control?section=teams&membership=1");
 }
 
 export async function grantPortalCapabilityAction(formData: FormData) {
@@ -256,7 +256,7 @@ export async function grantPortalCapabilityAction(formData: FormData) {
     actorEmail: member.email,
   });
   revalidatePath("/portal/control");
-  redirect("/portal/control?capability=granted");
+  redirect("/portal/control?section=roles&capability=granted");
 }
 
 export async function revokePortalCapabilityAction(formData: FormData) {
@@ -267,7 +267,7 @@ export async function revokePortalCapabilityAction(formData: FormData) {
     actorEmail: member.email,
   });
   revalidatePath("/portal/control");
-  redirect("/portal/control?capability=revoked");
+  redirect("/portal/control?section=roles&capability=revoked");
 }
 
 export async function createPortalMapEdgeAction(formData: FormData) {
