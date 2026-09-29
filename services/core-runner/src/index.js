@@ -504,10 +504,6 @@ async function terminalSocket(sessionId, request, env) {
     return responseJson({ error:"terminal_not_connectable",status:row.status }, { status:409 });
   }
 
-  await env.DB.prepare(
-    "UPDATE portal_code_terminal_sessions SET status='connected',connected_at=COALESCE(connected_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
-  ).bind(sessionId).run();
-
   const container = getContainer(env.RUNNER_SANDBOX,"terminal-" + sessionId);
   const internal = new URL("http://container/internal/terminal");
   internal.searchParams.set("cols",url.searchParams.get("cols") || "120");
@@ -515,10 +511,32 @@ async function terminalSocket(sessionId, request, env) {
   const headers = new Headers(request.headers);
   headers.delete("host");
   headers.set("x-core-terminal-session",sessionId);
-  return container.fetch(new Request(internal.toString(), {
-    method:"GET",
-    headers,
-  }));
+
+  try {
+    const response = await container.fetch(new Request(internal.toString(), {
+      method:"GET",
+      headers,
+    }));
+    if (response.status === 101 && response.webSocket) {
+      await env.DB.prepare(
+        "UPDATE portal_code_terminal_sessions SET status='connected',connected_at=COALESCE(connected_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+      ).bind(sessionId).run();
+      return response;
+    }
+
+    await env.DB.prepare(
+      "UPDATE portal_code_terminal_sessions SET status='failed',ended_at=CURRENT_TIMESTAMP,last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(sessionId).run();
+    return response;
+  } catch (error) {
+    await env.DB.prepare(
+      "UPDATE portal_code_terminal_sessions SET status='failed',ended_at=CURRENT_TIMESTAMP,last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(sessionId).run();
+    return responseJson({
+      error:"terminal_websocket_proxy_failed",
+      message:error instanceof Error ? error.message : String(error),
+    }, { status:502 });
+  }
 }
 
 async function closeTerminal(sessionId, request, env) {
