@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ComponentType } from "react";
 
 type MobileConfig = {
   appScheme: string;
@@ -13,7 +14,7 @@ type MobileConfig = {
   baseUrl: string;
 };
 
-type MobileRuntime = React.ComponentType<{ config: MobileConfig }>;
+type MobileRuntime = ComponentType<{ config: MobileConfig }>;
 
 function shouldLoadMobileRuntime() {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
