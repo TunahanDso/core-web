@@ -504,8 +504,12 @@ jobs:
               throw new Error("Vault service must use R2 ranged reads for large source browsing.");
             }
             const vaultDetailSource = fs.readFileSync("app/portal/(member)/library/[id]/page.tsx", "utf8");
-            if (!vaultDetailSource.includes("VaultSourceBrowser") || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
-              throw new Error("KiCad Vault detail must use large-file viewer + chunked source browser.");
+            const vaultPcbWorkspace = fs.readFileSync("components/portal/VaultPcbWorkspace.tsx", "utf8");
+            if (!vaultDetailSource.includes("VaultPcbWorkspace") || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
+              throw new Error("KiCad Vault detail must use the dedicated large-file PCB workspace.");
+            }
+            for (const required of ["PCB GÖRÜNÜMÜ", "KAYNAK", "KiCadBoardPreview", "VaultSourceBrowser"]) {
+              if (!vaultPcbWorkspace.includes(required)) throw new Error(`Tabbed PCB workspace missing: ${required}`);
             }
             console.log("VA-03 large KiCad streaming viewer and ranged source browser validated.");
             console.log("GV-01 role-driven authorization, team CRUD, entity cards and V9 engineering controls validated.");
