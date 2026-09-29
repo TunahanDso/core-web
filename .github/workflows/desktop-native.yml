@@ -1,0 +1,38 @@
+name: Desktop Native
+
+on:
+  pull_request:
+    paths:
+      - "src-tauri/**"
+      - "desktop/**"
+      - "components/portal/PortalDesktopExperience.tsx"
+      - "app/portal/(member)/layout.tsx"
+      - "app/globals.css"
+      - "package.json"
+      - ".github/workflows/desktop-native.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src-tauri/**"
+      - "desktop/**"
+      - "components/portal/PortalDesktopExperience.tsx"
+      - "app/portal/(member)/layout.tsx"
+      - "app/globals.css"
+      - "package.json"
+      - ".github/workflows/desktop-native.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rust-check:
+    name: Tauri Rust check
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Check desktop shell
+        run: cargo check --manifest-path src-tauri/Cargo.toml
