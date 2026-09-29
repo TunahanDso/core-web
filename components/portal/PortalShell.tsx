@@ -3,7 +3,6 @@ import PortalNav from "@/components/portal/PortalNav";
 import { logoutPortalAction } from "@/app/portal/actions";
 import { getSiteSetting } from "@/lib/cms/extensions";
 import { portalRoleLabel } from "@/lib/portal/labels";
-import { portalMemberCapabilitySet } from "@/lib/portal/governance";
 import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
 import PortalSidebarToggle from "@/components/portal/PortalSidebarToggle";
 import PortalContent from "@/components/portal/PortalContent";
@@ -11,17 +10,14 @@ import PortalDensityToggle from "@/components/portal/PortalDensityToggle";
 
 export default async function PortalShell({
   member,
+  canControl,
   children,
 }: {
   member: PortalMember;
+  canControl: boolean;
   children: React.ReactNode;
 }) {
-  const [banner, capabilitySet] = await Promise.all([
-    getSiteSetting("portal_banner"),
-    portalMemberCapabilitySet(member),
-  ]);
-  const canControl = ["portal.admin","control.projects","control.vehicles","teams.manage","roles.manage","vault.approve"]
-    .some((capability) => capabilitySet.has(capability));
+  const banner = await getSiteSetting("portal_banner");
   const initials = member.fullName
     ? member.fullName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()
     : "CR";
