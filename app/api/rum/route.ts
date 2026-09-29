@@ -1,3 +1,5 @@
+import { sanitizeRumPath,validRumMetric } from "@/lib/platform/rum";
+
 const ALLOWED=new Set(["LCP","CLS","INP","TTFB"]);
 const SURFACES=new Set(["portal","admin","public"]);
 
@@ -12,9 +14,9 @@ export async function POST(request:Request){
   const name=String(body.name||"");
   const surface=String(body.surface||"");
   const value=Number(body.value);
-  const path=String(body.path||"").split("?")[0].slice(0,160);
+  const path=sanitizeRumPath(String(body.path||""));
 
-  if(!ALLOWED.has(name)||!SURFACES.has(surface)||!Number.isFinite(value)||value<0||value>120000){
+  if(!ALLOWED.has(name)||!SURFACES.has(surface)||!validRumMetric(name,value)){
     return new Response(null,{status:204});
   }
 
