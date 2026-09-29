@@ -15,3 +15,14 @@ out
 # vinext / Vite output
 /dist/
 /.vinext/
+
+# Internal PKI private material — never commit
+*.pfx
+*.p12
+*.key
+*.key.pem
+*.csr
+*.csr.pem
+*-pass.txt
+pfx-base64.txt
+desktop/pki/private/

@@ -2,8 +2,8 @@ import { getPortalMember } from "@/lib/portal/auth";
 
 export const dynamic = "force-dynamic";
 
-const WINDOWS_LATEST =
-  "https://github.com/TunahanDso/core-web/releases/download/desktop-latest/YTU-CORE-Desktop-Windows-x64.exe";
+const WINDOWS_INTERNAL =
+  "https://github.com/TunahanDso/core-web/releases/download/desktop-internal/YTU-CORE-Desktop-Windows-x64.exe";
 
 export async function GET() {
   const member = await getPortalMember();
@@ -14,9 +14,9 @@ export async function GET() {
   return new Response(null, {
     status: 307,
     headers: {
-      Location: WINDOWS_LATEST,
+      Location: WINDOWS_INTERNAL,
       "Cache-Control": "private, no-store, max-age=0",
-      "X-CORE-Desktop-Channel": "latest",
+      "X-CORE-Desktop-Channel": "internal-signed",
     },
   });
 }

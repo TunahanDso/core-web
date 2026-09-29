@@ -18,78 +18,33 @@ type Board={
 function emptyBoard():Board{
   return{edges:[],footprints:[],tracks:[],vias:[],netNames:new Map<number,string>()};
 }
-function n(value:string){
-  const parsed=Number(value);
-  return Number.isFinite(parsed)?parsed:0;
+async function parseBoardAsync(source:string):Promise<Board>{
+  if(typeof Worker==="undefined") throw new Error("PCB önizleme için Web Worker desteği gerekli.");
+  return await new Promise<Board>((resolve,reject)=>{
+    const worker=new Worker("/workers/kicad-parser.js");
+    const cleanup=()=>worker.terminate();
+    worker.onmessage=(event:MessageEvent<{ok:boolean;board?:Omit<Board,"netNames">&{netNames:Array<[number,string]>};error?:string}>)=>{
+      cleanup();
+      if(!event.data?.ok||!event.data.board){
+        reject(new Error(event.data?.error||"KiCad worker parse failed."));
+        return;
+      }
+      resolve({
+        edges:event.data.board.edges,
+        footprints:event.data.board.footprints,
+        tracks:event.data.board.tracks,
+        vias:event.data.board.vias,
+        netNames:new Map(event.data.board.netNames),
+      });
+    };
+    worker.onerror=(event)=>{
+      cleanup();
+      reject(new Error(event.message||"KiCad worker error."));
+    };
+    worker.postMessage({source});
+  });
 }
 
-function parseBoard(source:string):Board{
-  const edges:Edge[]=[];
-  const footprints:Footprint[]=[];
-  const tracks:Track[]=[];
-  const vias:Via[]=[];
-  const netNames=new Map<number,string>();
-
-  for(const match of source.matchAll(/\(net\s+(\d+)\s+"([^"]*)"/g)){
-    netNames.set(Number(match[1]),match[2]||("NET-"+match[1]));
-    if(netNames.size>5000) break;
-  }
-
-  const lineRe=/\(gr_line[\s\S]{0,160}?\(start\s+([-+\d.]+)\s+([-+\d.]+)\)[\s\S]{0,160}?\(end\s+([-+\d.]+)\s+([-+\d.]+)\)[\s\S]{0,320}?\(layer\s+"Edge\.Cuts"\)/g;
-  for(const match of source.matchAll(lineRe)){
-    edges.push({a:{x:n(match[1]),y:n(match[2])},b:{x:n(match[3]),y:n(match[4])}});
-    if(edges.length>=8000) break;
-  }
-
-  const rectRe=/\(gr_rect[\s\S]{0,160}?\(start\s+([-+\d.]+)\s+([-+\d.]+)\)[\s\S]{0,160}?\(end\s+([-+\d.]+)\s+([-+\d.]+)\)[\s\S]{0,320}?\(layer\s+"Edge\.Cuts"\)/g;
-  for(const match of source.matchAll(rectRe)){
-    const x1=n(match[1]),y1=n(match[2]),x2=n(match[3]),y2=n(match[4]);
-    edges.push(
-      {a:{x:x1,y:y1},b:{x:x2,y:y1}},
-      {a:{x:x2,y:y1},b:{x:x2,y:y2}},
-      {a:{x:x2,y:y2},b:{x:x1,y:y2}},
-      {a:{x:x1,y:y2},b:{x:x1,y:y1}},
-    );
-    if(edges.length>=8000) break;
-  }
-
-  const segmentRe=/\(segment[\s\S]{0,120}?\(start\s+([-+\d.]+)\s+([-+\d.]+)\)[\s\S]{0,120}?\(end\s+([-+\d.]+)\s+([-+\d.]+)\)[\s\S]{0,120}?\(width\s+([-+\d.]+)\)[\s\S]{0,160}?\(layer\s+"([^"]+)"\)[\s\S]{0,160}?\(net\s+(\d+)\)/g;
-  for(const match of source.matchAll(segmentRe)){
-    tracks.push({
-      a:{x:n(match[1]),y:n(match[2])},
-      b:{x:n(match[3]),y:n(match[4])},
-      width:n(match[5]),
-      layer:match[6],
-      net:Number(match[7]),
-    });
-    if(tracks.length>=60000) break;
-  }
-
-  const viaRe=/\(via[\s\S]{0,120}?\(at\s+([-+\d.]+)\s+([-+\d.]+)\)[\s\S]{0,120}?\(size\s+([-+\d.]+)\)[\s\S]{0,300}?\(net\s+(\d+)\)/g;
-  for(const match of source.matchAll(viaRe)){
-    vias.push({at:{x:n(match[1]),y:n(match[2])},size:n(match[3]),net:Number(match[4])});
-    if(vias.length>=20000) break;
-  }
-
-  const lines=source.split(/\r?\n/);
-  for(let i=0;i<lines.length;i+=1){
-    const start=lines[i].match(/^\s*\(footprint\s+"?([^"\s()]+)"?/);
-    if(!start) continue;
-    let side:"front"|"back"="front";
-    let at:Point|null=null;
-    for(let j=i;j<Math.min(lines.length,i+90);j+=1){
-      const layer=lines[j].match(/\(layer\s+"([FB])\.(?:Cu|SilkS|Fab)"/);
-      if(layer) side=layer[1]==="B"?"back":"front";
-      const pos=lines[j].match(/\(at\s+([-+\d.]+)\s+([-+\d.]+)/);
-      if(pos&&!at) at={x:n(pos[1]),y:n(pos[2])};
-      if(at&&layer) break;
-    }
-    if(at) footprints.push({name:start[1],at,side});
-    if(footprints.length>=4000) break;
-  }
-
-  return{edges,footprints,tracks,vias,netNames};
-}
 
 function bounds(board:Board){
   let minX=Number.POSITIVE_INFINITY;
@@ -130,8 +85,8 @@ export default function KiCadBoardPreview({
   filename?:string;
   sizeBytes?:number;
 }){
-  const [board,setBoard]=useState<Board>(()=>source?parseBoard(source):emptyBoard());
-  const [phase,setPhase]=useState<"loading"|"parsing"|"ready"|"error">(source?"ready":"loading");
+  const [board,setBoard]=useState<Board>(()=>emptyBoard());
+  const [phase,setPhase]=useState<"loading"|"parsing"|"ready"|"error">(source?"parsing":"loading");
   const [loadBytes,setLoadBytes]=useState(source?new TextEncoder().encode(source).byteLength:0);
   const [error,setError]=useState("");
   const drag=useRef<{x:number;y:number;cx:number;cy:number}|null>(null);
@@ -147,10 +102,13 @@ export default function KiCadBoardPreview({
 
   useEffect(()=>{
     if(source){
-      setBoard(parseBoard(source));
-      setPhase("ready");
+      let cancelled=false;
+      setPhase("parsing");
       setLoadBytes(new TextEncoder().encode(source).byteLength);
-      return;
+      void parseBoardAsync(source)
+        .then((parsed)=>{ if(!cancelled){ setBoard(parsed); setPhase("ready"); } })
+        .catch((reason)=>{ if(!cancelled){ setError(reason instanceof Error?reason.message:"PCB parse failed."); setPhase("error"); } });
+      return()=>{cancelled=true;};
     }
     if(!src){
       setPhase("error");
@@ -179,7 +137,7 @@ export default function KiCadBoardPreview({
           setPhase("parsing");
           await new Promise<void>((resolve)=>requestAnimationFrame(()=>resolve()));
           if(!alive) return;
-          setBoard(parseBoard(text));
+          setBoard(await parseBoardAsync(text));
           setPhase("ready");
           return;
         }
@@ -207,7 +165,7 @@ export default function KiCadBoardPreview({
         setPhase("parsing");
         await new Promise<void>((resolve)=>requestAnimationFrame(()=>resolve()));
         if(!alive) return;
-        setBoard(parseBoard(text));
+        setBoard(await parseBoardAsync(text));
         setPhase("ready");
       }catch(loadError){
         if(controller.signal.aborted) return;

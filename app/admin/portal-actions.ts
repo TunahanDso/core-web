@@ -28,7 +28,6 @@ export type MailTestAdminState = {
 
 export type InviteAdminState = {
   error?: string;
-  code?: string;
   email?: string;
   expiresAt?: string;
   deliveryStatus?: "sent" | "failed" | "not_configured";
@@ -126,7 +125,6 @@ export async function createPortalInviteAdminAction(
 
     revalidatePath("/admin/members");
     return {
-      code: result.code,
       email: result.email,
       expiresAt: result.expiresAt,
       deliveryStatus: delivery.status,
@@ -185,7 +183,6 @@ export async function reissuePortalInviteAdminAction(
 
     revalidatePath("/admin/members");
     return {
-      code: result.code,
       email: result.email,
       expiresAt: result.expiresAt,
       deliveryStatus: delivery.status,

@@ -1,8 +1,8 @@
 import { env } from "cloudflare:workers";
+import { cmsDb } from "@/lib/platform/databases";
 
 function db() {
-  if (!env.DB) throw new Error("DB binding is not available.");
-  return env.DB;
+  return cmsDb();
 }
 
 export async function listPublications() {

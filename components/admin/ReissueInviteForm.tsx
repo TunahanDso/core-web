@@ -23,10 +23,13 @@ export default function ReissueInviteForm({ memberId }: { memberId: string }) {
         </button>
       </form>
       {state.error ? <small className="error">{state.error}</small> : null}
-      {state.code ? (
-        <div className={"adminReissueResult " + (state.deliveryStatus || "")}>
-          <span>{state.deliveryStatus === "sent" ? "E-posta gönderildi" : "Yeni kod üretildi"}</span>
-          <b>{state.code}</b>
+      {state.deliveryStatus ? (
+        <div className={"adminReissueResult " + state.deliveryStatus}>
+          <span>
+            {state.deliveryStatus === "sent"
+              ? "Sağlayıcı mesajı kabul etti · inbox teslimi ayrıca doğrulanmalı"
+              : "Gönderim başarısız · kod admin arayüzünde gösterilmedi"}
+          </span>
           {state.deliveryError ? <small>{state.deliveryError}</small> : null}
         </div>
       ) : null}

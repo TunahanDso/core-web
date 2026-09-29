@@ -87,7 +87,8 @@ export default function LiveCodeTerminal({
       ) return;
 
       setConnection("connecting");
-      const target = new URL(socketUrl);
+      const target = new URL(socketUrl,window.location.origin);
+      target.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       target.searchParams.set("cols",String(terminal.cols || 120));
       target.searchParams.set("rows",String(terminal.rows || 32));
       const socket = new WebSocket(target.toString());

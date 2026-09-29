@@ -182,7 +182,7 @@ jobs:
             if (!(runnerConfig.containers ?? []).length || !(runnerConfig.workflows ?? []).length) {
               throw new Error("CORE Runner Wrangler config must declare both Containers and Workflows.");
             }
-            if (rootConfig.vars?.CORE_RUNNER_URL !== "https://core-runner.oyuncunun61.workers.dev") {
+            if (rootConfig.vars?.CORE_RUNNER_URL !== "https://runner.ytucore.com") {
               throw new Error("Portal CORE_RUNNER_URL is not pointed at the production runner service.");
             }
             const vaultLibrary = fs.readFileSync("app/portal/(member)/library/page.tsx", "utf8");
@@ -348,14 +348,14 @@ jobs:
               }
             }
             const nativeLayout = fs.readFileSync("app/portal/(member)/layout.tsx", "utf8");
-            if (!nativeLayout.includes("getPortalMailboxCounts") || !nativeLayout.includes("listPortalChannelsForMember") || !nativeLayout.includes("counts={{")) {
-              throw new Error("Native shell must receive live mail/chat/task/notification counters.");
+            if (!nativeLayout.includes("getPortalShellCounts") || !nativeLayout.includes("counts={counts}")) {
+              throw new Error("Native shell must receive compact live mail/chat/task/notification counters.");
             }
             const taskPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
             if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("createOpen") || !taskPage.includes("portalToolSurface") || !taskPage.includes("createTaskAction")) {
               throw new Error("Tasks must preserve the native mobile list and explicit V12 create surface.");
             }
-            const nativeCss = fs.readFileSync("app/globals.css", "utf8");
+            const nativeCss = fs.readFileSync("app/workspace.css", "utf8");
             if (!nativeCss.includes("CORE PORTAL V7") || !nativeCss.includes(".nativeSearchSheet") || !nativeCss.includes(".portalNativeTaskList")) {
               throw new Error("Native V7 mobile layout rules are missing.");
             }
@@ -477,12 +477,12 @@ jobs:
             for (const href of ["/portal/meetings","/portal/polls","/portal/budget"]) {
               if (!portalModules.includes(href)) throw new Error(`Portal navigation missing module: ${href}`);
             }
-            if (!fs.readFileSync("app/globals.css", "utf8").includes("CORE V12 WAVE 3 — CHAT / MEETINGS / POLLS / BUDGET / TODAY")) {
+            if (!fs.readFileSync("app/workspace.css", "utf8").includes("CORE V12 WAVE 3 — CHAT / MEETINGS / POLLS / BUDGET / TODAY")) {
               throw new Error("CORE V12 wave three style contract is missing.");
             }
             console.log("CORE V12 wave three collaboration/finance contract validated.");
 
-            const layoutCss = fs.readFileSync("app/globals.css", "utf8");
+            const layoutCss = fs.readFileSync("app/workspace.css", "utf8");
             const dashboardPage = fs.readFileSync("app/portal/(member)/page.tsx", "utf8");
             const nativeExperienceLayout = fs.readFileSync("components/portal/PortalNativeExperience.tsx", "utf8");
             for (const required of [
@@ -534,7 +534,7 @@ jobs:
             for (const required of ["members","roles","teams","projects","tasks","vehicles","repositories","vault","inventory"]) {
               if (!controlCenterService.includes(`"${required}"`)) throw new Error(`Control Center registry missing entity: ${required}`);
             }
-            for (const required of ["listControlCenterRegistry","updateControlCenterEntity","deleteControlCenterEntity"]) {
+            for (const required of ["getControlCenterView","updateControlCenterEntity","deleteControlCenterEntity"]) {
               if (!controlCenterService.includes(required)) throw new Error(`Control Center service missing: ${required}`);
             }
             if (!controlCenterPage.includes("ControlCenterRegistry") || !controlCenterPage.includes("memberHasPortalCapability")) {
@@ -546,7 +546,7 @@ jobs:
             if (!controlCenterActions.includes("updateControlCenterEntityAction") || !controlCenterActions.includes("deleteControlCenterEntityAction")) {
               throw new Error("Control Center write actions are missing.");
             }
-            const portalCss = fs.readFileSync("app/globals.css", "utf8");
+            const portalCss = fs.readFileSync("app/workspace.css", "utf8");
             if (!portalCss.includes(":where(.portalApp) footer") || !portalCss.includes("CORE PORTAL V12 · CARD RESET")) {
               throw new Error("Portal card footer reset must prevent public footer styles leaking into entity cards.");
             }
@@ -619,12 +619,20 @@ jobs:
               if (!codeReader.includes(required)) throw new Error(`Engineering code reader missing: ${required}`);
             }
             const modelViewer = fs.readFileSync("components/portal/VaultModelViewer.tsx", "utf8");
-            for (const required of ["parseGlb", "parseGltfText", "triangles", "perspective", "wire"]) {
+            const modelWorker = fs.readFileSync("public/workers/model-parser.js", "utf8");
+            for (const required of ["parseModelInWorker", "triangles", "perspective", "wire"]) {
               if (!modelViewer.includes(required)) throw new Error(`3D engineering viewer missing: ${required}`);
             }
+            for (const required of ["parseGlb", "parseGltfText", "parseStl", "parseObj"]) {
+              if (!modelWorker.includes(required)) throw new Error(`3D model worker missing: ${required}`);
+            }
             const pcbViewer = fs.readFileSync("components/portal/KiCadBoardPreview.tsx", "utf8");
-            for (const required of ["segmentRe", "viaRe", "selectedNet", "F.Cu", "B.Cu", "response.body?.getReader()", "R2 source okunuyor"]) {
+            const pcbWorker = fs.readFileSync("public/workers/kicad-parser.js", "utf8");
+            for (const required of ["parseBoardAsync", "selectedNet", "F.Cu", "B.Cu", "response.body?.getReader()", "R2 source okunuyor"]) {
               if (!pcbViewer.includes(required)) throw new Error(`KiCad engineering viewer missing: ${required}`);
+            }
+            for (const required of ["segmentRe", "viaRe", "footprints", "tracks"]) {
+              if (!pcbWorker.includes(required)) throw new Error(`KiCad parser worker missing: ${required}`);
             }
             const vaultSourceBrowser = fs.readFileSync("components/portal/VaultSourceBrowser.tsx", "utf8");
             for (const required of ["CHUNK_BYTES", "/source?", "192 KB pencere", "SONRAKİ"]) {
@@ -640,8 +648,8 @@ jobs:
             }
             const vaultDetailSource = fs.readFileSync("app/portal/(member)/library/[id]/page.tsx", "utf8");
             const vaultPcbWorkspace = fs.readFileSync("components/portal/VaultPcbWorkspace.tsx", "utf8");
-            if (!vaultDetailSource.includes("VaultPcbWorkspace") || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
-              throw new Error("KiCad Vault detail must use the dedicated large-file PCB workspace.");
+            if (!vaultDetailSource.includes("VaultHeavyPreview") || !vaultDetailSource.includes("kind=\"pcb\"") || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
+              throw new Error("KiCad Vault detail must defer the dedicated large-file PCB workspace.");
             }
             for (const required of ["PCB ÇALIŞMA ALANI", "KAYNAK", "KiCadBoardPreview", "VaultSourceBrowser"]) {
               if (!vaultPcbWorkspace.includes(required)) throw new Error(`PCB workspace contract missing: ${required}`);

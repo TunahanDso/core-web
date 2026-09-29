@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import ControlCenterRegistry from "@/components/portal/ControlCenterRegistry";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
-import { listControlCenterRegistry } from "@/lib/portal/control-center";
+import { getControlCenterView } from "@/lib/portal/control-center";
 import { memberHasPortalCapability } from "@/lib/portal/governance";
 
 export const dynamic = "force-dynamic";
@@ -39,28 +39,26 @@ export default async function PortalControlCenterPage({
   );
   if (!capabilityChecks.some(Boolean)) notFound();
 
-  const registry = await listControlCenterRegistry();
-  const teams = registry.teams.map((row) => ({
-    value:String(row.code || ""),
-    label:String(row.code || "") + " · " + String(row.name || ""),
-  }));
-  const projects = registry.projects.map((row) => ({
-    value:String(row.slug || ""),
-    label:String(row.title || row.slug || ""),
-  }));
-  const members = registry.members
-    .filter((row) => String(row.status || "") !== "archived")
-    .map((row) => ({
-      value:String(row.id || ""),
-      label:String(row.full_name || row.email || ""),
-    }));
-
   const allowed: EntityType[] = [
     "members","roles","teams","projects","tasks","vehicles","repositories","vault","inventory",
   ];
   const initialType = allowed.includes(String(query.type || "") as EntityType)
     ? String(query.type) as EntityType
     : "projects";
+  const view = await getControlCenterView(initialType);
+  const registry = Object.fromEntries(allowed.map((type) => [type, type === initialType ? view.rows : []])) as Record<EntityType,Record<string,unknown>[]>;
+  const teams = view.teams.map((row) => ({
+    value:String(row.code || ""),
+    label:String(row.code || "") + " · " + String(row.name || ""),
+  }));
+  const projects = view.projects.map((row) => ({
+    value:String(row.slug || ""),
+    label:String(row.title || row.slug || ""),
+  }));
+  const members = view.members.map((row) => ({
+    value:String(row.id || ""),
+    label:String(row.full_name || row.email || ""),
+  }));
 
   return (
     <>
@@ -80,6 +78,7 @@ export default async function PortalControlCenterPage({
         teams={teams}
         projects={projects}
         members={members}
+        counts={view.counts}
       />
     </>
   );

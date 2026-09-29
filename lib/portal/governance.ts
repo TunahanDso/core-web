@@ -140,16 +140,26 @@ export async function listPortalMemberTeamMemberships(memberId: string) {
 }
 
 export async function portalMemberCapabilitySet(member: PortalMember) {
-  const [roleCapabilities,explicit] = await Promise.all([
-    portalRoleProfileCapabilities(member.role),
-    listPortalMemberCapabilities(member.id),
-  ]);
+  let roleCapabilities = portalGlobalRoleCapabilities(member.role);
+  let explicit: string[] = [];
+
+  try {
+    const row = await db().prepare(
+      "SELECT " +
+      "(SELECT capabilities_json FROM portal_role_profiles WHERE role_key=? LIMIT 1) AS role_caps," +
+      "(SELECT json_group_array(capability) FROM portal_member_capabilities WHERE member_id=?) AS explicit_caps"
+    ).bind(member.role,member.id).first<{ role_caps: string | null; explicit_caps: string | null }>();
+
+    if (row?.role_caps) roleCapabilities = safeCapabilities(row.role_caps);
+    if (row?.explicit_caps) explicit = safeCapabilities(row.explicit_caps);
+  } catch {
+    // Bootstrap compatibility: fall back to the code-defined global role profile.
+  }
+
   const capabilities = new Set<string>([
     ...roleCapabilities,
     ...explicit,
   ]);
-  // An administrator record must never be able to remove its own emergency
-  // administration boundary by editing the role profile.
   if (member.role === "admin") capabilities.add("portal.admin");
   return capabilities;
 }

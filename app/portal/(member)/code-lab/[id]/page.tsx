@@ -57,7 +57,7 @@ export default async function PortalCodeRunDetailPage({
 
   return (
     <>
-      <CodeRunLiveRefresh active={active} />
+      <CodeRunLiveRefresh active={active} runId={String(run.id)} status={String(run.status)} />
       <PortalPageHeader
         code="CL / JOB EXECUTION"
         title={String(run.command_label)}

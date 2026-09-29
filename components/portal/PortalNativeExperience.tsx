@@ -170,7 +170,6 @@ export default function PortalNativeExperience({
   const pullStart = useRef<number | null>(null);
   const pullArmed = useRef(false);
   const lastBackAt = useRef(0);
-  const backgroundAt = useRef<number | null>(null);
   const wasConnected = useRef<boolean | null>(null);
 
   const activeTab = (href: string) =>
@@ -363,13 +362,10 @@ export default function PortalNativeExperience({
       .then((handle) => handles.push(handle));
 
     void App.addListener("appStateChange", ({ isActive }) => {
-      if (!isActive) {
-        backgroundAt.current = Date.now();
-        return;
-      }
-      const awayFor = backgroundAt.current ? Date.now() - backgroundAt.current : 0;
-      backgroundAt.current = null;
-      if (awayFor > 45_000) router.refresh();
+      if (!isActive) return;
+      // Resuming the app must not invalidate the whole RSC tree. Individual
+      // realtime/offline-aware surfaces refresh themselves when their data source changes.
+      void Preferences.set({ key: "core_last_portal_route", value: pathname }).catch(() => undefined);
     }).then((handle) => handles.push(handle));
 
     void App.addListener("backButton", () => {

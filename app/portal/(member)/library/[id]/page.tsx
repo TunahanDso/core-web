@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
-import VaultModelViewer from "@/components/portal/VaultModelViewer";
 import VaultCodeReader from "@/components/portal/VaultCodeReader";
-import VaultPcbWorkspace from "@/components/portal/VaultPcbWorkspace";
+import VaultHeavyPreview from "@/components/portal/VaultHeavyPreview";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
   formatVaultBytes,
@@ -109,11 +108,12 @@ export default async function VaultFilePage({
         ) : null}
 
         {previewKind === "model3d" ? (
-          <VaultModelViewer src={sourceUrl} filename={String(file.original_name)} />
+          <VaultHeavyPreview kind="model" src={sourceUrl} filename={String(file.original_name)} />
         ) : null}
 
         {previewKind === "pcb-source" && extension === "kicad_pcb" ? (
-          <VaultPcbWorkspace
+          <VaultHeavyPreview
+            kind="pcb"
             fileId={fileId}
             sourceUrl={sourceUrl}
             filename={String(file.original_name)}

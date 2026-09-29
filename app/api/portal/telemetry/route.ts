@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
+import { telemetryDb } from "@/lib/platform/databases";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     ? env.PORTAL_TELEMETRY_INGEST_KEY
     : "";
 
-  if (!secret || !env.DB) {
+  if (!secret) {
     return Response.json({ ok: false, error: "telemetry-ingest-not-configured" }, { status: 503 });
   }
 
@@ -35,7 +36,8 @@ export async function POST(request: Request) {
   const code = typeof body.code === "string" ? body.code.trim() : "";
   if (!code) return Response.json({ ok: false, error: "vehicle-code-required" }, { status: 400 });
 
-  const vehicle = await env.DB.prepare("SELECT id FROM portal_vehicle_units WHERE code=? LIMIT 1")
+  const database=telemetryDb();
+  const vehicle = await database.prepare("SELECT id FROM portal_vehicle_units WHERE code=? LIMIT 1")
     .bind(code)
     .first<{ id: string }>();
   if (!vehicle) return Response.json({ ok: false, error: "unknown-vehicle" }, { status: 404 });
@@ -47,10 +49,10 @@ export async function POST(request: Request) {
     : "testing";
   const health = body.health && typeof body.health === "object" ? body.health : {};
 
-  await env.DB.batch([
-    env.DB.prepare("INSERT INTO portal_telemetry_snapshots (vehicle_id,latitude,longitude,heading,speed,battery,mode,health_json) VALUES (?,?,?,?,?,?,?,?)")
+  await database.batch([
+    database.prepare("INSERT INTO portal_telemetry_snapshots (vehicle_id,latitude,longitude,heading,speed,battery,mode,health_json) VALUES (?,?,?,?,?,?,?,?)")
       .bind(vehicle.id,numeric(body.latitude),numeric(body.longitude),numeric(body.heading),numeric(body.speed),numeric(body.battery),mode,JSON.stringify(health)),
-    env.DB.prepare("UPDATE portal_vehicle_units SET status=?,last_seen_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+    database.prepare("UPDATE portal_vehicle_units SET status=?,last_seen_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE id=?")
       .bind(status,vehicle.id),
   ]);
 

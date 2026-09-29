@@ -489,7 +489,7 @@ async function terminalSocket(sessionId, request, env) {
   const row = await terminalRow(env,sessionId);
   if (!row) return responseJson({ error:"terminal_not_found" }, { status:404 });
   const url = new URL(request.url);
-  if (String(row.connect_token || "") !== String(url.searchParams.get("token") || "")) {
+  if (String(row.connect_token || "") !== String(request.headers.get("x-core-terminal-token") || "")) {
     return responseJson({ error:"invalid_terminal_capability" }, { status:401 });
   }
   if (new Date(String(row.expires_at)).getTime() <= Date.now()) {
