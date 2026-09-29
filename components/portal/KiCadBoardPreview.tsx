@@ -90,6 +90,33 @@ function parseBoard(source:string):Board{
 
   return{edges,footprints,tracks,vias,netNames};
 }
+async function parseBoardAsync(source:string):Promise<Board>{
+  if(typeof Worker==="undefined") return parseBoard(source);
+  return await new Promise<Board>((resolve,reject)=>{
+    const worker=new Worker("/workers/kicad-parser.js");
+    const cleanup=()=>worker.terminate();
+    worker.onmessage=(event:MessageEvent<{ok:boolean;board?:Omit<Board,"netNames">&{netNames:Array<[number,string]>};error?:string}>)=>{
+      cleanup();
+      if(!event.data?.ok||!event.data.board){
+        reject(new Error(event.data?.error||"KiCad worker parse failed."));
+        return;
+      }
+      resolve({
+        edges:event.data.board.edges,
+        footprints:event.data.board.footprints,
+        tracks:event.data.board.tracks,
+        vias:event.data.board.vias,
+        netNames:new Map(event.data.board.netNames),
+      });
+    };
+    worker.onerror=(event)=>{
+      cleanup();
+      reject(new Error(event.message||"KiCad worker error."));
+    };
+    worker.postMessage({source});
+  });
+}
+
 
 function bounds(board:Board){
   let minX=Number.POSITIVE_INFINITY;
@@ -130,8 +157,8 @@ export default function KiCadBoardPreview({
   filename?:string;
   sizeBytes?:number;
 }){
-  const [board,setBoard]=useState<Board>(()=>source?parseBoard(source):emptyBoard());
-  const [phase,setPhase]=useState<"loading"|"parsing"|"ready"|"error">(source?"ready":"loading");
+  const [board,setBoard]=useState<Board>(()=>emptyBoard());
+  const [phase,setPhase]=useState<"loading"|"parsing"|"ready"|"error">(source?"parsing":"loading");
   const [loadBytes,setLoadBytes]=useState(source?new TextEncoder().encode(source).byteLength:0);
   const [error,setError]=useState("");
   const drag=useRef<{x:number;y:number;cx:number;cy:number}|null>(null);
@@ -147,10 +174,13 @@ export default function KiCadBoardPreview({
 
   useEffect(()=>{
     if(source){
-      setBoard(parseBoard(source));
-      setPhase("ready");
+      let cancelled=false;
+      setPhase("parsing");
       setLoadBytes(new TextEncoder().encode(source).byteLength);
-      return;
+      void parseBoardAsync(source)
+        .then((parsed)=>{ if(!cancelled){ setBoard(parsed); setPhase("ready"); } })
+        .catch((reason)=>{ if(!cancelled){ setError(reason instanceof Error?reason.message:"PCB parse failed."); setPhase("error"); } });
+      return()=>{cancelled=true;};
     }
     if(!src){
       setPhase("error");
@@ -179,7 +209,7 @@ export default function KiCadBoardPreview({
           setPhase("parsing");
           await new Promise<void>((resolve)=>requestAnimationFrame(()=>resolve()));
           if(!alive) return;
-          setBoard(parseBoard(text));
+          setBoard(await parseBoardAsync(text));
           setPhase("ready");
           return;
         }
@@ -207,7 +237,7 @@ export default function KiCadBoardPreview({
         setPhase("parsing");
         await new Promise<void>((resolve)=>requestAnimationFrame(()=>resolve()));
         if(!alive) return;
-        setBoard(parseBoard(text));
+        setBoard(await parseBoardAsync(text));
         setPhase("ready");
       }catch(loadError){
         if(controller.signal.aborted) return;
