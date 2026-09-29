@@ -9,7 +9,7 @@ RUN apt-get update \
  && useradd --create-home --uid 10001 runner
 
 WORKDIR /opt/core-runner
-RUN npm install --prefix /opt/core-runner ws@8.18.3
+RUN npm install --prefix /opt/core-runner ws@8.18.3 node-pty@1.1.0
 COPY sandbox_server.py /opt/core-runner/sandbox_server.py
 COPY terminal_server.cjs /opt/core-runner/terminal_server.cjs
 COPY start.sh /opt/core-runner/start.sh
