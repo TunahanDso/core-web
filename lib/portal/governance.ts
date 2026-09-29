@@ -190,17 +190,8 @@ export async function portalTeamMembershipFor(member: PortalMember, teamCode: st
     ).bind(member.id,code).first<Record<string, unknown>>();
     if (row) return row;
   } catch {
-    // V6 may not be applied yet. Fall back to legacy teams_json below.
-  }
-
-  if (member.teams.some((item) => normalizeCode(item) === code)) {
-    return {
-      team_code: code,
-      team_role: member.role === "lead" ? "lead" : "engineer",
-      status: "active",
-      capabilities_json: "[]",
-      legacy: 1,
-    };
+    // During bootstrap/migration failure, fail closed instead of resurrecting
+    // legacy teams_json as a second authorization source.
   }
   return null;
 }
