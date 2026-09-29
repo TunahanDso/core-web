@@ -1,9 +1,9 @@
 import { env } from "cloudflare:workers";
+import { portalDb } from "@/lib/platform/databases";
 import { deletePortalProject, deletePortalTeam } from "@/lib/portal/control";
 
 function db() {
-  if (!env.DB) throw new Error("DB bağlantısı kullanılamıyor.");
-  return env.DB;
+  return portalDb();
 }
 
 function text(value: unknown) {
