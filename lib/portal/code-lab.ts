@@ -503,15 +503,55 @@ export async function getPortalCodeTerminal(member: PortalMember, sessionId: str
     terminal.status = "expired";
   }
 
-  const token = String(terminal.connect_token || "");
-  const service = getCodeRunnerServiceStatus();
-  const socketUrl = service.url && token && ["ready","connected"].includes(terminal.status)
-    ? service.url.replace(/^https:/,"wss:") +
-      "/v1/terminals/" + encodeURIComponent(sessionId) +
-      "/socket?token=" + encodeURIComponent(token)
+  const socketUrl = ["ready","connected"].includes(terminal.status)
+    ? "/api/portal/code-lab/terminals/" + encodeURIComponent(sessionId) + "/socket"
     : null;
   const { connect_token: _hidden, ...safeTerminal } = terminal;
   return { terminal:safeTerminal,socketUrl };
+}
+
+export async function proxyPortalCodeTerminalSocket(
+  member: PortalMember,
+  sessionId: string,
+  request: Request
+) {
+  if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") {
+    return Response.json({ error:"websocket_required" }, { status:426 });
+  }
+  const terminal = await codeTerminalAccess(member,sessionId);
+  if (!terminal) return Response.json({ error:"terminal_not_found" }, { status:404 });
+  if (!["ready","connected"].includes(terminal.status)) {
+    return Response.json({ error:"terminal_not_connectable",status:terminal.status }, { status:409 });
+  }
+  const expires = new Date(String(terminal.expires_at)).getTime();
+  if (!Number.isFinite(expires) || expires <= Date.now()) {
+    await database().prepare(
+      "UPDATE portal_code_terminal_sessions SET status='expired',ended_at=COALESCE(ended_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
+    ).bind(sessionId).run();
+    return Response.json({ error:"terminal_expired" }, { status:410 });
+  }
+
+  const service = getCodeRunnerServiceStatus();
+  const token = String(terminal.connect_token || "");
+  if (!service.url || !token) {
+    return Response.json({ error:"terminal_service_unavailable" }, { status:503 });
+  }
+
+  const sourceUrl = new URL(request.url);
+  const target = new URL(service.url + "/v1/terminals/" + encodeURIComponent(sessionId) + "/socket");
+  target.searchParams.set("cols",sourceUrl.searchParams.get("cols") || "120");
+  target.searchParams.set("rows",sourceUrl.searchParams.get("rows") || "32");
+
+  const headers = new Headers(request.headers);
+  headers.delete("cookie");
+  headers.delete("host");
+  headers.delete("authorization");
+  headers.set("x-core-terminal-token",token);
+
+  return fetch(target.toString(), {
+    method:"GET",
+    headers,
+  });
 }
 
 export async function closePortalCodeTerminal(member: PortalMember, sessionId: string) {
