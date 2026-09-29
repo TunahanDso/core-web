@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import "./admin.css";
 import { getAdminIdentity } from "@/lib/cms/auth";
 
 export const dynamic = "force-dynamic";
