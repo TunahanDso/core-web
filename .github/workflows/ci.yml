@@ -341,8 +341,8 @@ jobs:
               throw new Error("Native shell must receive live mail/chat/task/notification counters.");
             }
             const taskPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
-            if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("createOpen") || !taskPage.includes('create:"1"')) {
-              throw new Error("Tasks must preserve the native mobile list and explicit V12 create route.");
+            if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("createOpen") || !taskPage.includes("portalToolSurface") || !taskPage.includes("createTaskAction")) {
+              throw new Error("Tasks must preserve the native mobile list and explicit V12 create surface.");
             }
             const nativeCss = fs.readFileSync("app/globals.css", "utf8");
             if (!nativeCss.includes("CORE PORTAL V7") || !nativeCss.includes(".nativeSearchSheet") || !nativeCss.includes(".portalNativeTaskList")) {
