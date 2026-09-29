@@ -6,6 +6,10 @@ function db() {
   return env.DB;
 }
 
+type PortalPollRecord = Record<string, unknown> & {
+  options: Record<string, unknown>[];
+};
+
 function runtimeVar(name: string) {
   const values = env as unknown as Record<string, unknown>;
   return String(values[name] || "").trim();
@@ -277,12 +281,12 @@ async function listPollRows(whereSql: string, bindings: unknown[]) {
     "FROM portal_polls p LEFT JOIN portal_members m ON m.id=p.created_by "+whereSql+
     " ORDER BY CASE p.status WHEN 'open' THEN 0 ELSE 1 END,p.created_at DESC"
   ).bind(...bindings).all<Record<string, unknown>>();
-  const rows=[];
+  const rows: PortalPollRecord[]=[];
   for(const poll of response.results ?? []){
     const options=await db().prepare(
       "SELECT o.id,o.label,o.sort_order,(SELECT COUNT(*) FROM portal_poll_votes v WHERE v.option_id=o.id) AS votes FROM portal_poll_options o WHERE o.poll_id=? ORDER BY o.sort_order"
     ).bind(String(poll.id)).all<Record<string, unknown>>();
-    rows.push({...poll,options:options.results ?? []});
+    rows.push({...poll,options:options.results ?? []} as PortalPollRecord);
   }
   return rows;
 }
