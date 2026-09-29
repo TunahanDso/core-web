@@ -355,7 +355,7 @@ jobs:
             if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("createOpen") || !taskPage.includes("portalToolSurface") || !taskPage.includes("createTaskAction")) {
               throw new Error("Tasks must preserve the native mobile list and explicit V12 create surface.");
             }
-            const nativeCss = fs.readFileSync("app/globals.css", "utf8");
+            const nativeCss = fs.readFileSync("app/workspace.css", "utf8");
             if (!nativeCss.includes("CORE PORTAL V7") || !nativeCss.includes(".nativeSearchSheet") || !nativeCss.includes(".portalNativeTaskList")) {
               throw new Error("Native V7 mobile layout rules are missing.");
             }
@@ -477,12 +477,12 @@ jobs:
             for (const href of ["/portal/meetings","/portal/polls","/portal/budget"]) {
               if (!portalModules.includes(href)) throw new Error(`Portal navigation missing module: ${href}`);
             }
-            if (!fs.readFileSync("app/globals.css", "utf8").includes("CORE V12 WAVE 3 — CHAT / MEETINGS / POLLS / BUDGET / TODAY")) {
+            if (!fs.readFileSync("app/workspace.css", "utf8").includes("CORE V12 WAVE 3 — CHAT / MEETINGS / POLLS / BUDGET / TODAY")) {
               throw new Error("CORE V12 wave three style contract is missing.");
             }
             console.log("CORE V12 wave three collaboration/finance contract validated.");
 
-            const layoutCss = fs.readFileSync("app/globals.css", "utf8");
+            const layoutCss = fs.readFileSync("app/workspace.css", "utf8");
             const dashboardPage = fs.readFileSync("app/portal/(member)/page.tsx", "utf8");
             const nativeExperienceLayout = fs.readFileSync("components/portal/PortalNativeExperience.tsx", "utf8");
             for (const required of [
@@ -546,7 +546,7 @@ jobs:
             if (!controlCenterActions.includes("updateControlCenterEntityAction") || !controlCenterActions.includes("deleteControlCenterEntityAction")) {
               throw new Error("Control Center write actions are missing.");
             }
-            const portalCss = fs.readFileSync("app/globals.css", "utf8");
+            const portalCss = fs.readFileSync("app/workspace.css", "utf8");
             if (!portalCss.includes(":where(.portalApp) footer") || !portalCss.includes("CORE PORTAL V12 · CARD RESET")) {
               throw new Error("Portal card footer reset must prevent public footer styles leaking into entity cards.");
             }
