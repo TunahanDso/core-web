@@ -22,19 +22,21 @@ export default async function PortalSearchPage({
   const typeFilter=String(query.type||"");
   const member=await requirePortalMember();
 
-  const [results,vaultFiles,nativeRepositories,teams,internalProjects,vehicleProfiles,meetings,polls,budgets]=q
+  const wants=(...types:string[])=>!typeFilter||types.includes(typeFilter);
+  const emptyBase={tasks:[],resources:[],repositories:[],inventory:[],members:[]};
+  const [results,vaultFiles,nativeRepositories,teams,internalProjects,vehicleProfiles,meetings,polls,budgets]=q.length>=2
     ? await Promise.all([
-        searchPortal(q),
-        listPortalVaultFiles({query:q,lifecycle:"active",limit:40,viewer:member}),
-        listNativeRepositories(),
-        listAccessiblePortalTeams(member),
-        listPortalProjectRegistry(),
-        listPortalVehicleProfiles(),
-        listMeetings(member.id,100),
-        listPolls(member.id),
-        listBudgetAccounts(member.id,member.role==="admin"||member.role==="lead"),
+        wants("Görev","Doküman","Repo","Stok","Üye") ? searchPortal(q) : Promise.resolve(emptyBase),
+        wants("Vault") ? listPortalVaultFiles({query:q,lifecycle:"active",limit:30,viewer:member}) : Promise.resolve([]),
+        wants("Repo") ? listNativeRepositories() : Promise.resolve([]),
+        wants("Takım","Proje","Araç") ? listAccessiblePortalTeams(member) : Promise.resolve([]),
+        wants("Proje") ? listPortalProjectRegistry() : Promise.resolve([]),
+        wants("Araç") ? listPortalVehicleProfiles() : Promise.resolve([]),
+        wants("Toplantı") ? listMeetings(member.id,40) : Promise.resolve([]),
+        wants("Oylama") ? listPolls(member.id) : Promise.resolve([]),
+        wants("Bütçe") ? listBudgetAccounts(member.id,member.role==="admin"||member.role==="lead") : Promise.resolve([]),
       ])
-    : [{tasks:[],resources:[],repositories:[],inventory:[],members:[]},[],[],[],[],[],[],[],[]];
+    : [emptyBase,[],[],[],[],[],[],[],[]];
 
   const needle=q.toLocaleLowerCase("tr-TR");
   const teamMatches=teams.filter(item=>[item.code,item.name,item.domain,item.description].some(v=>String(v||"").toLocaleLowerCase("tr-TR").includes(needle)));
@@ -74,7 +76,9 @@ export default async function PortalSearchPage({
     ...results.members.map(i=>({id:"member:"+String(i.id),type:"Üye",title:String(i.full_name||i.email),subtitle:String(i.email),meta:portalRoleLabel(String(i.role)),href:"/portal/members/"+encodeURIComponent(String(i.id))})),
   ];
   const types=Array.from(new Set(rows.map(r=>r.type))).sort();
-  const visible=typeFilter?rows.filter(r=>r.type===typeFilter):rows;
+  const allVisible=typeFilter?rows.filter(r=>r.type===typeFilter):rows;
+  const visible=allVisible.slice(0,120);
+  const truncated=allVisible.length>visible.length;
 
   return (
     <>
@@ -90,10 +94,10 @@ export default async function PortalSearchPage({
           <label><span>TÜR</span><select name="type" defaultValue={typeFilter}><option value="">Tümü</option>{types.map(t=><option value={t} key={t}>{t}</option>)}</select></label>
           <button type="submit">ARA</button>
         </form>
-        <div className="portalRegistrySummary"><span>SONUÇ</span><b>{visible.length}</b><small>nesne</small></div>
+        <div className="portalRegistrySummary"><span>SONUÇ</span><b>{visible.length}</b><small>{truncated ? "ilk 120 nesne" : "nesne"}</small></div>
       </section>
 
-      {!q?<PortalEmpty title="Aramaya başla." text="İsim, proje, parça kodu veya teknik terim yaz."/>:visible.length?(
+      {!q?<PortalEmpty title="Aramaya başla." text="İsim, proje, parça kodu veya teknik terim yaz."/>:q.length<2?<PortalEmpty title="Arama çok kısa." text="En az 2 karakter yaz; tek karakterlik sorgular registry fan-out çalıştırmaz."/>:visible.length?(
         <div className="portalDataTableShell">
           <table className="portalDataTable portalSearchDataTable">
             <thead><tr><th scope="col">Nesne</th><th scope="col">Tür</th><th scope="col">Bağlam</th><th scope="col">İşlem</th></tr></thead>
