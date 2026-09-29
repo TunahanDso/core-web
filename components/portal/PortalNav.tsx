@@ -25,6 +25,8 @@ export default function PortalNav({ canControl }: { canControl: boolean }) {
                 href={href}
                 key={href}
                 aria-current={active ? "page" : undefined}
+                aria-label={label}
+                title={label}
               >
                 <span>{code}</span>
                 <b>{label}</b>

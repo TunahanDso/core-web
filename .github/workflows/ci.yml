@@ -482,6 +482,29 @@ jobs:
             }
             console.log("CORE V12 wave three collaboration/finance contract validated.");
 
+            const layoutCss = fs.readFileSync("app/globals.css", "utf8");
+            const dashboardPage = fs.readFileSync("app/portal/(member)/page.tsx", "utf8");
+            const nativeExperienceLayout = fs.readFileSync("components/portal/PortalNativeExperience.tsx", "utf8");
+            for (const required of [
+              "CORE LAYOUT STABILITY R1 — DESKTOP RAIL + iOS CONTAINMENT",
+              "portalApp.portalSidebarCollapsed",
+              "portalContent.portalContentViewport",
+              "portalDashboardActivityBar"
+            ]) {
+              if (!layoutCss.includes(required)) throw new Error(`Layout stability contract missing: ${required}`);
+            }
+            if (!layoutCss.includes("Native / iOS: never render the desktop Today dashboard below the native home.") ||
+                !layoutCss.includes("Wide engineering registries must scroll inside their surface, never widen the page.")) {
+              throw new Error("Native dashboard isolation or table containment is missing.");
+            }
+            if (!dashboardPage.includes("portalDashboardOps") || !dashboardPage.includes("split(/\\s+/)")) {
+              throw new Error("Readable dashboard hierarchy or first-name parsing regression detected.");
+            }
+            for (const href of ["/portal/meetings","/portal/polls","/portal/budget","/portal/tasks?create=1","/portal/library?upload=1#upload"]) {
+              if (!nativeExperienceLayout.includes(href)) throw new Error(`Native navigation route missing: ${href}`);
+            }
+            console.log("CORE layout stability contract validated.");
+
             const governance = fs.readFileSync("lib/portal/governance.ts", "utf8");
             for (const required of ["portalMemberCapabilitySet", "canAccessPortalTeam", "canManagePortalTeam", "team.project.manage", "team.vehicle.manage", "portalRoleProfileCapabilities", "portal_role_profiles", "PORTAL_CAPABILITY_OPTIONS"]) {
               if (!governance.includes(required)) {
