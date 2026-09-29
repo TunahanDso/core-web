@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
@@ -47,8 +47,6 @@ function uploadRequest(
 }
 
 export default function VaultUploadForm() {
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const xhrAbortRef = useRef<(() => void) | null>(null);
   const [state,setState] = useState<UploadState>("idle");
   const [progress,setProgress] = useState(0);
   const [error,setError] = useState("");
@@ -100,7 +98,7 @@ export default function VaultUploadForm() {
   }
 
   return (
-    <form ref={formRef} className="portalFormGrid vaultAsyncUploadForm" onSubmit={submit}>
+    <form className="portalFormGrid vaultAsyncUploadForm" onSubmit={submit}>
       <label>
         <span>Tür</span>
         <select name="kind" defaultValue="document" disabled={state === "uploading"}>
