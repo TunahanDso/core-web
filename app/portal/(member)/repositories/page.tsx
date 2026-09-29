@@ -156,6 +156,7 @@ export default async function PortalRepositoriesPage({
                 <th scope="col">Görünürlük</th>
                 <th scope="col">Durum</th>
                 <th scope="col">Branch</th>
+                <th scope="col">Git transport</th>
                 <th scope="col">İşlem</th>
               </tr>
             </thead>
@@ -170,11 +171,22 @@ export default async function PortalRepositoriesPage({
                   <td>{item.visibility}</td>
                   <td><span className={"portalStatusText "+(item.status==="ready"||item.status==="healthy"?"ready":"")}>{item.status}</span></td>
                   <td className="mono">{item.defaultBranch || "—"}</td>
+                  <td>
+                    {item.gitTransport && item.gitUrl
+                      ? <code className="portalInlineCode">clone/push hazır</code>
+                      : <span className="portalStatusText">Snapshot · clone/push yok</span>}
+                  </td>
                   <td className="rowActions">
                     {item.href ? (
                       <a href={item.href} target={item.kind==="external"?"_blank":undefined} rel={item.kind==="external"?"noreferrer":undefined}>
                         {item.kind==="workspace"?"Workspace":"Git kaynağını aç ↗"}
                       </a>
+                    ) : null}
+                    {item.kind==="workspace" && item.gitTransport && item.gitUrl ? (
+                      <details>
+                        <summary>Clone</summary>
+                        <code className="portalInlineCode">git clone {item.gitUrl}</code>
+                      </details>
                     ) : null}
                   </td>
                 </tr>
