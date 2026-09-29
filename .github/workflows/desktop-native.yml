@@ -77,6 +77,8 @@ jobs:
             throw "Stable CORE Desktop release blocked: Windows code-signing secrets are not configured."
           }
           [IO.File]::WriteAllBytes("$env:RUNNER_TEMP/core-desktop-signing.pfx",[Convert]::FromBase64String($env:WINDOWS_SIGNING_CERT_PFX_BASE64))
+          certutil -user -addstore -f Root "public/desktop/trust/YTU-CORE-Internal-Root-CA.cer" | Out-Host
+          certutil -user -addstore -f TrustedPublisher "public/desktop/trust/YTU-CORE-Desktop-Code-Signing.cer" | Out-Host
           $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Filter signtool.exe -Recurse | Where-Object { $_.FullName -match "\\x64\\signtool.exe$" } | Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $signtool) { throw "signtool.exe not found on Windows runner." }
           & $signtool.FullName sign /fd SHA256 /td SHA256 /tr "http://timestamp.digicert.com" /f "$env:RUNNER_TEMP/core-desktop-signing.pfx" /p "$env:WINDOWS_SIGNING_CERT_PASSWORD" "artifacts/YTU-CORE-Desktop-Windows-x64.exe"
