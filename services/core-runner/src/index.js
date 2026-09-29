@@ -489,7 +489,12 @@ async function terminalSocket(sessionId, request, env) {
   const row = await terminalRow(env,sessionId);
   if (!row) return responseJson({ error:"terminal_not_found" }, { status:404 });
   const url = new URL(request.url);
-  if (String(row.connect_token || "") !== String(url.searchParams.get("token") || "")) {
+  const protocols = String(request.headers.get("sec-websocket-protocol") || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const token = protocols[0] === "core-terminal" ? String(protocols[1] || "") : "";
+  if (!token || String(row.connect_token || "") !== token) {
     return responseJson({ error:"invalid_terminal_capability" }, { status:401 });
   }
   if (new Date(String(row.expires_at)).getTime() <= Date.now()) {
@@ -510,6 +515,10 @@ async function terminalSocket(sessionId, request, env) {
   internal.searchParams.set("rows",url.searchParams.get("rows") || "32");
   const headers = new Headers(request.headers);
   headers.delete("host");
+  // Never forward the session capability into the container. The browser
+  // requests two subprotocol values; after authorization the container only
+  // sees the non-secret protocol identifier.
+  headers.set("sec-websocket-protocol","core-terminal");
   headers.set("x-core-terminal-session",sessionId);
 
   try {
