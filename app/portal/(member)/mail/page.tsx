@@ -307,6 +307,7 @@ export default async function PortalMailPage({
               {selectedThread ? (
                 <>
                   <header className="mailReaderHeader">
+                    <a className="mailMobileBack" href={queryHref({folder})}>← Liste</a>
                     <div className="mailReaderSubject">
                       <span>YAZIŞMA</span>
                       <h1>{String(selectedThread.thread.subject)}</h1>
@@ -432,7 +433,7 @@ export default async function PortalMailPage({
                     href={queryHref({section:"groups",group:String(group.id)})}
                     key={String(group.id)}
                   >
-                    <span>{String(group.access_mode) === "locked" ? "🔒" : "GR"}</span>
+                    <span>{String(group.access_mode) === "locked" ? "LK" : "GR"}</span>
                     <div>
                       <b>{String(group.name)}</b>
                       <small>{String(group.member_count || 0)} üye · {String(group.access_mode) === "locked" ? "erişim kodlu" : "özel"}</small>
@@ -460,6 +461,7 @@ export default async function PortalMailPage({
               {selectedGroup ? (
                 <>
                   <header>
+                    <a className="mailMobileBack" href="/portal/mail?section=groups">← Gruplar</a>
                     <div>
                       <span>{String(selectedGroup.access_mode) === "locked" ? "ERİŞİM KODLU GRUP" : "ÖZEL GRUP"}</span>
                       <h2>{String(selectedGroup.name)}</h2>
