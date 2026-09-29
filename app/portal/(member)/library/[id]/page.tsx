@@ -73,9 +73,9 @@ export default async function VaultFilePage({
   return (
     <>
       <PortalPageHeader
-        code="VA / CORE VAULT"
+        code="DOSYA"
         title={String(file.title)}
-        lead={String(file.description || "CORE mühendislik hafızasında sürümlenen teknik dosya.")}
+        lead={String(file.description || "Sürümlenen teknik dosya.")}
         action={<a className="portalOutlineButton" href="/portal/library">← VAULT</a>}
       />
 
@@ -84,7 +84,7 @@ export default async function VaultFilePage({
       {query.derivative ? <div className="portalSuccess">Dönüştürme işi kuyruğa alındı. Converter servisi bağlı olduğunda türev bu kayda yazılacak.</div> : null}
 
       <section className="vaultMetaStrip">
-        <article><span>REV</span><b>R{String(file.revision)}</b><small>{String(file.approval_state).toUpperCase()}</small></article>
+        <article><span>REVİZYON</span><b>R{String(file.revision)}</b><small>{String(file.approval_state).toUpperCase()}</small></article>
         <article><span>FORMAT</span><b>{extension ? "." + extension : "BINARY"}</b><small>{String(file.mime_type)}</small></article>
         <article><span>BOYUT</span><b>{formatVaultBytes(file.size_bytes)}</b><small>R2 object</small></article>
         <article><span>PROJE</span><b>{String(file.project_slug || "CORE")}</b><small>{String(file.team_code || "ORTAK")}</small></article>
@@ -157,8 +157,8 @@ export default async function VaultFilePage({
       </section>
 
       {needsDerivative ? (
-        <section className="portalPanel vaultDerivativePanel">
-          <div className="portalPanelHead"><span>TÜREV / CONVERSION PIPELINE</span><small>AYRI SECURITY BOUNDARY</small></div>
+        <details className="portalPanel vaultDerivativePanel">
+          <summary className="portalPanelSummary"><div><span>ÖNİZLEME TÜREVİ</span><b>Dönüştürme ve 3B türev işleri</b></div><small>AYRINTILAR</small></summary>
           <div className="vaultDerivativeGrid">
             <div>
               <h3>{previewKind === "pcb-source" ? "PCB 3B türevi" : "glTF / GLB tarayıcı türevi"}</h3>
@@ -180,19 +180,19 @@ export default async function VaultFilePage({
               </article>
             )) : <p className="portalMuted">Henüz türev işi yok.</p>}
           </div>
-        </section>
+        </details>
       ) : null}
 
       <section className="vaultDetailGrid">
         <section className="portalPanel">
-          <div className="portalPanelHead"><span>SÜRÜM GEÇMİŞİ</span><small>{versions.length} REVISION</small></div>
+          <div className="portalPanelHead"><span>SÜRÜM GEÇMİŞİ</span><small>{versions.length} REVİZYON</small></div>
           <div className="vaultVersionList">
             {versions.map((version) => (
               <article key={String(version.id)}>
                 <b>R{String(version.revision)}</b>
                 <div>
                   <strong>{String(version.original_name)}</strong>
-                  <small>{String(version.note || "Revision")} · {formatVaultBytes(version.size_bytes)}</small>
+                  <small>{String(version.note || "Revizyon")} · {formatVaultBytes(version.size_bytes)}</small>
                 </div>
                 <code>{String(version.checksum_sha256).slice(0,12)}…</code>
                 <a href={sourceUrl + "?revision=" + encodeURIComponent(String(version.revision)) + "&download=1"}>İNDİR</a>
@@ -215,8 +215,8 @@ export default async function VaultFilePage({
       </section>
 
       {canManage ? (
-        <section className="portalPanel vaultRevisionPanel">
-          <div className="portalPanelHead"><span>YENİ REVISION</span><small>KAYNAK DOSYA GEÇMİŞİ KORUNUR</small></div>
+        <details className="portalPanel vaultRevisionPanel">
+          <summary className="portalPanelSummary"><div><span>YENİ REVİZYON</span><b>Yeni dosya sürümü yükle</b></div><small>GEÇMİŞ KORUNUR</small></summary>
           <VaultRevisionUploadForm fileId={fileId} />
           <div className="vaultGovernanceActions">
             <form action={setPortalVaultLifecycleAction}>
@@ -241,7 +241,7 @@ export default async function VaultFilePage({
               </form>
             ) : null}
           </div>
-        </section>
+        </details>
       ) : null}
     </>
   );

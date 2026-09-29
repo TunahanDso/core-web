@@ -30,7 +30,7 @@ export function PortalEmpty({
 }) {
   return (
     <div className="portalEmpty">
-      <span>NO RECORDS YET</span>
+      <span>KAYIT YOK</span>
       <h3>{title}</h3>
       <p>{text}</p>
     </div>

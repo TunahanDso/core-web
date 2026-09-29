@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function PortalKütüphanePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ q?: string; kind?: string; state?: string }>;
+  searchParams?: Promise<{ q?: string; kind?: string; state?: string; upload?: string }>;
 }) {
   const query = searchParams ? await searchParams : {};
   const q = String(query.q || "").trim();
@@ -28,41 +28,46 @@ export default async function PortalKütüphanePage({
   return (
     <>
       <PortalPageHeader
-        code="VA / CORE VAULT"
-        title="Mühendislik Kütüphanesi"
-        lead="Rapor, kod, PCB, CAD, veri seti ve test kanıtlarını CORE'un kendi R2 deposunda checksum, revision ve proje bağlamıyla sakla."
-        action={<a className="portalOutlineButton" href="/portal/mechanical">MEKANİK / CAD →</a>}
+        code="DOSYALAR"
+        title="Mühendislik Dosyaları"
+        lead="Teknik dosyaları proje, revizyon ve sahiplik bağlamıyla bul, incele ve sürümle."
+        action={<a className="portalPrimaryButton" href="/portal/library?upload=1#upload">YÜKLE ↑</a>}
       />
 
-      <section className="vaultCapabilityRail">
-        <span>R2 OBJECT STORAGE</span><i>+</i><span>D1 METADATA</span><i>+</i><span>SHA-256</span><i>+</i><span>REVISION HISTORY</span><i>+</i><span>BROWSER PREVIEW</span>
-      </section>
-
-      <section className="portalPanel portalCreatePanel vaultUploadPanel" id="upload">
-        <div className="portalPanelHead"><span>VAULT'A DOSYA YÜKLE</span><small>İLK DALGA · TEK DOSYA ≤ 25 MB</small></div>
-        <VaultUploadForm />
-      </section>
-
-      <section className="vaultSearchBar">
+      <section className="vaultLibraryToolbar portalWorkbenchToolbar">
         <form method="get" action="/portal/library">
-          <input name="q" defaultValue={q} placeholder="Dosya, proje, takım veya etiket ara..." />
-          <select name="kind" defaultValue={kind}>
-            <option value="">Tüm türler</option>
-            <option value="document">Doküman</option>
-            <option value="cad">CAD</option>
-            <option value="mechanical">Mekanik</option>
-            <option value="pcb">PCB</option>
-            <option value="electronics">Elektronik</option>
-            <option value="code">Kod</option>
-            <option value="dataset">Veri</option>
-          </select>
-          <select name="state" defaultValue={lifecycle}>
-            <option value="active">Aktif</option>
-            <option value="archived">Arşiv</option>
-            <option value="trashed">Çöp</option>
-          </select>
-          <button type="submit">FİLTRELE</button>
+          <label className="vaultSearchInput">
+            <span>ARA</span>
+            <input name="q" defaultValue={q} placeholder="Dosya, proje, takım veya etiket..." />
+          </label>
+          <label>
+            <span>TÜR</span>
+            <select name="kind" defaultValue={kind}>
+              <option value="">Tümü</option>
+              <option value="document">Doküman</option>
+              <option value="cad">CAD</option>
+              <option value="mechanical">Mekanik</option>
+              <option value="pcb">PCB</option>
+              <option value="electronics">Elektronik</option>
+              <option value="code">Kod</option>
+              <option value="dataset">Veri</option>
+            </select>
+          </label>
+          <label>
+            <span>DURUM</span>
+            <select name="state" defaultValue={lifecycle}>
+              <option value="active">Aktif</option>
+              <option value="archived">Arşiv</option>
+              <option value="trashed">Çöp</option>
+            </select>
+          </label>
+          <button type="submit">UYGULA</button>
         </form>
+        <div className="vaultLibrarySummary">
+          <span>SONUÇ</span>
+          <b>{vaultFiles.length}</b>
+          <small>{lifecycle === "active" ? "aktif dosya" : lifecycle === "archived" ? "arşiv kaydı" : "çöp kaydı"}</small>
+        </div>
       </section>
 
       {vaultFiles.length ? (
@@ -83,11 +88,29 @@ export default async function PortalKütüphanePage({
             </a>
           ))}
         </div>
-      ) : <PortalEmpty title="Bu rafta dosya yok." text="İlk teknik dosyayı yukarıdan yükle; R2 object ve revision kaydı birlikte oluşturulur." />}
+      ) : (
+        <PortalEmpty
+          title="Bu görünümde dosya yok."
+          text={q || kind ? "Arama veya filtreyi değiştir; sonuç yoksa yeni dosya yükleyebilirsin." : "İlk teknik dosyayı yükle; revizyon ve checksum kaydı otomatik oluşur."}
+        />
+      )}
+
+      <details className="portalPanel vaultUploadDrawer" id="upload" open={String(query.upload || "") === "1"}>
+        <summary>
+          <div><span>DOSYA YÜKLE</span><b>Yeni Vault kaydı oluştur</b></div>
+          <small>R2 + REVISION + CHECKSUM</small>
+        </summary>
+        <div className="vaultUploadDrawerBody">
+          <VaultUploadForm />
+        </div>
+      </details>
 
       {legacyResources.length ? (
-        <section className="portalPanel vaultLegacyIndex">
-          <div className="portalPanelHead"><span>ESKİ BAĞLANTI İNDEKSİ</span><small>V1 KAYITLARI · SİLİNMEDİ</small></div>
+        <details className="portalPanel vaultLegacyIndex">
+          <summary>
+            <div><span>ESKİ BAĞLANTI KAYITLARI</span><b>{legacyResources.length} legacy kayıt</b></div>
+            <small>V1 · sadece referans</small>
+          </summary>
           <div className="portalResourceGrid">
             {legacyResources.slice(0,24).map((item) => (
               <article key={String(item.id)}>
@@ -96,12 +119,12 @@ export default async function PortalKütüphanePage({
                 <p>{String(item.description || "")}</p>
                 <footer>
                   <small>{String(item.project_slug || "legacy")}</small>
-                  {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">HARİCİ AÇ ↗</a> : <span>LEGACY INDEX</span>}
+                  {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">HARİCİ AÇ ↗</a> : <span>LEGACY</span>}
                 </footer>
               </article>
             ))}
           </div>
-        </section>
+        </details>
       ) : null}
     </>
   );

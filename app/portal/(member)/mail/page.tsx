@@ -67,7 +67,7 @@ export default async function PortalMailPage({
     ? []
     : await listPortalMailboxThreads(member.id, folder);
 
-  let draft = query.draft
+  const draft = query.draft
     ? await getPortalMailDraft(String(query.draft), member.id)
     : null;
 
@@ -116,20 +116,28 @@ export default async function PortalMailPage({
     return "";
   };
 
+  const activeFolderLabel = folderLabels.find(([value]) => value === folder)?.[1] || "Gelen";
+  const visibleCount = folder === "drafts" ? filteredDrafts.length : filteredThreads.length;
+
   return (
     <>
       <PortalPageHeader
         code="ML / CORE MAIL"
-        title="İç Mail"
-        lead="Kararları, talepleri, teknik devir teslimleri ve proje yazışmalarını sohbetten ayıran kalıcı CORE posta sistemi."
+        title="İç Yazışma"
+        lead="Karar, talep, teknik devir ve proje yazışmalarını kalıcı thread yapısında yönet."
+        action={<a className="portalPrimaryButton" href="#compose">+ YENİ MAIL</a>}
       />
 
       {query.saved ? <div className="portalSuccess">Taslak kaydedildi.</div> : null}
 
-      <section className="mailboxShell">
+      <section className="mailboxWorkbench portalWorkbenchSurface">
         <aside className="mailboxSidebar">
-          <a className="mailboxComposeJump" href="#compose">+ YENİ MAIL</a>
-          <nav>
+          <a className="mailboxComposeJump" href="#compose">
+            <span>+</span>
+            <b>YENİ YAZIŞMA</b>
+          </a>
+
+          <nav aria-label="Mail klasörleri">
             {folderLabels.map(([value,label,code]) => (
               <a
                 href={"/portal/mail?folder=" + value}
@@ -142,6 +150,7 @@ export default async function PortalMailPage({
               </a>
             ))}
           </nav>
+
           <div className="mailboxUnread">
             <span>OKUNMAMIŞ</span>
             <b>{counts.unread}</b>
@@ -149,121 +158,149 @@ export default async function PortalMailPage({
         </aside>
 
         <div className="mailboxMain">
-          <form className="mailboxSearch" action="/portal/mail" method="get">
-            <input type="hidden" name="folder" value={folder} />
-            <input name="q" defaultValue={String(query.q || "")} placeholder="Konu, mesaj veya gönderen ara..." />
-            <button type="submit">ARA</button>
-          </form>
+          <header className="mailboxMainHeader">
+            <div>
+              <span>KLASÖR</span>
+              <b>{activeFolderLabel}</b>
+              <small>{visibleCount} kayıt</small>
+            </div>
+            <form className="mailboxSearch" action="/portal/mail" method="get">
+              <input type="hidden" name="folder" value={folder} />
+              <input name="q" defaultValue={String(query.q || "")} placeholder="Konu, mesaj veya gönderen ara..." />
+              <button type="submit">ARA</button>
+            </form>
+          </header>
 
-          {folder === "drafts" ? (
-            filteredDrafts.length ? (
+          <div className="mailboxListViewport">
+            {folder === "drafts" ? (
+              filteredDrafts.length ? (
+                <div className="mailboxThreadList">
+                  {filteredDrafts.map((item) => (
+                    <article className="draft" key={String(item.id)}>
+                      <a href={"/portal/mail?folder=drafts&draft=" + encodeURIComponent(String(item.id)) + "#compose"}>
+                        <span className="mailboxThreadState">DR</span>
+                        <div>
+                          <b>{String(item.subject || "Konusuz taslak")}</b>
+                          <p>{String(item.body || "Boş taslak")}</p>
+                          <small>Taslağı aç ve düzenlemeye devam et</small>
+                        </div>
+                        <time>{String(item.updated_at)}</time>
+                      </a>
+                      <form action={deleteMailboxDraftAction} className="mailboxRowActions">
+                        <input type="hidden" name="draftId" value={String(item.id)} />
+                        <button type="submit">SİL</button>
+                      </form>
+                    </article>
+                  ))}
+                </div>
+              ) : <PortalEmpty title="Taslak yok." text="Yeni yazışma panelinden bir taslak kaydedebilirsin." />
+            ) : filteredThreads.length ? (
               <div className="mailboxThreadList">
-                {filteredDrafts.map((item) => (
-                  <article className="draft" key={String(item.id)}>
-                    <a href={"/portal/mail?folder=drafts&draft=" + encodeURIComponent(String(item.id)) + "#compose"}>
-                      <span className="mailboxThreadState">DR</span>
-                      <div>
-                        <b>{String(item.subject || "Konusuz taslak")}</b>
-                        <p>{String(item.body || "Boş taslak")}</p>
-                      </div>
-                      <small>{String(item.updated_at)}</small>
-                    </a>
-                    <form action={deleteMailboxDraftAction}>
-                      <input type="hidden" name="draftId" value={String(item.id)} />
-                      <button type="submit">SİL</button>
-                    </form>
-                  </article>
+                {filteredThreads.map((thread) => {
+                  const isUnread = Number(thread.unread || 0) > 0;
+                  const isStarred = Number(thread.starred || 0) > 0;
+                  return (
+                    <article className={isUnread ? "unread" : ""} key={String(thread.id)}>
+                      <form action={openMailboxThreadAction} className="mailboxOpenThread">
+                        <input type="hidden" name="threadId" value={String(thread.id)} />
+                        <button type="submit">
+                          <span className="mailboxThreadState">{isUnread ? "●" : "○"}</span>
+                          <div>
+                            <header>
+                              <b>{String(thread.subject)}</b>
+                              {isStarred ? <em>★</em> : null}
+                            </header>
+                            <p>{String(thread.preview || "")}</p>
+                            <small>{String(thread.last_author || "")} · {String(thread.message_count || 1)} mesaj · {String(thread.participant_count || 1)} kişi</small>
+                          </div>
+                          <time>{String(thread.updated_at)}</time>
+                        </button>
+                      </form>
+
+                      <form action={mutateMailboxThreadAction} className="mailboxRowActions">
+                        <input type="hidden" name="threadId" value={String(thread.id)} />
+                        <input type="hidden" name="returnTo" value={"/portal/mail?folder=" + folder} />
+                        <button name="operation" value={isStarred ? "unstar" : "star"} type="submit" title="Yıldız">{isStarred ? "★" : "☆"}</button>
+                        {folder === "trash" ? (
+                          <button name="operation" value="restore" type="submit">GERİ</button>
+                        ) : (
+                          <>
+                            <button name="operation" value="archive" type="submit">ARŞİV</button>
+                            <button name="operation" value="trash" type="submit">ÇÖP</button>
+                          </>
+                        )}
+                      </form>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : <PortalEmpty title="Bu klasör temiz." text="Burada gösterilecek iç yazışma yok." />}
+          </div>
+        </div>
+
+        <section className="mailboxCompose" id="compose">
+          <div className="mailboxComposeHeader">
+            <div>
+              <span>{draft ? "TASLAĞI DÜZENLE" : forward ? "YAZIŞMAYI İLET" : "YENİ MAIL"}</span>
+              <b>{draft ? String(draft.subject || "Taslak") : forward ? "İletme" : "Yeni yazışma"}</b>
+            </div>
+            <small>İÇ YAZIŞMA</small>
+          </div>
+
+          <form className="portalMailCompose" action={createMailboxThreadAction}>
+            {draft ? <input type="hidden" name="draftId" value={String(draft.id)} /> : null}
+
+            <label className="mailComposeField">
+              <span>KONU</span>
+              <input name="subject" defaultValue={composeSubject} placeholder="Yazışmanın kısa konusu" required />
+            </label>
+
+            <fieldset>
+              <legend>ALICILAR</legend>
+              <div className="portalRecipientGrid">
+                {members.filter((item) => String(item.status) === "active" && String(item.id) !== member.id).map((item) => (
+                  <label key={String(item.id)}>
+                    <input
+                      type="checkbox"
+                      name="participantId"
+                      value={String(item.id)}
+                      defaultChecked={selectedRecipientIds.includes(String(item.id))}
+                    />
+                    <span>
+                      <b>{String(item.full_name || item.email)}</b>
+                      <small>{String(item.email)}</small>
+                    </span>
+                  </label>
                 ))}
               </div>
-            ) : <PortalEmpty title="Taslak yok." text="Yeni bir mail yazarken TASLAĞA KAYDET ile daha sonra devam edebilirsin." />
-          ) : filteredThreads.length ? (
-            <div className="mailboxThreadList">
-              {filteredThreads.map((thread) => {
-                const isUnread = Number(thread.unread || 0) > 0;
-                const isStarred = Number(thread.starred || 0) > 0;
-                return (
-                  <article className={isUnread ? "unread" : ""} key={String(thread.id)}>
-                    <form action={openMailboxThreadAction} className="mailboxOpenThread">
-                      <input type="hidden" name="threadId" value={String(thread.id)} />
-                      <button type="submit">
-                        <span className="mailboxThreadState">{isUnread ? "●" : "○"}</span>
-                        <div>
-                          <header>
-                            <b>{String(thread.subject)}</b>
-                            {isStarred ? <em>★</em> : null}
-                          </header>
-                          <p>{String(thread.preview || "")}</p>
-                          <small>{String(thread.last_author || "")} · {String(thread.message_count || 1)} mesaj · {String(thread.participant_count || 1)} kişi</small>
-                        </div>
-                        <time>{String(thread.updated_at)}</time>
-                      </button>
-                    </form>
-                    <form action={mutateMailboxThreadAction} className="mailboxRowActions">
-                      <input type="hidden" name="threadId" value={String(thread.id)} />
-                      <input type="hidden" name="returnTo" value={"/portal/mail?folder=" + folder} />
-                      <button name="operation" value={isStarred ? "unstar" : "star"} type="submit" title="Yıldız">{isStarred ? "★" : "☆"}</button>
-                      {folder === "trash" ? (
-                        <button name="operation" value="restore" type="submit">GERİ</button>
-                      ) : (
-                        <>
-                          <button name="operation" value="archive" type="submit">ARŞİV</button>
-                          <button name="operation" value="trash" type="submit">ÇÖP</button>
-                        </>
-                      )}
-                    </form>
-                  </article>
-                );
-              })}
-            </div>
-          ) : <PortalEmpty title="Bu klasör temiz." text="Burada gösterilecek iç yazışma yok." />}
-        </div>
-      </section>
+            </fieldset>
 
-      <section className="portalPanel portalCreatePanel mailboxCompose" id="compose">
-        <div className="portalPanelHead">
-          <span>{draft ? "TASLAĞI DÜZENLE" : forward ? "YAZIŞMAYI İLET" : "YENİ MAIL"}</span>
-          <small>CORE INTERNAL · KALICI THREAD</small>
-        </div>
-        <form className="portalMailCompose" action={createMailboxThreadAction}>
-          {draft ? <input type="hidden" name="draftId" value={String(draft.id)} /> : null}
-          <label><span>Konu</span><input name="subject" defaultValue={composeSubject} required /></label>
-          <fieldset>
-            <legend>Alıcılar</legend>
-            <div className="portalRecipientGrid">
-              {members.filter((item) => String(item.status) === "active" && String(item.id) !== member.id).map((item) => (
-                <label key={String(item.id)}>
-                  <input
-                    type="checkbox"
-                    name="participantId"
-                    value={String(item.id)}
-                    defaultChecked={selectedRecipientIds.includes(String(item.id))}
-                  />
-                  <span>{String(item.full_name || item.email)}</span>
-                  <small>{String(item.email)}</small>
-                </label>
-              ))}
+            <label className="mailComposeField mailComposeBody">
+              <span>MESAJ</span>
+              <textarea name="body" rows={8} defaultValue={composeBody} placeholder="Karar, talep veya devir notunu yaz..." required />
+            </label>
+
+            <details className="mailComposeAttachments">
+              <summary>VAULT'TAN DOSYA EKLE <small>· en fazla 12</small></summary>
+              <div className="mailboxAttachmentPicker">
+                {vaultFiles.length ? vaultFiles.slice(0,30).map((file) => (
+                  <label key={String(file.id)}>
+                    <input type="checkbox" name="vaultFileId" value={String(file.id)} />
+                    <span>
+                      <b>{String(file.title)}</b>
+                      <small>R{String(file.revision)} · {String(file.extension || "FILE").toUpperCase()} · {formatVaultBytes(file.size_bytes)}</small>
+                    </span>
+                  </label>
+                )) : <p className="portalMuted">Vault'ta eklenebilir dosya yok.</p>}
+              </div>
+            </details>
+
+            <div className="mailboxComposeActions">
+              <button className="portalPrimaryButton" type="submit">GÖNDER ↗</button>
+              <button className="portalOutlineButton" formAction={saveMailboxDraftAction} formNoValidate type="submit">TASLAĞA KAYDET</button>
             </div>
-          </fieldset>
-          <label><span>Mesaj</span><textarea name="body" rows={8} defaultValue={composeBody} required /></label>
-          <fieldset>
-            <legend>Vault ekleri <small>· mevcut teknik dosyalardan en fazla 12</small></legend>
-            <div className="mailboxAttachmentPicker">
-              {vaultFiles.length ? vaultFiles.slice(0,30).map((file) => (
-                <label key={String(file.id)}>
-                  <input type="checkbox" name="vaultFileId" value={String(file.id)} />
-                  <span>
-                    <b>{String(file.title)}</b>
-                    <small>R{String(file.revision)} · {String(file.extension || "FILE").toUpperCase()} · {formatVaultBytes(file.size_bytes)}</small>
-                  </span>
-                </label>
-              )) : <p className="portalMuted">Vault'ta eklenebilir dosya yok.</p>}
-            </div>
-          </fieldset>
-          <div className="mailboxComposeActions">
-            <button className="portalPrimaryButton" type="submit">GÖNDER →</button>
-            <button className="portalOutlineButton" formAction={saveMailboxDraftAction} formNoValidate type="submit">TASLAĞA KAYDET</button>
-          </div>
-        </form>
+          </form>
+        </section>
       </section>
     </>
   );
