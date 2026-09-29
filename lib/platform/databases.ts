@@ -1,11 +1,11 @@
 import { env } from "cloudflare:workers";
 
-type DbBinding = typeof env.DB;
+type DbBinding = NonNullable<typeof env.DB>;
 
 function resolveDb(name:string):DbBinding {
   const values=env as unknown as Record<string,unknown>;
   const candidate=values[name] as DbBinding | undefined;
-  const fallback=env.DB;
+  const fallback=env.DB as DbBinding | undefined;
   if(candidate) return candidate;
   if(fallback) return fallback;
   throw new Error("Database binding is not available: "+name);
