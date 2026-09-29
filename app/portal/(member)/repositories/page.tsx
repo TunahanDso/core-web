@@ -3,10 +3,7 @@ import { createRepositoryAction } from "@/app/portal/actions";
 import { createNativeRepositoryAction } from "@/app/portal/engineering-actions";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { getEngineeringServiceStatus } from "@/lib/portal/engineering-services";
-import {
-  listAccessibleExternalRepositories,
-  listAccessibleNativeRepositories,
-} from "@/lib/portal/repositories";
+import { listAccessibleRepositoryCatalog } from "@/lib/portal/repositories";
 
 export const dynamic = "force-dynamic";
 
@@ -23,14 +20,14 @@ export default async function PortalRepositoriesPage({
   searchParams?: Promise<{ created?: string; scope?: string; action?: string }>;
 }) {
   const member = await requirePortalMember();
-  const [externalRepositories, nativeRepositories, services] = await Promise.all([
-    listAccessibleExternalRepositories(member),
-    listAccessibleNativeRepositories(member),
+  const [catalog, services] = await Promise.all([
+    listAccessibleRepositoryCatalog(member),
     Promise.resolve(getEngineeringServiceStatus()),
   ]);
   const query = searchParams ? await searchParams : {};
   const canWrite = member.role === "admin" || member.role === "lead";
-  const scope=String(query.scope || "") === "external" ? "external" : "native";
+  const scope=["workspace","external"].includes(String(query.scope)) ? String(query.scope) : "all";
+  const visibleCatalog=scope==="all" ? catalog : catalog.filter((item)=>item.kind===scope);
   const action=canWrite && ["native","external"].includes(String(query.action)) ? String(query.action) : "";
 
   return (
@@ -38,7 +35,7 @@ export default async function PortalRepositoriesPage({
       <PortalPageHeader
         code="REPOSITORIES"
         title="Repository Servisi"
-        lead="Native repository'leri tek tabloda karşılaştır; servis mimarisini ve harici mirror kayıtlarını ayrı bağlamlarda yönet."
+        lead="CORE workspace ve harici Git kaynaklarını tek katalogda karşılaştır; gerçek Git remote ile R2 snapshot fallback arasındaki sınırı açık tut."
         action={<a className="portalOutlineButton" href="/portal/code-lab">Code Lab</a>}
       />
 
@@ -54,44 +51,43 @@ export default async function PortalRepositoriesPage({
         <article>
           <span>CORE REPO ENGINE</span>
           <b>{
-            services.repository.mode === "embedded-r2"
-              ? "R2 SOURCE OF TRUTH"
+            services.repository.mode === "snapshot-r2"
+              ? "R2 SNAPSHOT FALLBACK"
               : services.repository.configured
                 ? "External service bağlı"
                 : "Servis bağlı değil"
           }</b>
           <small>{
-            services.repository.mode === "embedded-r2"
-              ? "objects · refs · commits · diffs"
+            services.repository.mode === "snapshot-r2"
+              ? "revision snapshots · browser workspace · clone/push yok"
               : "refs · commits · diffs · releases"
           }</small>
         </article>
         <article>
           <span>MIRROR</span>
-          <b>GitHub / import / export</b>
-          <small>Opsiyonel; CORE'un çalışması için zorunlu değil</small>
+          <b>Git remote / mirror</b>
+          <small>Clone/push yalnız gerçek CORE Repo Service veya harici Git kaynağında</small>
         </article>
       </section>
 
       <section className="portalRegistryToolbar">
         <nav className="portalSegmentedControl" aria-label="Repository kapsamı">
-          <a className={scope === "native" ? "active" : ""} href="/portal/repositories">Native</a>
-          <a className={scope === "external" ? "active" : ""} href="/portal/repositories?scope=external">Harici</a>
+          <a className={scope === "all" ? "active" : ""} href="/portal/repositories">Tümü</a>
+          <a className={scope === "workspace" ? "active" : ""} href="/portal/repositories?scope=workspace">CORE Workspace</a>
+          <a className={scope === "external" ? "active" : ""} href="/portal/repositories?scope=external">Harici Git</a>
         </nav>
 
         <div className="portalRegistrySummary">
-          <span>{scope === "native" ? "NATIVE" : "HARİCİ"}</span>
-          <b>{scope === "native" ? nativeRepositories.length : externalRepositories.length}</b>
-          <small>repository</small>
+          <span>KATALOG</span>
+          <b>{visibleCatalog.length}</b>
+          <small>repository kaydı</small>
         </div>
 
         {canWrite ? (
-          <a
-            className="primary"
-            href={repoHref({scope,action:scope === "native" ? "native" : "external"})}
-          >
-            + {scope === "native" ? "Repository oluştur" : "Mirror ekle"}
-          </a>
+          <div className="portalInlineTags">
+            <a className="primary" href={repoHref({scope,action:"native"})}>+ Workspace</a>
+            <a className="portalOutlineButton" href={repoHref({scope,action:"external"})}>+ Harici Git</a>
+          </div>
         ) : null}
       </section>
 
@@ -99,7 +95,7 @@ export default async function PortalRepositoriesPage({
         <section className="portalToolSurface">
           <div className="portalToolBody">
             <div className="portalInlineToolHead">
-              <div><b>Native repository oluştur</b><small>CORE Repo Engine kaynak-of-truth olarak kullanılır.</small></div>
+              <div><b>CORE workspace oluştur</b><small>Gerçek Repo Service bağlıysa Git backend kullanılır; aksi halde R2 snapshot workspace oluşturulur ve clone/push sunulmaz.</small></div>
               <a href={repoHref({scope})}>Kapat</a>
             </div>
             <form className="portalFormGrid" action={createNativeRepositoryAction}>
@@ -116,7 +112,7 @@ export default async function PortalRepositoriesPage({
                 </select>
               </label>
               <button type="submit" className="portalPrimaryButton" disabled={!services.repository.configured}>
-                {services.repository.configured ? "Repository oluştur" : "Repo engine bekleniyor"}
+                {services.repository.configured ? "Workspace oluştur" : "Repo servisi bekleniyor"}
               </button>
             </form>
           </div>
@@ -149,76 +145,45 @@ export default async function PortalRepositoriesPage({
         </section>
       ) : null}
 
-      {scope === "native" ? (
-        nativeRepositories.length ? (
-          <div className="portalDataTableShell">
-            <table className="portalDataTable portalRepositoryDataTable">
-              <thead>
-                <tr>
-                  <th scope="col">Repository</th>
-                  <th scope="col">Durum</th>
-                  <th scope="col">Görünürlük</th>
-                  <th scope="col">Branch</th>
-                  <th scope="col">Sahiplik</th>
-                  <th scope="col">Engine</th>
-                  <th scope="col">İşlem</th>
-                </tr>
-              </thead>
-              <tbody>
-                {nativeRepositories.map((item)=>(
-                  <tr key={String(item.id)}>
-                    <td className="primaryCell">
-                      <a href={"/portal/repositories/" + encodeURIComponent(String(item.slug))}>
-                        <b>{String(item.name)}</b>
-                        <small>{String(item.slug)}</small>
+      {visibleCatalog.length ? (
+        <div className="portalDataTableShell">
+          <table className="portalDataTable portalRepositoryDataTable">
+            <thead>
+              <tr>
+                <th scope="col">Repository</th>
+                <th scope="col">Tür</th>
+                <th scope="col">Kapsam</th>
+                <th scope="col">Görünürlük</th>
+                <th scope="col">Durum</th>
+                <th scope="col">Branch</th>
+                <th scope="col">İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleCatalog.map((item)=>(
+                <tr key={item.id}>
+                  <td className="primaryCell">
+                    <div><b>{item.name}</b><small>{item.slug || item.source}</small></div>
+                  </td>
+                  <td>{item.kind === "workspace" ? "CORE Workspace" : "Harici Git"}</td>
+                  <td className="mono">{item.projectSlug || item.teamCode || "CORE"}</td>
+                  <td>{item.visibility}</td>
+                  <td><span className={"portalStatusText "+(item.status==="ready"||item.status==="healthy"?"ready":"")}>{item.status}</span></td>
+                  <td className="mono">{item.defaultBranch || "—"}</td>
+                  <td className="rowActions">
+                    {item.href ? (
+                      <a href={item.href} target={item.kind==="external"?"_blank":undefined} rel={item.kind==="external"?"noreferrer":undefined}>
+                        {item.kind==="workspace"?"Workspace":"Git kaynağını aç ↗"}
                       </a>
-                    </td>
-                    <td><span className={"portalStatusText "+(String(item.status)==="ready"?"ready":"")}>{String(item.status)}</span></td>
-                    <td>{String(item.visibility)}</td>
-                    <td className="mono">{String(item.default_branch)}</td>
-                    <td className="mono">{String(item.team_code || item.project_slug || "CORE")}</td>
-                    <td>R2 Native</td>
-                    <td className="rowActions"><a href={"/portal/repositories/" + encodeURIComponent(String(item.slug))}>Workspace</a></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <PortalEmpty
-            title="Native repository henüz yok."
-            text="İlk repository oluşturulduğunda burada branch, görünürlük, sahiplik ve engine bilgisiyle listelenecek."
-          />
-        )
-      ) : (
-        externalRepositories.length ? (
-          <div className="portalDataTableShell">
-            <table className="portalDataTable portalRepositoryDataTable">
-              <thead>
-                <tr>
-                  <th scope="col">Repository</th>
-                  <th scope="col">Kapsam</th>
-                  <th scope="col">Görünürlük</th>
-                  <th scope="col">Sağlık</th>
-                  <th scope="col">Kaynak</th>
+                    ) : null}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {externalRepositories.map((item)=>(
-                  <tr key={String(item.id)}>
-                    <td className="primaryCell"><div><b>{String(item.name)}</b><small>{String(item.repo_url)}</small></div></td>
-                    <td className="mono">{String(item.project_slug || item.team_code || "CORE")}</td>
-                    <td>{String(item.visibility)}</td>
-                    <td><span className={"portalStatusText "+(String(item.health)==="healthy"?"active":"")}>{String(item.health)}</span></td>
-                    <td className="rowActions"><a href={String(item.repo_url)} target="_blank" rel="noreferrer">Harici aç ↗</a></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <PortalEmpty title="Harici repository kaydı yok." text="Mirror veya legacy kaynak gerektiğinde bu görünümden eklenir." />
-        )
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <PortalEmpty title="Repository kataloğu boş." text="CORE workspace veya harici Git kaydı eklediğinde tek katalogda görünür." />
       )}
     </>
   );
