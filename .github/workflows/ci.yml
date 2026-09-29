@@ -341,8 +341,8 @@ jobs:
               throw new Error("Native shell must receive live mail/chat/task/notification counters.");
             }
             const taskPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
-            if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("id=\"create-task\"")) {
-              throw new Error("Tasks must expose the native mobile list and addressable create action.");
+            if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("createOpen") || !taskPage.includes("portalToolSurface") || !taskPage.includes("createTaskAction")) {
+              throw new Error("Tasks must preserve the native mobile list and explicit V12 create surface.");
             }
             const nativeCss = fs.readFileSync("app/globals.css", "utf8");
             if (!nativeCss.includes("CORE PORTAL V7") || !nativeCss.includes(".nativeSearchSheet") || !nativeCss.includes(".portalNativeTaskList")) {
@@ -387,8 +387,8 @@ jobs:
               "metaKey",
               "ctrlKey",
               "/portal/search?q=",
-              "/portal/tasks#create-task",
-              "/portal/library#upload"
+              "/portal/tasks?create=1",
+              "/portal/library?upload=1#upload"
             ]) {
               if (!commandCenter.includes(required)) {
                 throw new Error(`CORE Command Center missing capability: ${required}`);
@@ -399,7 +399,7 @@ jobs:
               throw new Error("Portal shell must expose the global Command Center.");
             }
             const filteredTasksPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
-            for (const required of ["statusFilter", "priorityFilter", "projectFilter", "mine", "portalTaskFilters"]) {
+            for (const required of ["statusFilter", "priorityFilter", "projectFilter", "mine", "portalRegistryToolbar"]) {
               if (!filteredTasksPage.includes(required)) {
                 throw new Error(`Task usability filter missing: ${required}`);
               }
@@ -468,11 +468,11 @@ jobs:
             for (const required of ["createPortalTeamAction", "portalEntityCard"]) {
               if (!teamDirectory.includes(required)) throw new Error(`GV-01 team directory missing: ${required}`);
             }
-            for (const required of ["updatePortalRoleProfileAction", "portalRoleStudio", "portalEntityCard"]) {
-              if (!memberDirectory.includes(required)) throw new Error(`GV-01 member directory missing: ${required}`);
+            for (const required of ["updatePortalRoleProfileAction", "portalRoleStudio", "portalDataTable", "portalMemberTableIdentity"]) {
+              if (!memberDirectory.includes(required)) throw new Error(`Member registry contract missing: ${required}`);
             }
-            if (!repositoryDirectory.includes("portalRepositoryEntityCard") || !repositoryDirectory.includes("R2 SOURCE OF TRUTH")) {
-              throw new Error("GV-01 repository directory must use the refined native repository entity card.");
+            for (const required of ["portalDataTable", "portalCompactServiceStrip", "R2 SOURCE OF TRUTH"]) {
+              if (!repositoryDirectory.includes(required)) throw new Error(`Repository registry contract missing: ${required}`);
             }
             for (const required of ["updatePortalTeamAction", "deletePortalTeamAction", "removePortalTeamMembershipScopedAction"]) {
               if (!teamDetail.includes(required)) throw new Error(`GV-01 team management surface missing: ${required}`);
@@ -480,6 +480,20 @@ jobs:
             if (!memberDetail.includes("updatePortalMemberGlobalRoleAction")) {
               throw new Error("GV-01 member profile must expose global role management.");
             }
+            const taskRegistry = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
+            const inventoryRegistry = fs.readFileSync("app/portal/(member)/inventory/page.tsx", "utf8");
+            const densityControl = fs.readFileSync("components/portal/PortalDensityToggle.tsx", "utf8");
+            for (const required of ["portalDataTable", "portalRegistryToolbar", "view === \"table\""]) {
+              if (!taskRegistry.includes(required)) throw new Error(`Task registry V12 missing: ${required}`);
+            }
+            for (const required of ["portalInventoryDataTable", "portalMovementDataTable", "portalRegistryToolbar"]) {
+              if (!inventoryRegistry.includes(required)) throw new Error(`Inventory registry V12 missing: ${required}`);
+            }
+            if (!densityControl.includes("core.portal.density") || !portalCss.includes("CORE V12 — DENSITY & INFORMATION ARCHITECTURE TOKENS")) {
+              throw new Error("CORE V12 density token contract is incomplete.");
+            }
+            console.log("CORE V12 density contract validated.");
+
             const teamWorkspace = fs.readFileSync("app/portal/(member)/teams/[code]/page.tsx", "utf8");
             if (!teamWorkspace.includes("canAccessPortalTeam") || !teamWorkspace.includes("notFound()")) {
               throw new Error("Private team workspace must enforce server-side access before rendering.");

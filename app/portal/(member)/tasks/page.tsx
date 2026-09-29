@@ -9,6 +9,13 @@ export const dynamic = "force-dynamic";
 
 const statuses = ["backlog","todo","doing","review","blocked","done"];
 
+function taskHref(input: Record<string,string | undefined>) {
+  const params=new URLSearchParams();
+  Object.entries(input).forEach(([key,value])=>{ if(value) params.set(key,value); });
+  const query=params.toString();
+  return "/portal/tasks"+(query?"?"+query:"");
+}
+
 export default async function PortalTasksPage({
   searchParams,
 }: {
@@ -18,6 +25,8 @@ export default async function PortalTasksPage({
     priority?: string;
     project?: string;
     mine?: string;
+    create?: string;
+    view?: string;
   }>;
 }) {
   const query = searchParams ? await searchParams : {};
@@ -36,6 +45,8 @@ export default async function PortalTasksPage({
     : "";
   const projectFilter = String(query.project || "").trim();
   const mine = String(query.mine || "") === "1";
+  const view = String(query.view || "") === "board" ? "board" : "table";
+  const createOpen = String(query.create || "") === "1";
 
   const filteredTasks = tasks.filter((task) => {
     if (q) {
@@ -55,17 +66,27 @@ export default async function PortalTasksPage({
     return true;
   });
 
+  const baseParams = {
+    q: query.q,
+    status: statusFilter || undefined,
+    priority: priorityFilter || undefined,
+    project: projectFilter || undefined,
+    mine: mine ? "1" : undefined,
+  };
+
   return (
     <>
       <PortalPageHeader
-        code="PM / PROJELER"
-        title="Projeler & Görevler"
-        lead="Teknik niyeti sahipliği belli işe dönüştür. Görevler proje, takım, öncelik ve inceleme durumuyla bağlı kalır."
+        code="GÖREVLER"
+        title="Görevler"
+        lead="Görevleri sahiplik, durum, öncelik ve proje bağlamıyla karşılaştır; ayrıntıya yalnız gerektiğinde gir."
+        action={<a className="portalPrimaryButton" href={taskHref({...baseParams,create:"1",view})}>+ GÖREV OLUŞTUR</a>}
       />
 
-      <section className="portalTaskFilters">
+      <section className="portalRegistryToolbar">
         <form action="/portal/tasks" method="get">
-          <label className="portalTaskSearch">
+          <input type="hidden" name="view" value={view} />
+          <label className="grow">
             <span>ARA</span>
             <input name="q" defaultValue={String(query.q || "")} placeholder="Görev, proje, takım veya sorumlu..." />
           </label>
@@ -95,52 +116,68 @@ export default async function PortalTasksPage({
           </label>
           <label className="portalTaskMine">
             <input type="checkbox" name="mine" value="1" defaultChecked={mine} />
-            <span>Yalnız bana atanmışlar</span>
+            <span>Bana atanmış</span>
           </label>
-          <button type="submit">FİLTRELE</button>
-          {(q || statusFilter || priorityFilter || projectFilter || mine) ? <a href="/portal/tasks">TEMİZLE</a> : null}
+          <button type="submit">UYGULA</button>
+          {(q || statusFilter || priorityFilter || projectFilter || mine) ? <a className="subtle" href={taskHref({view})}>Temizle</a> : null}
         </form>
-        <div className="portalTaskFilterSummary">
+
+        <div className="portalRegistrySummary">
+          <span>SONUÇ</span>
           <b>{filteredTasks.length}</b>
-          <span>{filteredTasks.length === tasks.length ? "toplam görev" : tasks.length + " görev içinden eşleşme"}</span>
+          <small>{tasks.length} toplam</small>
         </div>
+
+        <nav className="portalSegmentedControl" aria-label="Görev görünümü">
+          <a className={view === "table" ? "active" : ""} href={taskHref({...baseParams})}>Liste</a>
+          <a className={view === "board" ? "active" : ""} href={taskHref({...baseParams,view:"board"})}>Pano</a>
+        </nav>
       </section>
 
-      <section className="portalPanel portalCreatePanel" id="create-task">
-        <div className="portalPanelHead"><span>YENİ İŞ KALEMİ</span><small>ÜYE YAZMA YETKİSİ</small></div>
-        <form className="portalFormGrid" action={createTaskAction}>
-          <label><span>Görev başlığı</span><input name="title" required /></label>
-          <label>
-            <span>Proje</span>
-            <select name="projectSlug" defaultValue="">
-              <option value="">Genel / projesiz</option>
-              {projects.map((project) => <option value={project.slug} key={project.id}>{project.titleTr || project.slug}</option>)}
-            </select>
-          </label>
-          <label><span>Takım kodu</span><input name="teamCode" placeholder="MAR / SYS / EMB..." /></label>
-          <label>
-            <span>Öncelik</span>
-            <select name="priority" defaultValue="medium">
-              <option value="low">Düşük</option><option value="medium">Orta</option>
-              <option value="high">Yüksek</option><option value="critical">Kritik</option>
-            </select>
-          </label>
-          <label>
-            <span>Sorumlu</span>
-            <select name="assigneeId" defaultValue="">
-              <option value="">Atanmamış</option>
-              {activeMembers.map((member) => (
-                <option value={String(member.id)} key={String(member.id)}>
-                  {String(member.full_name || member.email)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label><span>Son tarih</span><input name="dueAt" type="datetime-local" /></label>
-          <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={3} /></label>
-          <button type="submit" className="portalPrimaryButton">GÖREV OLUŞTUR →</button>
-        </form>
-      </section>
+      {createOpen ? (
+        <section className="portalToolSurface">
+          <div className="portalToolBody">
+            <div className="portalInlineToolHead">
+              <div><b>Yeni görev</b><small>Yalnız gerekli alanlarla başla; ayrıntıyı görev içinde tamamlayabilirsin.</small></div>
+              <a href={taskHref({...baseParams,view})}>Kapat</a>
+            </div>
+            <form className="portalFormGrid" action={createTaskAction}>
+              <label><span>Görev başlığı</span><input name="title" required autoFocus /></label>
+              <label>
+                <span>Proje</span>
+                <select name="projectSlug" defaultValue="">
+                  <option value="">Genel / projesiz</option>
+                  {projects.map((project) => <option value={project.slug} key={project.id}>{project.titleTr || project.slug}</option>)}
+                </select>
+              </label>
+              <label><span>Takım kodu</span><input name="teamCode" placeholder="MAR / SYS / EMB" /></label>
+              <label>
+                <span>Öncelik</span>
+                <select name="priority" defaultValue="medium">
+                  <option value="low">Düşük</option>
+                  <option value="medium">Orta</option>
+                  <option value="high">Yüksek</option>
+                  <option value="critical">Kritik</option>
+                </select>
+              </label>
+              <label>
+                <span>Sorumlu</span>
+                <select name="assigneeId" defaultValue="">
+                  <option value="">Atanmamış</option>
+                  {activeMembers.map((item) => (
+                    <option value={String(item.id)} key={String(item.id)}>
+                      {String(item.full_name || item.email)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label><span>Son tarih</span><input name="dueAt" type="datetime-local" /></label>
+              <label className="portalFormWide"><span>Açıklama</span><textarea name="description" rows={3} /></label>
+              <button type="submit" className="portalPrimaryButton">Görevi oluştur</button>
+            </form>
+          </div>
+        </section>
+      ) : null}
 
       <section className="portalNativeTaskList" aria-label="Mobil görev listesi">
         {filteredTasks
@@ -166,41 +203,83 @@ export default async function PortalTasksPage({
           ))}
       </section>
 
-      <section className="portalTaskBoard">
-        {statuses.map((status) => {
-          const bucket = filteredTasks.filter((task) => String(task.status) === status);
-          return (
-            <div className="portalTaskColumn" key={status}>
-              <header><span>{portalTaskStatusLabel(status)}</span><b>{bucket.length}</b></header>
-              {bucket.map((task) => (
-                <article className="portalTaskCard" key={String(task.id)}>
-                  <div className="portalTaskMeta">
-                    <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
-                    <small>{String(task.project_slug || task.team_code || "CORE")}</small>
-                  </div>
-                  <a className="portalTaskOpen" href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
-                    <h3>{String(task.title)}</h3>
-                    <p>{String(task.description || "")}</p>
-                  </a>
-                  <div className="portalTaskCardFacts">
-                    <small>{String(task.assignee_name || "Atanmamış")}</small>
-                    <small>{task.due_at ? "SON TARİH " + String(task.due_at) : "SON TARİH YOK"}</small>
-                  </div>
-                  <form action={updateTaskStatusAction}>
-                    <input type="hidden" name="id" value={String(task.id)} />
-                    <select name="status" defaultValue={String(task.status)}>
-                      {statuses.map((item) => <option value={item} key={item}>{portalTaskStatusLabel(item)}</option>)}
-                    </select>
-                    <button type="submit">TAŞI →</button>
-                  </form>
-                </article>
-              ))}
-            </div>
-          );
-        })}
-      </section>
-
-      {!filteredTasks.length ? <PortalEmpty title={tasks.length ? "Bu filtrelerle görev yok." : "Henüz görev yok."} text={tasks.length ? "Filtreleri temizle veya daha geniş bir arama dene." : "Yukarıdan ilk işi oluştur ve proje geçmişini başlat."} /> : null}
+      {view === "table" ? (
+        filteredTasks.length ? (
+          <div className="portalDataTableShell">
+            <table className="portalDataTable portalTaskDataTable">
+              <thead>
+                <tr>
+                  <th scope="col">Görev</th>
+                  <th scope="col">Durum</th>
+                  <th scope="col">Öncelik</th>
+                  <th scope="col">Sorumlu</th>
+                  <th scope="col">Proje / Takım</th>
+                  <th scope="col">Son tarih</th>
+                  <th scope="col">İşlem</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTasks.map((task) => (
+                  <tr key={String(task.id)}>
+                    <td className="primaryCell">
+                      <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
+                        <b>{String(task.title)}</b>
+                        <small>{String(task.description || "Açıklama yok.")}</small>
+                      </a>
+                    </td>
+                    <td><span className={"portalStatusText "+String(task.status)}>{portalTaskStatusLabel(String(task.status))}</span></td>
+                    <td><span className={"portalPriority "+String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span></td>
+                    <td>{String(task.assignee_name || "Atanmamış")}</td>
+                    <td className="mono">{String(task.project_slug || task.team_code || "CORE")}</td>
+                    <td className="mono">{task.due_at ? String(task.due_at) : "—"}</td>
+                    <td className="rowActions">
+                      <form action={updateTaskStatusAction} className="portalInlineStatusForm">
+                        <input type="hidden" name="id" value={String(task.id)} />
+                        <select name="status" defaultValue={String(task.status)} aria-label="Görev durumunu değiştir">
+                          {statuses.map((item) => <option value={item} key={item}>{portalTaskStatusLabel(item)}</option>)}
+                        </select>
+                        <button type="submit">Kaydet</button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <PortalEmpty
+            title={tasks.length ? "Bu filtrelerle görev yok." : "Henüz görev yok."}
+            text={tasks.length ? "Filtreleri temizle veya daha geniş bir arama dene." : "İlk görevi oluşturduğunda burada durum ve sahiplik bilgisiyle listelenecek."}
+          />
+        )
+      ) : (
+        <section className="portalTaskBoard portalTaskBoardCompact">
+          {statuses.map((status) => {
+            const bucket = filteredTasks.filter((task) => String(task.status) === status);
+            return (
+              <div className="portalTaskColumn" key={status}>
+                <header><span>{portalTaskStatusLabel(status)}</span><b>{bucket.length}</b></header>
+                {bucket.map((task) => (
+                  <article className="portalTaskCard" key={String(task.id)}>
+                    <div className="portalTaskMeta">
+                      <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
+                      <small>{String(task.project_slug || task.team_code || "CORE")}</small>
+                    </div>
+                    <a className="portalTaskOpen" href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
+                      <h3>{String(task.title)}</h3>
+                      <p>{String(task.description || "")}</p>
+                    </a>
+                    <div className="portalTaskCardFacts">
+                      <small>{String(task.assignee_name || "Atanmamış")}</small>
+                      <small>{task.due_at ? String(task.due_at) : "Son tarih yok"}</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            );
+          })}
+        </section>
+      )}
     </>
   );
 }

@@ -26,21 +26,21 @@ const quickCommands: CommandItem[] = [
   {
     label: "Yeni görev oluştur",
     hint: "Hızlı işlem",
-    href: "/portal/tasks#create-task",
+    href: "/portal/tasks?create=1",
     code: "+PM",
     keywords: "yeni görev task oluştur iş",
   },
   {
     label: "Yeni mail yaz",
     hint: "Hızlı işlem",
-    href: "/portal/mail?compose=1#compose",
+    href: "/portal/mail?compose=1",
     code: "+ML",
     keywords: "mail posta mesaj yaz yeni",
   },
   {
     label: "Vault'a dosya yükle",
     hint: "Hızlı işlem",
-    href: "/portal/library#upload",
+    href: "/portal/library?upload=1#upload",
     code: "+VA",
     keywords: "vault dosya yükle upload",
   },
@@ -54,7 +54,7 @@ const quickCommands: CommandItem[] = [
   {
     label: "Stok hareketi aç",
     hint: "Hızlı işlem",
-    href: "/portal/inventory",
+    href: "/portal/inventory?action=movement",
     code: "+ST",
     keywords: "stok envanter giriş çıkış parça",
   },
