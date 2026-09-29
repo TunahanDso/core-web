@@ -31,6 +31,10 @@
     {
       "binding": "MAIL_SERVICE",
       "service": "core-mail"
+    },
+    {
+      "binding": "CONVERTER_SERVICE",
+      "service": "core-converter"
     }
   ],
   "unsafe": {
