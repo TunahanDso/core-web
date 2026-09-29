@@ -27,6 +27,12 @@
   "images": {
     "binding": "IMAGES"
   },
+  "services": [
+    {
+      "binding": "MAIL_SERVICE",
+      "service": "core-mail"
+    }
+  ],
   "unsafe": {
     "bindings": [
       {
