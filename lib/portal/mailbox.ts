@@ -227,3 +227,209 @@ export async function listPortalMailAttachments(threadId: string) {
     return [];
   }
 }
+
+
+function mailGroupBytesToBase64(bytes: Uint8Array) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function mailGroupBase64ToBytes(value: string) {
+  const binary = atob(value);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+async function deriveMailGroupAccessHash(code: string, salt: Uint8Array) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(code),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+    key,
+    256
+  );
+  return mailGroupBytesToBase64(new Uint8Array(bits));
+}
+
+function constantTimeStringEqual(left: string, right: string) {
+  const a = new TextEncoder().encode(left);
+  const b = new TextEncoder().encode(right);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let index = 0; index < a.length; index += 1) diff |= a[index] ^ b[index];
+  return diff === 0;
+}
+
+export async function listPortalMailGroups(memberId: string) {
+  try {
+    const response = await database().prepare(
+      "SELECT g.id,g.name,g.description,g.owner_id,g.access_mode,g.created_at,g.updated_at," +
+      "gm.member_role,(SELECT COUNT(*) FROM portal_mail_group_members x WHERE x.group_id=g.id) AS member_count " +
+      "FROM portal_mail_groups g JOIN portal_mail_group_members gm ON gm.group_id=g.id AND gm.member_id=? " +
+      "ORDER BY CASE gm.member_role WHEN 'owner' THEN 0 ELSE 1 END,g.name"
+    ).bind(memberId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function listPortalJoinableMailGroups(memberId: string) {
+  try {
+    const response = await database().prepare(
+      "SELECT g.id,g.name,g.description,g.owner_id,g.access_mode,g.created_at,g.updated_at," +
+      "(SELECT COUNT(*) FROM portal_mail_group_members x WHERE x.group_id=g.id) AS member_count " +
+      "FROM portal_mail_groups g WHERE g.access_mode='locked' " +
+      "AND NOT EXISTS (SELECT 1 FROM portal_mail_group_members gm WHERE gm.group_id=g.id AND gm.member_id=?) " +
+      "ORDER BY g.name LIMIT 100"
+    ).bind(memberId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function listPortalMailGroupMembers(groupId: string, viewerId: string) {
+  const access = await database().prepare(
+    "SELECT 1 AS ok FROM portal_mail_group_members WHERE group_id=? AND member_id=? LIMIT 1"
+  ).bind(groupId,viewerId).first<{ ok: number }>();
+  if (!access) throw new Error("Bu grubu görüntüleme yetkiniz yok.");
+
+  const response = await database().prepare(
+    "SELECT m.id,m.full_name,m.email,m.role,gm.member_role,gm.created_at " +
+    "FROM portal_mail_group_members gm JOIN portal_members m ON m.id=gm.member_id " +
+    "WHERE gm.group_id=? ORDER BY CASE gm.member_role WHEN 'owner' THEN 0 ELSE 1 END,m.full_name,m.email"
+  ).bind(groupId).all<Record<string, unknown>>();
+  return response.results ?? [];
+}
+
+export async function createPortalMailGroup(input: {
+  ownerId: string;
+  name: string;
+  description: string;
+  accessMode: "private" | "locked";
+  accessCode?: string | null;
+  memberIds: string[];
+}) {
+  const name = input.name.trim().slice(0,80);
+  if (!name) throw new Error("Grup adı gerekli.");
+
+  let accessCodeSalt: string | null = null;
+  let accessCodeHash: string | null = null;
+  if (input.accessMode === "locked") {
+    const code = String(input.accessCode || "");
+    if (code.length < 6) throw new Error("Erişim kodu en az 6 karakter olmalı.");
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    accessCodeSalt = mailGroupBytesToBase64(salt);
+    accessCodeHash = await deriveMailGroupAccessHash(code,salt);
+  }
+
+  const db = database();
+  const id = crypto.randomUUID();
+  const members = Array.from(new Set([input.ownerId,...input.memberIds.filter(Boolean)])).slice(0,100);
+  await db.batch([
+    db.prepare(
+      "INSERT INTO portal_mail_groups (id,name,description,owner_id,access_mode,access_code_salt,access_code_hash) VALUES (?,?,?,?,?,?,?)"
+    ).bind(id,name,input.description.trim().slice(0,500),input.ownerId,input.accessMode,accessCodeSalt,accessCodeHash),
+    ...members.map((memberId) =>
+      db.prepare(
+        "INSERT INTO portal_mail_group_members (group_id,member_id,member_role,added_by) VALUES (?,?,?,?)"
+      ).bind(id,memberId,memberId === input.ownerId ? "owner" : "member",input.ownerId)
+    ),
+  ]);
+  return id;
+}
+
+export async function joinPortalMailGroup(input: {
+  groupId: string;
+  memberId: string;
+  accessCode: string;
+}) {
+  const group = await database().prepare(
+    "SELECT id,access_mode,access_code_salt,access_code_hash FROM portal_mail_groups WHERE id=? LIMIT 1"
+  ).bind(input.groupId).first<Record<string, unknown>>();
+  if (!group || String(group.access_mode) !== "locked") {
+    throw new Error("Erişim kodlu grup bulunamadı.");
+  }
+
+  const salt = mailGroupBase64ToBytes(String(group.access_code_salt || ""));
+  const expected = String(group.access_code_hash || "");
+  const actual = await deriveMailGroupAccessHash(input.accessCode,salt);
+  if (!expected || !constantTimeStringEqual(actual,expected)) {
+    throw new Error("Erişim kodu geçersiz.");
+  }
+
+  await database().prepare(
+    "INSERT OR IGNORE INTO portal_mail_group_members (group_id,member_id,member_role,added_by) VALUES (?,?,'member',?)"
+  ).bind(input.groupId,input.memberId,input.memberId).run();
+}
+
+export async function deletePortalMailGroup(groupId: string, ownerId: string) {
+  const owned = await database().prepare(
+    "SELECT 1 AS ok FROM portal_mail_groups WHERE id=? AND owner_id=? LIMIT 1"
+  ).bind(groupId,ownerId).first<{ ok: number }>();
+  if (!owned) throw new Error("Bu grubu silme yetkiniz yok.");
+  await database().prepare("DELETE FROM portal_mail_groups WHERE id=?").bind(groupId).run();
+}
+
+export async function resolvePortalMailGroupRecipients(groupIds: string[], memberId: string) {
+  const ids = Array.from(new Set(groupIds.filter(Boolean))).slice(0,20);
+  if (!ids.length) return [] as string[];
+
+  const recipients = new Set<string>();
+  for (const groupId of ids) {
+    const access = await database().prepare(
+      "SELECT 1 AS ok FROM portal_mail_group_members WHERE group_id=? AND member_id=? LIMIT 1"
+    ).bind(groupId,memberId).first<{ ok: number }>();
+    if (!access) continue;
+
+    const members = await database().prepare(
+      "SELECT member_id FROM portal_mail_group_members WHERE group_id=?"
+    ).bind(groupId).all<{ member_id: string }>();
+    for (const row of members.results ?? []) {
+      if (row.member_id !== memberId) recipients.add(row.member_id);
+    }
+  }
+  return Array.from(recipients).slice(0,100);
+}
+
+export async function linkPortalMailThreadGroups(threadId: string, groupIds: string[], memberId: string) {
+  const ids = Array.from(new Set(groupIds.filter(Boolean))).slice(0,20);
+  if (!ids.length) return;
+  const db = database();
+  const statements = [];
+  for (const groupId of ids) {
+    const access = await db.prepare(
+      "SELECT 1 AS ok FROM portal_mail_group_members WHERE group_id=? AND member_id=? LIMIT 1"
+    ).bind(groupId,memberId).first<{ ok: number }>();
+    if (access) {
+      statements.push(
+        db.prepare("INSERT OR IGNORE INTO portal_mail_thread_groups (thread_id,group_id) VALUES (?,?)")
+          .bind(threadId,groupId)
+      );
+    }
+  }
+  if (statements.length) await db.batch(statements);
+}
+
+export async function listPortalMailThreadGroups(threadId: string, memberId: string) {
+  const participant = await database().prepare(
+    "SELECT 1 AS ok FROM portal_mail_participants WHERE thread_id=? AND member_id=? LIMIT 1"
+  ).bind(threadId,memberId).first<{ ok: number }>();
+  if (!participant) return [];
+
+  try {
+    const response = await database().prepare(
+      "SELECT g.id,g.name,g.access_mode FROM portal_mail_thread_groups tg " +
+      "JOIN portal_mail_groups g ON g.id=tg.group_id WHERE tg.thread_id=? ORDER BY g.name"
+    ).bind(threadId).all<Record<string, unknown>>();
+    return response.results ?? [];
+  } catch {
+    return [];
+  }
+}
