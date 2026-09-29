@@ -102,7 +102,7 @@ export default async function PortalMailThreadPage({
                   </div>
                 ) : null}
 
-                <footer><small>MSG {String(index + 1).padStart(2,"0")} / {String(data.messages.length).padStart(2,"0")}</small></footer>
+                <footer><small>MESAJ {String(index + 1).padStart(2,"0")} / {String(data.messages.length).padStart(2,"0")}</small></footer>
               </article>
             );
           })}
