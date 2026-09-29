@@ -289,7 +289,7 @@ jobs:
             }
             console.log("Native mobile shell, session migration and deep-link safety validated.");
 
-            const nativeExperienceLayout = fs.readFileSync("components/portal/PortalNativeExperience.tsx", "utf8");
+            const nativeExperience = fs.readFileSync("components/portal/PortalNativeExperience.tsx", "utf8");
             for (const required of [
               "@capacitor/haptics",
               "@capacitor/network",
@@ -484,7 +484,7 @@ jobs:
 
             const layoutCss = fs.readFileSync("app/globals.css", "utf8");
             const dashboardPage = fs.readFileSync("app/portal/(member)/page.tsx", "utf8");
-            const nativeExperience = fs.readFileSync("components/portal/PortalNativeExperience.tsx", "utf8");
+            const nativeExperienceLayout = fs.readFileSync("components/portal/PortalNativeExperience.tsx", "utf8");
             for (const required of [
               "CORE LAYOUT STABILITY R1 — DESKTOP RAIL + iOS CONTAINMENT",
               "portalApp.portalSidebarCollapsed",
