@@ -141,12 +141,14 @@ export async function createGeneralPollAction(formData: FormData) {
   if(!title) throw new Error("Oylama başlığı gerekli.");
   const scopeRaw=textValue(formData,"scope");
   const scope=scopeRaw==="team" ? "team" : "global";
+  const teamCode=scope==="team" ? textValue(formData,"teamCode") : "";
+  if(scope==="team" && !teamCode) throw new Error("Takım oylaması için takım seçmelisiniz.");
   await createPoll({
     meetingId:null,
     title,
     description:textValue(formData,"description"),
     scope,
-    teamCode:scope==="team" ? textValue(formData,"teamCode") || null : null,
+    teamCode:scope==="team" ? teamCode : null,
     closesAt:textValue(formData,"closesAt") || null,
     options:pollOptions(formData),
     createdBy:member.id,
