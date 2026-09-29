@@ -12254,3 +12254,997 @@ html.coreDesktopRuntime .portalDesktopStatus{
 @media(max-width:900px){
   .portalDesktopDownloadGrid{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   CORE PORTAL / WORKBENCH V10
+   Product contract: predictable, compact, recoverable, quiet.
+   ========================================================= */
+
+:root{
+  --core-space-1:4px;
+  --core-space-2:8px;
+  --core-space-3:12px;
+  --core-space-4:16px;
+  --core-space-5:24px;
+  --core-space-6:32px;
+  --core-radius:10px;
+  --core-focus:0 0 0 3px rgba(255,101,0,.18);
+}
+
+.portalContent{
+  padding-top:24px;
+}
+
+.portalPageHeader{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:24px;
+  margin-bottom:16px;
+  padding:4px 0 16px;
+}
+.portalPageHeader>div>span{
+  display:none;
+}
+.portalPageHeader h1{
+  margin:0;
+  max-width:900px;
+  font-size:clamp(28px,2.7vw,42px);
+  line-height:1;
+  letter-spacing:-.04em;
+}
+.portalPageHeader p{
+  max-width:820px;
+  margin-top:8px;
+  font-size:11px;
+  line-height:1.55;
+}
+.portalPageAction{
+  justify-self:end;
+  align-self:center;
+}
+.portalPanel{
+  padding:16px;
+  border-radius:var(--core-radius);
+}
+.portalPanelHead{
+  padding-bottom:12px;
+}
+.portalPanelSummary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  list-style:none;
+  cursor:pointer;
+}
+.portalPanelSummary::-webkit-details-marker{display:none}
+.portalPanelSummary>div{
+  display:grid;
+  gap:3px;
+}
+.portalPanelSummary span{
+  color:var(--portal-orange);
+  font:900 7px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.portalPanelSummary b{
+  font-size:12px;
+}
+.portalPanelSummary small{
+  color:#92989e;
+  font:800 7px ui-monospace,monospace;
+}
+.portalWorkbenchSurface{
+  border:1px solid var(--portal-line);
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 12px 28px rgba(24,27,30,.045);
+}
+.portalWorkbenchToolbar{
+  border:1px solid var(--portal-line);
+  border-radius:10px;
+  background:#fff;
+}
+.portalPrimaryButton,
+.portalOutlineButton,
+button,
+a{
+  -webkit-tap-highlight-color:transparent;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible{
+  outline:none;
+  box-shadow:var(--core-focus);
+}
+.portalSuccess{
+  margin:8px 0 12px;
+  border-radius:8px;
+}
+
+/* CHAT */
+.portalChatLayout{
+  height:clamp(580px,calc(100dvh - 190px),820px);
+  min-height:0;
+  margin-top:0;
+  grid-template-columns:240px minmax(0,1fr);
+  overflow:hidden;
+  border-radius:12px;
+}
+.portalChatSidebar{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  min-height:0;
+  padding:0!important;
+  border-right:1px solid var(--portal-line);
+  background:#f6f7f4!important;
+}
+.portalChatSidebar>header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px;
+  border-bottom:1px solid var(--portal-line);
+}
+.portalChatSidebar>header>div{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.portalChatSidebar>header span,
+.portalChatRoomMeta span{
+  color:#858c92;
+  font:850 7px ui-monospace,monospace;
+  letter-spacing:.07em;
+}
+.portalChatSidebar>header b{
+  color:var(--portal-orange);
+  font-size:11px;
+}
+.portalChatSidebar>header small,
+.portalChatRoomMeta b{
+  color:#92999f;
+  font:800 7px ui-monospace,monospace;
+}
+.portalChannelList{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:8px;
+  scrollbar-gutter:stable;
+}
+.portalChannelList form{margin:0}
+.portalChannelList button{
+  width:100%;
+  display:grid;
+  gap:5px;
+  margin:0 0 3px;
+  padding:10px;
+  border:1px solid transparent;
+  border-radius:8px;
+  background:transparent;
+  color:#555d65;
+  text-align:left;
+  cursor:pointer;
+}
+.portalChannelList button:hover{
+  background:#fff;
+  border-color:#e3e5df;
+}
+.portalChannelList button.active{
+  background:#fff;
+  border-color:#d8dbd5;
+  box-shadow:0 3px 10px rgba(28,31,34,.04);
+  color:#17191d;
+}
+.portalChannelTitle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.portalChannelTitle b{font-size:10px}
+.portalChannelTitle em{
+  min-width:20px;
+  height:20px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:var(--portal-orange);
+  color:#fff;
+  font:900 7px ui-monospace,monospace;
+  font-style:normal;
+}
+.portalChannelList small{
+  display:block;
+  overflow:hidden;
+  color:#959ba0;
+  font-size:8px;
+  line-height:1.35;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.portalChatRoom{
+  min-height:0;
+  grid-template-rows:auto minmax(0,1fr) auto;
+}
+.portalChatRoomHeader{
+  min-height:60px;
+  justify-content:space-between;
+  padding:11px 14px!important;
+  background:#fff;
+}
+.portalChatRoomIdentity{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.portalChatRoomIdentity>span{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border-radius:7px;
+  background:#fff2e9;
+  color:var(--portal-orange)!important;
+  font-size:15px!important;
+  font-weight:900;
+}
+.portalChatRoomIdentity b{font-size:11px!important}
+.portalChatRoomIdentity small{max-width:620px}
+.portalChatRoomMeta{
+  display:grid;
+  justify-items:end;
+  gap:3px;
+}
+.portalMessages{
+  min-height:0;
+  max-height:none;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  padding:14px 18px 24px;
+  background:#fbfcfa;
+}
+.portalMessages article{
+  max-width:920px;
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
+  gap:10px;
+  margin:0 0 14px;
+}
+.portalMessageAvatar{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  background:#202328;
+  color:#fff!important;
+  font:850 7px ui-monospace,monospace!important;
+}
+.portalMessages article.mine .portalMessageAvatar{
+  background:var(--portal-orange);
+}
+.portalMessageContent{min-width:0}
+.portalMessageContent>header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.portalMessageContent>header>div{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.portalMessageContent header b{font-size:10px}
+.portalMessageContent header span{
+  padding:3px 5px;
+  border-radius:4px;
+  background:#eef0eb;
+  color:#7b838a!important;
+  font:800 6px ui-monospace,monospace!important;
+}
+.portalMessageContent header small{color:#a0a5aa;font-size:7px}
+.portalMessageContent p{
+  margin:4px 0 0!important;
+  color:#4d555d!important;
+  font-size:11px!important;
+  line-height:1.6!important;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.portalChatComposer{
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:8px;
+  padding:10px 12px;
+  background:#fff;
+}
+.portalChatComposer>div{
+  display:grid;
+  gap:4px;
+}
+.portalChatComposer textarea{
+  min-height:58px;
+  max-height:150px;
+  resize:vertical;
+  border-radius:8px;
+  background:#fbfcfa;
+  font-size:11px;
+}
+.portalChatComposer small{
+  color:#9aa0a5;
+  font-size:7px;
+}
+.portalChatComposer button{
+  min-height:58px;
+  border-radius:8px;
+}
+
+/* MAIL */
+.mailboxWorkbench{
+  height:clamp(620px,calc(100dvh - 190px),860px);
+  min-height:0;
+  display:grid;
+  grid-template-columns:170px minmax(360px,.9fr) minmax(360px,.78fr);
+  overflow:hidden;
+}
+.mailboxSidebar{
+  min-height:0;
+  padding:10px;
+  border:0;
+  border-right:1px solid var(--portal-line);
+  border-radius:0;
+  background:#f6f7f4;
+}
+.mailboxComposeJump{
+  display:grid;
+  grid-template-columns:24px 1fr;
+  align-items:center;
+  justify-items:start;
+  min-height:42px;
+  margin-bottom:9px;
+  padding:0 10px;
+  border-radius:8px;
+}
+.mailboxComposeJump>span{
+  color:var(--portal-orange);
+  font-size:15px;
+}
+.mailboxComposeJump>b{
+  font:900 7px ui-monospace,monospace;
+}
+.mailboxSidebar nav>a{
+  min-height:38px;
+  padding:8px;
+}
+.mailboxMain{
+  min-width:0;
+  min-height:0;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  border-right:1px solid var(--portal-line);
+  background:#fff;
+}
+.mailboxMainHeader{
+  display:grid;
+  grid-template-columns:auto minmax(240px,1fr);
+  align-items:center;
+  gap:14px;
+  min-height:64px;
+  padding:9px 12px;
+  border-bottom:1px solid var(--portal-line);
+}
+.mailboxMainHeader>div{
+  display:grid;
+  gap:2px;
+}
+.mailboxMainHeader>div span,
+.mailboxComposeHeader span{
+  color:#92989e;
+  font:850 7px ui-monospace,monospace;
+}
+.mailboxMainHeader>div b{font-size:12px}
+.mailboxMainHeader>div small{color:#a0a5aa;font-size:7px}
+.mailboxSearch{
+  margin:0;
+  grid-template-columns:minmax(0,1fr) auto;
+}
+.mailboxSearch input{min-height:38px}
+.mailboxSearch button{min-height:38px}
+.mailboxListViewport{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  background:#fafbf8;
+}
+.mailboxThreadList{
+  gap:0;
+}
+.mailboxThreadList>article{
+  border:0;
+  border-bottom:1px solid #e6e8e3;
+  background:#fff;
+}
+.mailboxThreadList>article:hover{background:#fdfdfb}
+.mailboxThreadList>article.unread{
+  border-left:3px solid var(--portal-orange);
+  background:#fffaf6;
+}
+.mailboxOpenThread button,
+.mailboxThreadList>article.draft>a{
+  grid-template-columns:22px minmax(0,1fr) 112px;
+  gap:8px;
+  padding:11px 10px;
+}
+.mailboxOpenThread b,
+.mailboxThreadList>article.draft b{
+  font-size:10px;
+}
+.mailboxOpenThread p,
+.mailboxThreadList>article.draft p{
+  font-size:9px;
+}
+.mailboxOpenThread small,
+.mailboxThreadList>article.draft small{
+  font-size:7px;
+}
+.mailboxOpenThread time,
+.mailboxThreadList>article.draft time{
+  color:#989ea3;
+  font:7px ui-monospace,monospace;
+}
+.mailboxRowActions{
+  opacity:.22;
+  transition:opacity .15s ease;
+}
+.mailboxThreadList>article:hover .mailboxRowActions,
+.mailboxRowActions:focus-within{
+  opacity:1;
+}
+.mailboxCompose{
+  min-width:0;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  padding:12px;
+  background:#fbfcfa;
+  scroll-margin:0;
+}
+.mailboxComposeHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--portal-line);
+}
+.mailboxComposeHeader>div{display:grid;gap:3px}
+.mailboxComposeHeader b{font-size:12px}
+.portalMailCompose{
+  margin-top:12px;
+  gap:10px;
+}
+.mailComposeField{
+  display:grid;
+  gap:5px;
+}
+.mailComposeField>span,
+.portalMailCompose legend{
+  color:#878e94;
+  font:850 7px ui-monospace,monospace;
+}
+.mailComposeField input,
+.mailComposeField textarea{
+  width:100%;
+  border:1px solid #d9dcd6;
+  border-radius:7px;
+  background:#fff;
+  padding:9px 10px;
+  color:#25292d;
+  outline:none;
+}
+.mailComposeBody textarea{
+  min-height:170px;
+  resize:vertical;
+}
+.portalMailCompose fieldset{
+  margin:0;
+  padding:9px;
+  border-radius:8px;
+}
+.portalRecipientGrid{
+  grid-template-columns:1fr;
+  max-height:170px;
+  overflow:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.portalRecipientGrid label{
+  min-height:38px;
+  padding:6px 7px;
+  border-radius:6px;
+}
+.portalRecipientGrid label:hover{background:#f6f7f4}
+.portalRecipientGrid label>span{display:grid;gap:2px}
+.portalRecipientGrid label b{font-size:9px}
+.portalRecipientGrid label small{color:#969ca2;font-size:7px}
+.mailComposeAttachments{
+  border:1px solid #e0e2dd;
+  border-radius:8px;
+  background:#fff;
+}
+.mailComposeAttachments summary,
+.mailReplyAttachments summary{
+  padding:10px;
+  list-style:none;
+  cursor:pointer;
+  color:#7f868c;
+  font:850 7px ui-monospace,monospace;
+}
+.mailComposeAttachments summary::-webkit-details-marker,
+.mailReplyAttachments summary::-webkit-details-marker{display:none}
+.mailComposeAttachments[open] summary,
+.mailReplyAttachments[open] summary{
+  border-bottom:1px solid #e4e6e1;
+  color:var(--portal-orange);
+}
+.mailboxAttachmentPicker{
+  max-height:220px;
+  padding:8px;
+  grid-template-columns:1fr;
+  overscroll-behavior:contain;
+}
+.mailboxComposeActions{
+  position:sticky;
+  bottom:-12px;
+  margin:0 -12px -12px;
+  padding:10px 12px;
+  border-top:1px solid var(--portal-line);
+  background:rgba(251,252,250,.96);
+}
+.mailThreadToolbar{
+  margin:0 0 10px;
+  border-radius:10px;
+}
+.mailThreadWorkbench{
+  min-height:620px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 330px;
+  overflow:hidden;
+}
+.mailboxConversation{
+  min-height:0;
+  max-height:calc(100dvh - 245px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  gap:8px;
+  margin:0;
+  padding:12px;
+  background:#fafbf8;
+}
+.mailboxConversation article{
+  padding:14px;
+  border-radius:9px;
+}
+.mailboxConversation article p{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.portalMailReply{
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:12px;
+  border-left:1px solid var(--portal-line);
+  background:#fff;
+}
+.portalMailReply form{
+  display:grid;
+  gap:10px;
+  margin-top:12px;
+}
+.portalMailReply textarea{
+  width:100%;
+  min-height:220px;
+  resize:vertical;
+  border:1px solid #d9dcd6;
+  border-radius:8px;
+  padding:10px;
+}
+
+/* VAULT LIBRARY */
+.vaultLibraryToolbar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 120px;
+  gap:10px;
+  margin:0 0 12px;
+  padding:10px;
+}
+.vaultLibraryToolbar>form{
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) 150px 130px auto;
+  gap:7px;
+}
+.vaultLibraryToolbar label{
+  min-width:0;
+  display:grid;
+  gap:4px;
+}
+.vaultLibraryToolbar label>span,
+.vaultLibrarySummary>span{
+  color:#92989e;
+  font:850 6px ui-monospace,monospace;
+  letter-spacing:.08em;
+}
+.vaultLibraryToolbar input,
+.vaultLibraryToolbar select,
+.vaultLibraryToolbar button{
+  min-height:38px;
+  border:1px solid #d8dbd5;
+  border-radius:7px;
+  background:#fff;
+  padding:0 9px;
+  font-size:9px;
+}
+.vaultLibraryToolbar button{
+  align-self:end;
+  background:#17191d;
+  color:#fff;
+  font:900 7px ui-monospace,monospace;
+  cursor:pointer;
+}
+.vaultLibrarySummary{
+  display:grid;
+  align-content:center;
+  gap:2px;
+  padding:0 10px;
+  border-left:1px solid var(--portal-line);
+}
+.vaultLibrarySummary b{
+  color:var(--portal-orange);
+  font-size:20px;
+}
+.vaultLibrarySummary small{
+  color:#93999e;
+  font-size:7px;
+}
+.vaultFileGrid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 12px;
+}
+.vaultFileGrid>a{
+  min-height:190px;
+  padding:13px;
+  border-radius:9px;
+  box-shadow:none;
+}
+.vaultFileIcon{
+  width:46px;
+  height:46px;
+  margin:16px 0 12px;
+}
+.vaultFileGrid h3{
+  font-size:14px;
+}
+.vaultFileGrid p{
+  margin-bottom:12px;
+  font-size:9px;
+}
+.vaultUploadDrawer,
+.vaultLegacyIndex,
+.vaultDerivativePanel,
+.vaultRevisionPanel{
+  margin:10px 0;
+}
+.vaultUploadDrawer>summary,
+.vaultLegacyIndex>summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  list-style:none;
+  cursor:pointer;
+}
+.vaultUploadDrawer>summary::-webkit-details-marker,
+.vaultLegacyIndex>summary::-webkit-details-marker{display:none}
+.vaultUploadDrawer>summary>div,
+.vaultLegacyIndex>summary>div{
+  display:grid;
+  gap:3px;
+}
+.vaultUploadDrawer>summary span,
+.vaultLegacyIndex>summary span{
+  color:var(--portal-orange);
+  font:900 7px ui-monospace,monospace;
+}
+.vaultUploadDrawer>summary b,
+.vaultLegacyIndex>summary b{
+  font-size:11px;
+}
+.vaultUploadDrawer>summary small,
+.vaultLegacyIndex>summary small{
+  color:#92989e;
+  font:800 7px ui-monospace,monospace;
+}
+.vaultUploadDrawerBody{
+  padding-top:14px;
+  border-top:1px solid var(--portal-line);
+  margin-top:12px;
+}
+
+/* VAULT DETAIL / PREVIEW */
+.vaultMetaStrip{
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:1px;
+  margin:0 0 8px;
+  overflow:hidden;
+  border:1px solid var(--portal-line);
+  border-radius:9px;
+  background:var(--portal-line);
+}
+.vaultMetaStrip article{
+  min-height:64px;
+  align-content:center;
+  gap:3px;
+  padding:9px 10px;
+  border:0;
+}
+.vaultMetaStrip b{font-size:10px}
+.vaultPreviewShell{
+  margin:8px 0 10px;
+  padding:9px;
+  border-radius:10px;
+}
+.vaultPreviewShell>.portalPanelHead{
+  position:sticky;
+  top:64px;
+  z-index:10;
+  margin:-9px -9px 9px;
+  padding:9px 10px;
+  border-bottom:1px solid var(--portal-line);
+  background:rgba(255,255,255,.97);
+}
+.vaultCodeViewport,
+.vaultSourceViewport{
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+}
+.vaultCodeViewport{
+  max-height:calc(100dvh - 300px);
+}
+.vaultSourceViewport{
+  max-height:calc(100dvh - 315px);
+}
+.vaultModelCanvas,
+.pcbCanvas{
+  min-height:clamp(440px,62dvh,720px);
+}
+.vaultModelCanvas canvas,
+.pcbCanvas svg{
+  height:clamp(440px,62dvh,720px);
+}
+.vaultDetailGrid{
+  margin-top:8px;
+}
+.vaultPcbWorkspace{
+  gap:8px;
+}
+.vaultPcbWorkspaceTabs{
+  padding:8px 9px;
+  border-radius:9px;
+}
+.vaultPcbWorkspaceTabs>div small{
+  color:#92989e;
+  font:800 7px ui-monospace,monospace;
+}
+.vaultPcbWorkspaceTabs nav{
+  flex-wrap:nowrap;
+}
+.vaultWorkspaceExpand{
+  border-left:1px solid #d9ddd6!important;
+  margin-left:2px;
+  padding-left:12px!important;
+}
+.vaultPcbViewport{
+  min-height:0;
+}
+.vaultPcbWorkspace.expanded{
+  position:fixed;
+  z-index:500;
+  inset:0;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  gap:8px;
+  padding:10px;
+  background:#f4f5f2;
+}
+.vaultPcbWorkspace.expanded .vaultPcbWorkspaceTabs{
+  box-shadow:0 6px 20px rgba(20,24,28,.08);
+}
+.vaultPcbWorkspace.expanded .vaultPcbViewport{
+  min-height:0;
+  overflow:hidden;
+}
+.vaultPcbWorkspace.expanded .pcbPreview,
+.vaultPcbWorkspace.expanded .vaultSourceBrowser{
+  height:100%;
+  display:grid;
+  min-height:0;
+}
+.vaultPcbWorkspace.expanded .pcbPreview{
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+}
+.vaultPcbWorkspace.expanded .pcbCanvas,
+.vaultPcbWorkspace.expanded .pcbCanvas.advanced,
+.vaultPcbWorkspace.expanded .pcbCanvas svg{
+  width:100%;
+  height:100%!important;
+  min-height:0;
+}
+.vaultPcbWorkspace.expanded .vaultSourceBrowser{
+  grid-template-rows:auto auto 3px minmax(0,1fr) auto;
+}
+.vaultPcbWorkspace.expanded .vaultSourceViewport{
+  min-height:0;
+  max-height:none;
+  height:auto;
+}
+
+/* DESKTOP DENSITY */
+html.coreDesktopRuntime .portalContent{
+  padding:18px 22px 42px;
+}
+html.coreDesktopRuntime .portalPageHeader{
+  margin-bottom:12px;
+}
+html.coreDesktopRuntime .portalPageHeader h1{
+  font-size:32px;
+}
+html.coreDesktopRuntime .portalPageHeader p{
+  font-size:10px;
+}
+html.coreDesktopRuntime .mailboxWorkbench,
+html.coreDesktopRuntime .portalChatLayout{
+  height:calc(100dvh - 148px);
+}
+
+/* RESPONSIVE WORKBENCH */
+@media(max-width:1280px){
+  .mailboxWorkbench{
+    grid-template-columns:160px minmax(360px,1fr);
+    height:auto;
+    min-height:620px;
+    overflow:visible;
+  }
+  .mailboxCompose{
+    grid-column:1/-1;
+    max-height:none;
+    border-top:1px solid var(--portal-line);
+  }
+  .mailboxMain{border-right:0}
+  .vaultFileGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:980px){
+  .portalPageHeader{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .portalPageAction{
+    justify-self:start;
+  }
+  .portalChatLayout{
+    height:auto;
+    min-height:620px;
+    grid-template-columns:190px minmax(0,1fr);
+  }
+  .mailboxWorkbench{
+    grid-template-columns:1fr;
+  }
+  .mailboxSidebar{
+    border-right:0;
+    border-bottom:1px solid var(--portal-line);
+  }
+  .mailboxSidebar nav{
+    display:flex;
+    overflow-x:auto;
+    overscroll-behavior:contain;
+  }
+  .mailboxSidebar nav>a{min-width:112px}
+  .mailboxMain{min-height:560px}
+  .mailThreadWorkbench{
+    grid-template-columns:1fr;
+  }
+  .portalMailReply{
+    border-left:0;
+    border-top:1px solid var(--portal-line);
+  }
+  .vaultLibraryToolbar{
+    grid-template-columns:1fr;
+  }
+  .vaultLibraryToolbar>form{
+    grid-template-columns:1fr 1fr;
+  }
+  .vaultSearchInput{grid-column:1/-1}
+  .vaultLibraryToolbar button{min-height:38px}
+  .vaultLibrarySummary{
+    grid-template-columns:auto auto 1fr;
+    align-items:center;
+    gap:8px;
+    border-left:0;
+    border-top:1px solid var(--portal-line);
+    padding-top:8px;
+  }
+  .vaultFileGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .portalContent{padding-top:14px}
+  .portalPageHeader h1{font-size:27px}
+  .portalChatLayout{
+    grid-template-columns:1fr;
+    min-height:0;
+  }
+  .portalChatSidebar{
+    max-height:200px;
+    border-right:0;
+    border-bottom:1px solid var(--portal-line);
+  }
+  .portalChatRoom{min-height:560px}
+  .portalMessages{padding:12px}
+  .portalChatComposer{
+    grid-template-columns:1fr;
+  }
+  .portalChatComposer button{min-height:42px}
+  .mailboxMainHeader{
+    grid-template-columns:1fr;
+  }
+  .mailboxMain{min-height:520px}
+  .mailboxOpenThread button,
+  .mailboxThreadList>article.draft>a{
+    grid-template-columns:20px minmax(0,1fr);
+  }
+  .mailboxOpenThread time,
+  .mailboxThreadList>article.draft time{
+    grid-column:2;
+  }
+  .mailboxRowActions{opacity:1}
+  .vaultLibraryToolbar>form{
+    grid-template-columns:1fr;
+  }
+  .vaultSearchInput{grid-column:auto}
+  .vaultFileGrid{grid-template-columns:1fr}
+  .vaultMetaStrip{grid-template-columns:1fr 1fr}
+  .vaultMetaStrip article:last-child{grid-column:1/-1}
+  .vaultPreviewShell>.portalPanelHead{
+    position:static;
+  }
+  .vaultPcbWorkspaceTabs{
+    align-items:stretch;
+  }
+  .vaultPcbWorkspaceTabs nav{
+    width:100%;
+    overflow-x:auto;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    scroll-behavior:auto!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+  }
+}
