@@ -12,7 +12,12 @@ import { cmsStatusLabel } from "@/lib/portal/labels";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalProjectsPage() {
+export default async function PortalProjectsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ q?: string; status?: string; source?: string; team?: string }>;
+}) {
+  const query=searchParams ? await searchParams : {};
   const member = await requirePortalMember();
   const [publicProjects, registry, tasks, resources, repositories] = await Promise.all([
     listProjects(),
@@ -35,17 +40,18 @@ export default async function PortalProjectsPage() {
   }
 
   const internalSlugs = new Set(internalProjects.map((item) => String(item.slug)));
-  const cards = [
+  const rows = [
     ...internalProjects.map((project) => ({
       id: "internal:" + String(project.slug),
       slug: String(project.slug),
       title: String(project.title),
       summary: String(project.summary || ""),
       domain: String(project.domain || project.team_name || "CORE"),
+      team: String(project.team_code || ""),
       owner: String(project.owner_name || "Sorumlu atanmadı"),
       status: String(project.status || "concept"),
       progress: Number(project.readiness || 0),
-      internal: true,
+      source: "internal",
       risk: String(project.risk_level || "medium"),
     })),
     ...publicProjects
@@ -56,59 +62,137 @@ export default async function PortalProjectsPage() {
         title: project.titleTr || project.slug,
         summary: project.summaryTr || "",
         domain: project.domain || "CORE",
+        team: "",
         owner: project.owner || "Sorumlu atanmadı",
         status: project.status,
         progress: project.progress ?? 0,
-        internal: false,
+        source: "public",
         risk: "public",
       })),
-  ];
+  ].map((project)=>{
+    const projectTasks=tasks.filter((task)=>String(task.project_slug || "")===project.slug);
+    return {
+      ...project,
+      openTasks:projectTasks.filter((task)=>String(task.status)!=="done").length,
+      resources:resources.filter((item)=>String(item.project_slug || "")===project.slug).length,
+      repos:repositories.filter((item)=>String(item.project_slug || "")===project.slug).length,
+    };
+  });
+
+  const q=String(query.q || "").trim().toLocaleLowerCase("tr-TR");
+  const source=["internal","public"].includes(String(query.source)) ? String(query.source) : "";
+  const status=String(query.status || "").trim();
+  const team=String(query.team || "").trim();
+  const statusOptions=Array.from(new Set(rows.map((item)=>String(item.status)).filter(Boolean))).sort();
+  const teamOptions=Array.from(new Set(rows.map((item)=>String(item.team || item.domain)).filter(Boolean))).sort();
+  const filtered=rows.filter((item)=>{
+    if(source && item.source!==source) return false;
+    if(status && item.status!==status) return false;
+    if(team && String(item.team || item.domain)!==team) return false;
+    if(q){
+      const haystack=[item.title,item.slug,item.summary,item.domain,item.team,item.owner]
+        .join(" ")
+        .toLocaleLowerCase("tr-TR");
+      if(!haystack.includes(q)) return false;
+    }
+    return true;
+  });
 
   return (
     <>
       <PortalPageHeader
-        code="PJ / PROJELER"
+        code="PROJELER"
         title="Proje Çalışma Alanları"
-        lead="Internal mühendislik projeleri ile vitrin projeleri tek görünümde; erişim kontrollü registry kayıtları yalnızca yetkili üyelerde görünür."
-        action={<a className="portalOutlineButton" href="/portal/project-map">PROJECT MAP →</a>}
+        lead="Projeleri kaynak, durum, sahiplik, readiness ve mühendislik varlıklarıyla aynı düzlemde karşılaştır."
+        action={<a className="portalOutlineButton" href="/portal/project-map">Project Map</a>}
       />
 
-      {cards.length ? (
-        <section className="portalProjectGrid">
-          {cards.map((project) => {
-            const projectTasks = tasks.filter((task) => String(task.project_slug || "") === project.slug);
-            const openTasks = projectTasks.filter((task) => String(task.status) !== "done").length;
-            const projectResources = resources.filter((item) => String(item.project_slug || "") === project.slug).length;
-            const projectRepos = repositories.filter((item) => String(item.project_slug || "") === project.slug).length;
+      <section className="portalRegistryToolbar">
+        <form action="/portal/projects" method="get">
+          <label className="grow">
+            <span>ARA</span>
+            <input name="q" defaultValue={String(query.q || "")} placeholder="Proje, slug, domain veya sorumlu..." />
+          </label>
+          <label>
+            <span>KAYNAK</span>
+            <select name="source" defaultValue={source}>
+              <option value="">Tümü</option>
+              <option value="internal">Internal</option>
+              <option value="public">Public CMS</option>
+            </select>
+          </label>
+          <label>
+            <span>DURUM</span>
+            <select name="status" defaultValue={status}>
+              <option value="">Tümü</option>
+              {statusOptions.map((item)=><option value={item} key={item}>{item}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>TAKIM / DOMAIN</span>
+            <select name="team" defaultValue={team}>
+              <option value="">Tümü</option>
+              {teamOptions.map((item)=><option value={item} key={item}>{item}</option>)}
+            </select>
+          </label>
+          <button type="submit">UYGULA</button>
+          {(q || source || status || team) ? <a className="subtle" href="/portal/projects">Temizle</a> : null}
+        </form>
+        <div className="portalRegistrySummary">
+          <span>SONUÇ</span>
+          <b>{filtered.length}</b>
+          <small>{rows.length} proje</small>
+        </div>
+      </section>
 
-            return (
-              <a className="portalProjectCard" href={"/portal/projects/" + encodeURIComponent(project.slug)} key={project.id}>
-                <header>
-                  <span>{project.domain}</span>
-                  <b>{project.internal ? String(project.status).toUpperCase() : cmsStatusLabel(project.status)}</b>
-                </header>
-                <div className="portalProjectSourceTag">{project.internal ? "INTERNAL CONTROL PLANE" : "PUBLIC CMS"}</div>
-                <h2>{project.title}</h2>
-                <p>{project.summary || "Proje açıklaması henüz eklenmedi."}</p>
-                <div className="portalProjectProgress">
-                  <div><span>{project.internal ? "READINESS" : "İLERLEME"}</span><strong>{project.progress}%</strong></div>
-                  <i><b style={{ width: Math.max(0, Math.min(100, project.progress)) + "%" }} /></i>
-                </div>
-                <div className="portalProjectFacts">
-                  <div><b>{openTasks}</b><span>açık görev</span></div>
-                  <div><b>{projectResources}</b><span>kaynak</span></div>
-                  <div><b>{projectRepos}</b><span>repo</span></div>
-                </div>
-                <footer>
-                  <span>{project.owner}</span>
-                  <b>{project.internal ? project.risk.toUpperCase() + " RISK" : "ÇALIŞMA ALANINI AÇ →"}</b>
-                </footer>
-              </a>
-            );
-          })}
-        </section>
+      {filtered.length ? (
+        <div className="portalDataTableShell">
+          <table className="portalDataTable portalProjectDataTable">
+            <thead>
+              <tr>
+                <th scope="col">Proje</th>
+                <th scope="col">Kaynak</th>
+                <th scope="col">Durum</th>
+                <th scope="col">Sahiplik</th>
+                <th scope="col">Readiness</th>
+                <th scope="col">Açık görev</th>
+                <th scope="col">Kaynak / Repo</th>
+                <th scope="col">Risk</th>
+                <th scope="col">İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((project)=>(
+                <tr key={project.id}>
+                  <td className="primaryCell">
+                    <a href={"/portal/projects/" + encodeURIComponent(project.slug)}>
+                      <b>{project.title}</b>
+                      <small>{project.slug} · {project.domain}</small>
+                    </a>
+                  </td>
+                  <td><span className={"portalStatusText "+(project.source==="internal"?"active":"")}>{project.source==="internal"?"Internal":"Public CMS"}</span></td>
+                  <td>{project.source==="internal" ? String(project.status) : cmsStatusLabel(project.status)}</td>
+                  <td><div className="portalCellStack"><b>{project.owner}</b><small>{project.team || project.domain}</small></div></td>
+                  <td>
+                    <div className="portalInlineProgress">
+                      <span><b>{Math.max(0,Math.min(100,project.progress))}%</b></span>
+                      <i><b style={{width:Math.max(0,Math.min(100,project.progress))+"%"}} /></i>
+                    </div>
+                  </td>
+                  <td className="numeric">{project.openTasks}</td>
+                  <td className="mono">{project.resources} / {project.repos}</td>
+                  <td><span className={"portalStatusText "+(project.risk==="critical"?"critical":"")}>{project.risk}</span></td>
+                  <td className="rowActions"><a href={"/portal/projects/" + encodeURIComponent(project.slug)}>Workspace</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <PortalEmpty title="Erişilebilir proje kaydı bulunamadı." text="Control Plane veya vitrin CMS içindeki proje kayıtları burada çalışma alanına dönüşür." />
+        <PortalEmpty
+          title={rows.length ? "Bu filtrelerle proje yok." : "Erişilebilir proje kaydı bulunamadı."}
+          text={rows.length ? "Filtreleri temizle veya daha geniş bir arama yap." : "Control Plane veya public CMS içindeki proje kayıtları burada görünür."}
+        />
       )}
     </>
   );
