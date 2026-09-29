@@ -201,10 +201,6 @@ export async function writeVaultUploadBody(input: {
   const checksum = await sha256Hex(bytes);
   await mediaBucket().put(session.object_key,bytes,{
     httpMetadata:{ contentType:session.mime_type || "application/octet-stream" },
-    customMetadata:{
-      coreUploadSession:session.id,
-      sha256:checksum,
-    },
   });
 
   await database().prepare(
