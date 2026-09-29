@@ -1,4 +1,5 @@
 "use client";
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -265,7 +266,7 @@ export default function KiCadBoardPreview({
             <div><span>FOOTPRINT</span><b>{board.footprints.length}</b></div>
           </div>
 
-          <div className="pcbCanvas advanced">
+          <ResizableWorkspace mode="surface" storageKey="pcb-canvas" label="PCB görünümü"><div className="pcbCanvas advanced">
             <svg
               viewBox={`${centerX-viewWidth/2} ${centerY-viewHeight/2} ${viewWidth} ${viewHeight}`}
               role="img"
@@ -313,7 +314,7 @@ export default function KiCadBoardPreview({
               {back?<g className="pcbFootprints back">{board.footprints.filter((item)=>item.side==="back").map((item,index)=><g key={"b"+index} transform={`translate(${item.at.x} ${item.at.y})`}><circle r="1.45"/><title>{item.name}</title></g>)}</g>:null}
             </svg>
             {!box.count?<div className="vaultViewerOverlay">Bu KiCad dosyasında çizilebilir kart geometrisi bulunamadı.</div>:null}
-          </div>
+          </div></ResizableWorkspace>
         </>
       )}
 

@@ -1,3 +1,4 @@
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
@@ -190,7 +191,7 @@ export default async function PortalRepositoryWorkspacePage({
         </div>
       </section>
 
-      <div className="repoWorkspaceGrid">
+      <ResizableWorkspace storageKey="repository" label="Kod ve depo panelleri" className="repoResizableWorkspace">
         <section className="portalPanel repoCodePanel">
           <div className="portalPanelHead">
             <span>CODE / FILE TREE</span>
@@ -369,7 +370,7 @@ export default async function PortalRepositoryWorkspacePage({
             </div>
           </section>
         </aside>
-      </div>
+      </ResizableWorkspace>
 
       <section className="portalPanel repoPackagesPanel">
         <div className="portalPanelHead">

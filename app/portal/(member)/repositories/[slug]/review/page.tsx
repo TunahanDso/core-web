@@ -1,3 +1,4 @@
+import ResizableWorkspace from "@/components/portal/ResizableWorkspace";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
@@ -398,7 +399,7 @@ export default async function PortalRepositoryReviewPage({
         </div>
       </section>
 
-      <div className="repoReviewLayout">
+      <ResizableWorkspace storageKey="repository-review" label="Dosyalar ve karşılaştırma" initialSplit={28} className="repoResizableReview">
         <aside className="portalPanel repoReviewFiles">
           <div className="portalPanelHead"><span>CHANGED FILES</span><small>{changedFiles.length}</small></div>
           <div>
@@ -630,7 +631,7 @@ export default async function PortalRepositoryReviewPage({
             </section>
           ) : null}
         </main>
-      </div>
+      </ResizableWorkspace>
     </>
   );
 }
