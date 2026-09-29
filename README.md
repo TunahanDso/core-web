@@ -1,35 +1,57 @@
-# YTÜ CORE — Public Web
+# YTÜ CORE Platform
 
-Official public web application of YTÜ CORE.
+YTÜ CORE'un public web sitesi, korumalı yönetim alanı ve üye mühendislik portalının ana uygulama deposu.
 
-## Stack
-- Next.js 16
-- React 19
-- TypeScript
-- Turkish / English locale routing
-- Cloudflare Workers deployment target
+## Ürün yüzeyleri
 
-## Scope
-- Public institutional website
-- Dynamic project, domain, publication and team content
-- Public/read-only operations views in the future
-- Protected administration interface
+- **Public Web** — TR/EN kurumsal vitrin, projeler, takımlar, araştırma ve yarışmalar.
+- **Admin Control Plane** — yalnız Cloudflare Access ile doğrulanmış yöneticilere açık CMS ve portal yönetimi.
+- **Member Portal** — davet tabanlı öğrenci üyeliği; görevlar, Vault, Mail, ekip alanları, repo/Code Lab ve operasyon görünürlüğü.
+- **CORE Runner** — Code Lab ve canlı terminal için ayrı Cloudflare Container güvenlik sınırı.
+- **Mobile** — Capacitor tabanlı iOS/Android istemci yüzeyi ve PWA.
+- **Desktop** — Tauri tabanlı, bugün için kısıtlı uzak-portal kabuğu; native mühendislik köprüsü henüz genel yetki sunmaz.
 
-## Architecture principle
-The public-site administration plane is separate from private CORE operations and vehicle command/control. Public telemetry may be exposed read-only through a dedicated API boundary.
+## Güvenlik sınırları
 
-## Local development
+`/admin` bir placeholder değildir. Tüm admin ağacı Cloudflare Access kimliği doğrulanmadan fail-closed davranır.
+
+Member Portal kendi D1-backed oturum modelini kullanır. Araç komut otoritesi public web/CMS/portal ile aynı güvenlik düzleminde değildir. Canlı terminal yalnız CORE Runner'ın ephemeral, network-denied container sınırında çalışır.
+
+Ayrıntılar: [SECURITY.md](SECURITY.md)
+
+## Teknoloji
+
+- Next.js 16 / React 19 / TypeScript
+- vinext + Cloudflare Workers
+- Cloudflare D1 / R2 / Containers / Workflows
+- Capacitor 8
+- Tauri 2
+
+## Yerel geliştirme
+
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Yerel geliştirme adresi: `http://localhost:3000`.
 
-## Verification
+## Doğrulama
+
 ```bash
 npm run typecheck
 npm run build
+npm run runner:check
 ```
 
-> The /admin route is a placeholder only. It is intentionally not an authentication implementation yet and must not be treated as secure until identity, authorization and persistent storage are connected.
+CI, portal ve native sınırları için ek mimari kontroller çalıştırır.
+
+## Deployment notları
+
+Production web trafiği HTTPS'e zorlanır. CORE Runner'ın production servis sözleşmesi `runner.ytucore.com` alan adıdır.
+
+Desktop stable release kanalı yalnız imzalı binary kabul eder. Geliştirme/PR artifact'ları production dağıtımı değildir.
+
+## Lisans
+
+Bu depo açık kaynak lisansı ile yayımlanmamaktadır. Kullanım/dağıtım koşulları için [LICENSE](LICENSE) dosyasına bakın.
