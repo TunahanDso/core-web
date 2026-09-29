@@ -14729,3 +14729,32 @@ a.mailListRowOpen{
     height:28px;
   }
 }
+
+
+.mailMobileBack{
+  display:none;
+}
+.mailGroupCreateSurface>form{
+  grid-template-rows:auto auto auto minmax(160px,1fr) auto;
+}
+@media(max-width:900px){
+  .mailMobileBack{
+    min-height:32px;
+    display:inline-flex;
+    align-items:center;
+    align-self:flex-start;
+    border:1px solid #dde0da;
+    border-radius:7px;
+    background:#fff;
+    padding:0 8px;
+    color:#697178;
+    font-size:8px;
+  }
+  .mailReaderHeader{
+    position:relative;
+  }
+  .mailGroupDetailPane>header{
+    align-items:stretch;
+    flex-direction:column;
+  }
+}
