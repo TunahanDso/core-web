@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import type { PortalMember } from "@/lib/portal/auth";
-import { canAccessPortalTeam, PORTAL_CAPABILITY_OPTIONS } from "@/lib/portal/governance";
+import { canAccessPortalTeam, isSensitivePortalCapability, PORTAL_CAPABILITY_OPTIONS } from "@/lib/portal/governance";
 
 function db() {
   if (!env.DB) throw new Error("DB bağlantısı kullanılamıyor.");
@@ -224,8 +224,7 @@ export async function updatePortalRoleProfile(input: {
     const parsed=JSON.parse(existing.capabilities_json || "[]");
     if(Array.isArray(parsed)) previous=parsed.map((item)=>String(item));
   }catch{}
-  const highRisk=new Set(["portal.admin","roles.manage","teams.manage","control.projects","control.vehicles","project.map.edit","vault.approve"]);
-  const addedHighRisk=capabilities.filter((capability)=>highRisk.has(capability)&&!previous.includes(capability));
+  const addedHighRisk=capabilities.filter((capability)=>isSensitivePortalCapability(capability)&&!previous.includes(capability));
   if(addedHighRisk.length && String(input.confirmation||"").trim() !== "APPLY "+roleKey){
     throw new Error("Yüksek yetki eklemek için APPLY "+roleKey+" onayı gerekli.");
   }
@@ -497,8 +496,12 @@ export async function grantPortalMemberCapability(input: {
   memberId: string;
   capability: string;
   actorEmail: string;
+  confirmation?: string;
 }) {
   if (!/^[a-z0-9._-]{3,80}$/.test(input.capability)) throw new Error("Geçersiz capability.");
+  if (isSensitivePortalCapability(input.capability) && String(input.confirmation||"").trim() !== "GRANT "+input.capability) {
+    throw new Error("Kritik capability için GRANT "+input.capability+" onayı gerekli.");
+  }
   const database = db();
   await database.batch([
     database.prepare(
