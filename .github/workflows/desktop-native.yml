@@ -62,6 +62,19 @@ jobs:
       - name: Build release executable
         run: cargo build --release --manifest-path src-tauri/Cargo.toml
 
+      - name: Validate internal signing secret availability
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        shell: pwsh
+        env:
+          WINDOWS_SIGNING_CERT_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_CERT_PFX_BASE64 }}
+          WINDOWS_SIGNING_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_PFX_BASE64) -or [string]::IsNullOrWhiteSpace($env:WINDOWS_SIGNING_CERT_PASSWORD)) {
+            throw "Internal desktop signing secrets are missing."
+          }
+          Write-Host "Internal desktop signing secrets are configured."
+
+
       - name: Stage release executable
         shell: pwsh
         run: |
