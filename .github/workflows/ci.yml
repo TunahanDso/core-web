@@ -52,11 +52,13 @@ jobs:
             if (!cfg.vars?.PORTAL_IOS_BUNDLE_ID) throw new Error("PORTAL_IOS_BUNDLE_ID missing from generated config");
             const d1 = (cfg.d1_databases ?? []).some((x) => x.binding === "DB");
             const r2 = (cfg.r2_buckets ?? []).some((x) => x.binding === "MEDIA");
-            const email = (cfg.send_email ?? []).some((x) => x.name === "EMAIL");
+            const services = new Set((cfg.services ?? []).map((x) => x.binding));
             if (!d1) throw new Error("DB binding missing from generated config");
             if (!r2) throw new Error("MEDIA binding missing from generated config");
-            if (!email) throw new Error("EMAIL send binding missing from generated config");
-            console.log("Generated Cloudflare config contains DB, MEDIA, transactional email and mobile application identity.");
+            if (!services.has("MAIL_SERVICE")) throw new Error("MAIL_SERVICE binding missing from generated config");
+            if (!services.has("CONVERTER_SERVICE")) throw new Error("CONVERTER_SERVICE binding missing from generated config");
+            if ((cfg.send_email ?? []).some((x) => x.name === "EMAIL")) throw new Error("Web Worker must not own the transactional EMAIL binding");
+            console.log("Generated Cloudflare config contains DB, MEDIA, isolated mail/converter services and mobile application identity.");
           '
 
       - name: Validate Worker package
