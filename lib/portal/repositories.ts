@@ -316,6 +316,8 @@ export type RepositoryCatalogItem = {
   defaultBranch:string | null;
   status:string;
   source:string;
+  gitUrl:string | null;
+  gitTransport:boolean;
 };
 
 export async function listAccessibleRepositoryCatalog(member: PortalMember) {
@@ -335,7 +337,9 @@ export async function listAccessibleRepositoryCatalog(member: PortalMember) {
     visibility:repo.visibility,
     defaultBranch:repo.default_branch,
     status:repo.status,
-    source:"CORE workspace",
+    source:repo.mirror_url ? "CORE Git Service" : "CORE snapshot workspace",
+    gitUrl:repo.mirror_url,
+    gitTransport:Boolean(repo.mirror_url),
   }));
 
   const mirrors=external.map((repo)=>({
@@ -350,6 +354,8 @@ export async function listAccessibleRepositoryCatalog(member: PortalMember) {
     defaultBranch:repo.default_branch,
     status:repo.health,
     source:repo.provider || "external",
+    gitUrl:repo.repo_url,
+    gitTransport:true,
   }));
 
   return [...workspace,...mirrors].sort((a,b)=>a.name.localeCompare(b.name,"tr"));
