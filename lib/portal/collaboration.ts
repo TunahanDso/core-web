@@ -67,9 +67,14 @@ export async function createMeetingSpace(input: {
   return id;
 }
 
-export async function listMeetings(memberId: string, limit=120) {
+export async function listMeetings(memberId: string, limit=120, query="") {
   await ensurePortalCollaborationFinanceSchema();
-  const response=await db().prepare(
+  const capped=Math.min(Math.max(limit,1),120);
+  const needle=query.trim().slice(0,80);
+  const search=needle
+    ? " AND (m.title LIKE ? OR m.agenda LIKE ? OR m.team_code LIKE ? OR m.project_slug LIKE ? OR s.name LIKE ?) "
+    : " ";
+  const sql=
     "SELECT m.*,s.name AS space_name,s.visibility AS space_visibility,pm.full_name AS creator_name," +
     "(SELECT COUNT(*) FROM portal_meeting_participants x WHERE x.meeting_id=m.id) AS participant_count," +
     "(SELECT COUNT(*) FROM portal_meeting_notes n WHERE n.meeting_id=m.id AND n.kind='decision') AS decision_count," +
@@ -78,14 +83,18 @@ export async function listMeetings(memberId: string, limit=120) {
     "FROM portal_meetings m " +
     "LEFT JOIN portal_meeting_spaces s ON s.id=m.space_id " +
     "LEFT JOIN portal_members pm ON pm.id=m.created_by " +
-    "WHERE m.created_by=? " +
+    "WHERE (m.created_by=? " +
     "OR EXISTS (SELECT 1 FROM portal_meeting_participants mp WHERE mp.meeting_id=m.id AND mp.member_id=?) " +
     "OR (s.id IS NOT NULL AND s.visibility='members') " +
     "OR (s.id IS NULL AND m.team_code IS NULL) " +
-    "OR ((s.visibility='team' OR (s.id IS NULL AND m.team_code IS NOT NULL)) AND EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=COALESCE(m.team_code,s.team_code) AND tm.member_id=? AND tm.status='active')) " +
+    "OR ((s.visibility='team' OR (s.id IS NULL AND m.team_code IS NOT NULL)) AND EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=COALESCE(m.team_code,s.team_code) AND tm.member_id=? AND tm.status='active'))) " +
+    search +
     "ORDER BY CASE m.status WHEN 'live' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END," +
-    "CASE WHEN m.status IN ('live','scheduled') THEN datetime(m.starts_at) END ASC,datetime(m.starts_at) DESC LIMIT ?"
-  ).bind(memberId,memberId,memberId,limit).all<Record<string, unknown>>();
+    "CASE WHEN m.status IN ('live','scheduled') THEN datetime(m.starts_at) END ASC,datetime(m.starts_at) DESC LIMIT ?";
+  const q="%"+needle+"%";
+  const response=needle
+    ? await db().prepare(sql).bind(memberId,memberId,memberId,q,q,q,q,q,capped).all<Record<string, unknown>>()
+    : await db().prepare(sql).bind(memberId,memberId,memberId,capped).all<Record<string, unknown>>();
   return response.results ?? [];
 }
 
@@ -274,13 +283,14 @@ export async function createPoll(input: {
   return id;
 }
 
-async function listPollRows(whereSql: string, bindings: unknown[]) {
+async function listPollRows(whereSql: string, bindings: unknown[], limit=120) {
+  const capped=Math.min(Math.max(limit,1),120);
   const response=await db().prepare(
     "SELECT p.*,m.full_name AS creator_name," +
     "(SELECT COUNT(*) FROM portal_poll_votes v WHERE v.poll_id=p.id) AS vote_count " +
     "FROM portal_polls p LEFT JOIN portal_members m ON m.id=p.created_by "+whereSql+
-    " ORDER BY CASE p.status WHEN 'open' THEN 0 ELSE 1 END,p.created_at DESC"
-  ).bind(...bindings).all<Record<string, unknown>>();
+    " ORDER BY CASE p.status WHEN 'open' THEN 0 ELSE 1 END,p.created_at DESC LIMIT ?"
+  ).bind(...bindings,capped).all<Record<string, unknown>>();
   const rows: PortalPollRecord[]=[];
   for(const poll of response.results ?? []){
     const options=await db().prepare(
@@ -291,13 +301,19 @@ async function listPollRows(whereSql: string, bindings: unknown[]) {
   return rows;
 }
 
-export async function listPolls(memberId: string) {
+export async function listPolls(memberId: string, query="", limit=120) {
   await ensurePortalCollaborationFinanceSchema();
-  return listPollRows(
-    "WHERE p.scope='global' OR p.created_by=? " +
+  const needle=query.trim().slice(0,80);
+  const access=
+    "(p.scope='global' OR p.created_by=? " +
     "OR (p.scope='team' AND EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=p.team_code AND tm.member_id=? AND tm.status='active')) " +
-    "OR (p.scope='meeting' AND EXISTS (SELECT 1 FROM portal_meeting_participants mp WHERE mp.meeting_id=p.meeting_id AND mp.member_id=?))",
-    [memberId,memberId,memberId]
+    "OR (p.scope='meeting' AND EXISTS (SELECT 1 FROM portal_meeting_participants mp WHERE mp.meeting_id=p.meeting_id AND mp.member_id=?)))";
+  if(!needle) return listPollRows("WHERE "+access,[memberId,memberId,memberId],limit);
+  const q="%"+needle+"%";
+  return listPollRows(
+    "WHERE "+access+" AND (p.title LIKE ? OR p.description LIKE ? OR p.team_code LIKE ?)",
+    [memberId,memberId,memberId,q,q,q],
+    limit
   );
 }
 
@@ -420,7 +436,7 @@ export async function generateMeetingReport(meetingId: string, memberId: string,
   return {summary,resourceId};
 }
 
-export async function listBudgetAccounts(memberId?: string, canReadAll=false) {
+export async function listBudgetAccounts(memberId?: string, canReadAll=false, query="", limit=200) {
   await ensurePortalCollaborationFinanceSchema();
   const where=memberId && !canReadAll
     ? " WHERE (a.team_code IS NULL OR a.owner_member_id=? OR EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=a.team_code AND tm.member_id=? AND tm.status='active')) "
@@ -433,11 +449,16 @@ export async function listBudgetAccounts(memberId?: string, canReadAll=false) {
     "FROM portal_budget_accounts a LEFT JOIN portal_members m ON m.id=a.owner_member_id" +
     where +
     (where.includes("WHERE") ? " AND a.status='active' " : " WHERE a.status='active' ") +
-    "ORDER BY a.name";
+    (query.trim() ? " AND (a.name LIKE ? OR a.team_code LIKE ? OR a.project_slug LIKE ? OR m.full_name LIKE ?) " : " ") +
+    "ORDER BY a.name LIMIT ?";
   const statement=db().prepare(sql);
-  const response=memberId && !canReadAll
-    ? await statement.bind(memberId,memberId).all<Record<string,unknown>>()
-    : await statement.all<Record<string,unknown>>();
+  const capped=Math.min(Math.max(limit,1),200);
+  const needle="%"+query.trim().slice(0,80)+"%";
+  const bindings: unknown[]=[];
+  if(memberId && !canReadAll) bindings.push(memberId,memberId);
+  if(query.trim()) bindings.push(needle,needle,needle,needle);
+  bindings.push(capped);
+  const response=await statement.bind(...bindings).all<Record<string,unknown>>();
   return response.results ?? [];
 }
 
