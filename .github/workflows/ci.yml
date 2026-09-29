@@ -387,8 +387,8 @@ jobs:
               "metaKey",
               "ctrlKey",
               "/portal/search?q=",
-              "/portal/tasks#create-task",
-              "/portal/library#upload"
+              "/portal/tasks?create=1",
+              "/portal/library?upload=1#upload"
             ]) {
               if (!commandCenter.includes(required)) {
                 throw new Error(`CORE Command Center missing capability: ${required}`);
@@ -399,7 +399,7 @@ jobs:
               throw new Error("Portal shell must expose the global Command Center.");
             }
             const filteredTasksPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
-            for (const required of ["statusFilter", "priorityFilter", "projectFilter", "mine", "portalTaskFilters"]) {
+            for (const required of ["statusFilter", "priorityFilter", "projectFilter", "mine", "portalRegistryToolbar"]) {
               if (!filteredTasksPage.includes(required)) {
                 throw new Error(`Task usability filter missing: ${required}`);
               }
