@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "../public.css";
 import { notFound } from "next/navigation";
 import MotionRuntime from "@/components/MotionRuntime";
 import { isLocale } from "@/lib/i18n";
