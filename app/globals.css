@@ -16703,3 +16703,622 @@ html[data-density="comfortable"] .portalDataTable thead th{
     font-size:12px;
   }
 }
+
+
+/* =========================================================
+   CORE LAYOUT STABILITY R1 — DESKTOP RAIL + iOS CONTAINMENT
+   Keep layout boundaries explicit. Wide workbenches scroll
+   inside themselves; they never widen the application shell.
+   ========================================================= */
+
+.portalWorkspace,
+.portalContent,
+.portalDashboardGrid,
+.portalDashboardPane{
+  min-width:0;
+}
+
+.portalWorkspace{
+  max-width:100%;
+  overflow-x:clip;
+}
+
+.portalDataTableShell{
+  max-width:100%;
+}
+
+/* Desktop sidebar: brand/footer stay fixed; only the nav body scrolls. */
+html.coreDesktopRuntime .portalSidebar{
+  overflow:hidden;
+}
+
+html.coreDesktopRuntime .portalNav{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-gutter:stable;
+}
+
+html.coreDesktopRuntime .portalSidebarFoot{
+  flex:0 0 auto;
+  margin-top:0;
+}
+
+/* A collapsed sidebar is an actual icon/code rail, not a stretched miniature menu. */
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed{
+  grid-template-columns:88px minmax(0,1fr);
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalSidebar{
+  padding:12px 10px 40px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalBrandRow{
+  flex:0 0 auto;
+  gap:5px;
+  padding-bottom:7px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalBrand{
+  padding:4px 0 6px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalBrandMark{
+  width:36px;
+  height:36px;
+  font-size:18px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalSidebarToggle{
+  width:42px;
+  height:30px;
+  margin:0 auto 4px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalNav{
+  width:100%;
+  padding:5px 0;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalNav section{
+  display:grid;
+  grid-auto-rows:max-content;
+  gap:2px;
+  margin:0;
+  padding:3px 0;
+  align-content:start;
+  border-bottom:1px solid var(--core-border-soft);
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalNav section:last-child{
+  border-bottom:0;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalNav a{
+  width:50px;
+  min-height:34px;
+  height:34px;
+  margin:0 auto;
+  padding:0 3px;
+  border-radius:7px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalNav a span{
+  width:100%;
+  min-width:0;
+  font-size:7px;
+  line-height:1;
+  letter-spacing:.02em;
+  text-align:center;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalNav a.active{
+  box-shadow:inset 2px 0 0 var(--portal-orange);
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalSidebarFoot{
+  padding-top:7px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalSidebarFoot a,
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalSidebarFoot button,
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalSidebarFoot form{
+  width:42px;
+}
+
+html.coreDesktopRuntime .portalApp.portalSidebarCollapsed .portalDesktopStatus{
+  left:88px;
+}
+
+/* Restore comfortable desktop hierarchy after the aggressive V12 density pass. */
+html.coreDesktopRuntime .portalContent:not(.portalContentViewport){
+  padding:30px clamp(24px,2.2vw,38px) 58px;
+}
+
+.portalDashboardHeader{
+  margin-bottom:16px;
+  padding:4px 2px 16px;
+}
+
+.portalDashboardHeader h1{
+  margin:5px 0 6px;
+  font-size:clamp(30px,2.35vw,40px);
+  line-height:1;
+}
+
+.portalDashboardHeader p{
+  max-width:760px;
+  font-size:10px;
+  line-height:1.5;
+}
+
+.portalDashboardStatus{
+  gap:3px;
+}
+
+.portalDashboardStatus span,
+.portalDashboardStatus small{
+  font-size:7px;
+}
+
+.portalDashboardStatus b{
+  font-size:11px;
+}
+
+.portalDashboardMetricStrip{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:1px;
+  margin-bottom:12px;
+  border-radius:10px;
+}
+
+.portalDashboardMetricStrip a{
+  min-height:84px;
+  align-content:center;
+  gap:4px;
+  padding:12px 14px;
+}
+
+.portalDashboardMetricStrip span{
+  font-size:7px;
+}
+
+.portalDashboardMetricStrip b{
+  font-size:25px;
+  line-height:1;
+}
+
+.portalDashboardMetricStrip small{
+  font-size:8px;
+}
+
+.portalDashboardQuickLinks{
+  gap:6px;
+  margin-bottom:14px;
+}
+
+.portalDashboardQuickLinks a{
+  min-height:34px;
+  padding:0 10px;
+  border-radius:7px;
+  font-size:8px;
+}
+
+.portalDashboardGrid{
+  gap:12px;
+}
+
+.portalDashboardPane{
+  border-radius:10px;
+}
+
+.portalDashboardPane>header{
+  min-height:44px;
+  padding:0 12px;
+}
+
+.portalDashboardPane>header b{
+  font-size:9px;
+}
+
+.portalDashboardPane>header a{
+  font-size:8px;
+}
+
+.portalDashboardPane .portalCompactList>div{
+  min-height:58px;
+  padding:9px 12px;
+}
+
+.portalDashboardPane .portalCompactList b,
+.portalDashboardPane .portalAgendaList b,
+.portalDashboardPane .portalAlertList b{
+  font-size:10px;
+}
+
+.portalDashboardPane .portalCompactList small,
+.portalDashboardPane .portalAgendaList small,
+.portalDashboardPane .portalAlertList small{
+  font-size:8px;
+}
+
+.portalDashboardPane .portalAgendaList article,
+.portalDashboardPane .portalAlertList article{
+  min-height:58px;
+  padding:9px 12px;
+}
+
+.portalDashboardPane .portalAgendaList>article>span,
+.portalDashboardPane .portalAlertList>article>span{
+  font-size:7px;
+}
+
+.portalDashboardOps{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1px;
+  border-bottom:1px solid var(--core-border);
+  background:var(--core-border-soft);
+}
+
+.portalDashboardOps>div{
+  min-width:0;
+  display:grid;
+  gap:3px;
+  padding:11px 12px;
+  background:#fff;
+}
+
+.portalDashboardOps span{
+  color:var(--core-text-muted);
+  font:800 7px ui-monospace,monospace;
+}
+
+.portalDashboardOps b{
+  font-size:19px;
+  line-height:1;
+}
+
+.portalDashboardOps small{
+  color:var(--core-text-muted);
+  font-size:7px;
+}
+
+.portalDashboardLowStock{
+  padding:0;
+}
+
+.portalDashboardActivityBar{
+  margin-top:12px;
+  overflow:hidden;
+  border:1px solid var(--core-border);
+  border-radius:10px;
+  background:#fff;
+}
+
+.portalDashboardActivityBar>header{
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 12px;
+  border-bottom:1px solid var(--core-border);
+}
+
+.portalDashboardActivityBar>header b{
+  font-size:9px;
+}
+
+.portalDashboardActivityBar>header a{
+  color:var(--core-text-secondary);
+  font-size:8px;
+}
+
+.portalDashboardActivityBar>div{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1px;
+  background:var(--core-border-soft);
+}
+
+.portalDashboardActivityBar>div>span{
+  min-width:0;
+  display:grid;
+  gap:3px;
+  padding:10px 12px;
+  background:#fff;
+}
+
+.portalDashboardActivityBar>div>span b,
+.portalDashboardActivityBar>div>span small{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.portalDashboardActivityBar>div>span b{
+  font-size:8px;
+}
+
+.portalDashboardActivityBar>div>span small{
+  color:var(--core-text-muted);
+  font-size:7px;
+}
+
+@media(max-width:1220px){
+  .portalDashboardMetricStrip{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .portalDashboardActivityBar>div{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+/* Native / iOS: never render the desktop Today dashboard below the native home. */
+html[data-core-native="native-v2"] .portalDashboardHeader,
+html[data-core-native="native-v2"] .portalDashboardMetricStrip,
+html[data-core-native="native-v2"] .portalDashboardQuickLinks,
+html[data-core-native="native-v2"] .portalDashboardGrid,
+html[data-core-native="native-v2"] .portalDashboardBottomStrip,
+html[data-core-native="native-v2"] .portalDashboardActivityBar{
+  display:none!important;
+}
+
+html[data-core-native="native-v2"],
+html[data-core-native="native-v2"] body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+html[data-core-native="native-v2"] .portalApp,
+html[data-core-native="native-v2"] .portalWorkspace,
+html[data-core-native="native-v2"] .portalContent{
+  width:100%;
+  max-width:100vw;
+  min-width:0;
+}
+
+html[data-core-native="native-v2"] .portalContent{
+  box-sizing:border-box;
+  overflow-x:clip;
+}
+
+/* Viewport workbenches live between the iOS app bar and bottom tabs. */
+html[data-core-native="native-v2"] .portalContent.portalContentViewport{
+  width:100%;
+  height:100dvh!important;
+  min-height:0;
+  max-width:none;
+  margin:0;
+  padding:
+    calc(62px + env(safe-area-inset-top))
+    0
+    calc(82px + env(safe-area-inset-bottom))!important;
+  overflow:hidden!important;
+  box-sizing:border-box;
+}
+
+html[data-core-native="native-v2"] .portalContentViewport .chatAppShell,
+html[data-core-native="native-v2"] .portalContentViewport .meetingWorkbench,
+html[data-core-native="native-v2"] .portalContentViewport .mailAppShell{
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-height:100%;
+}
+
+html[data-core-native="native-v2"] .portalRegistryToolbar{
+  width:100%;
+  max-width:100%;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:stretch;
+  gap:8px;
+}
+
+html[data-core-native="native-v2"] .portalRegistryToolbar>form{
+  width:100%;
+  max-width:100%;
+  grid-template-columns:minmax(0,1fr)!important;
+}
+
+html[data-core-native="native-v2"] .portalRegistryToolbar input,
+html[data-core-native="native-v2"] .portalRegistryToolbar select,
+html[data-core-native="native-v2"] .portalRegistryToolbar button,
+html[data-core-native="native-v2"] .portalRegistryToolbar label{
+  min-width:0;
+  max-width:100%;
+}
+
+html[data-core-native="native-v2"] .portalSegmentedControl{
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  flex-wrap:nowrap;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+
+html[data-core-native="native-v2"] .portalSegmentedControl::-webkit-scrollbar{
+  display:none;
+}
+
+/* Wide engineering registries must scroll inside their surface, never widen the page. */
+html[data-core-native="native-v2"] .portalDataTableShell{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  border-radius:10px;
+}
+
+html[data-core-native="native-v2"] .portalDataTable{
+  width:max-content;
+  min-width:720px;
+  max-width:none;
+}
+
+html[data-core-native="native-v2"] .portalDataTable th,
+html[data-core-native="native-v2"] .portalDataTable td{
+  white-space:nowrap;
+}
+
+html[data-core-native="native-v2"] .portalDataTable .primaryCell{
+  min-width:210px;
+  max-width:300px;
+  white-space:normal;
+}
+
+html[data-core-native="native-v2"] .portalDataTable .primaryCell b,
+html[data-core-native="native-v2"] .portalDataTable .primaryCell small{
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+html[data-core-native="native-v2"] .portalToolSurface,
+html[data-core-native="native-v2"] .portalToolBody,
+html[data-core-native="native-v2"] .budgetAccountWorkspace,
+html[data-core-native="native-v2"] .pollWorkspace,
+html[data-core-native="native-v2"] .pollDetailPane{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+
+html[data-core-native="native-v2"] .portalToolBody{
+  padding-left:12px;
+  padding-right:12px;
+}
+
+/* iPhone workbench details: avoid side-by-side desktop controls. */
+@media(max-width:760px){
+  html[data-core-native="native-v2"] .chatAppTopbar{
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:7px;
+    padding:7px 9px;
+  }
+
+  html[data-core-native="native-v2"] .chatAppTopActions{
+    display:none;
+  }
+
+  html[data-core-native="native-v2"] .chatAppSearch{
+    grid-column:1/-1;
+    min-width:0;
+  }
+
+  html[data-core-native="native-v2"] .meetingWorkbench{
+    height:100%;
+    min-height:0;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+
+  html[data-core-native="native-v2"] .meetingWorkbenchTop{
+    position:sticky;
+    z-index:5;
+    top:0;
+    gap:8px;
+    padding:9px 10px;
+    background:#fff;
+  }
+
+  html[data-core-native="native-v2"] .meetingWorkbenchActions{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+
+  html[data-core-native="native-v2"] .meetingWorkbenchActions::-webkit-scrollbar{
+    display:none;
+  }
+
+  html[data-core-native="native-v2"] .meetingWorkbenchActions>*{
+    flex:0 0 auto;
+  }
+
+  html[data-core-native="native-v2"] .meetingMediaPane,
+  html[data-core-native="native-v2"] .meetingContextPane,
+  html[data-core-native="native-v2"] .meetingRecordPane{
+    min-height:auto;
+  }
+
+  html[data-core-native="native-v2"] .meetingTransportOffline>p{
+    margin:12px;
+  }
+
+  html[data-core-native="native-v2"] .meetingLocalPreview{
+    margin:0 12px 12px;
+  }
+
+  html[data-core-native="native-v2"] .meetingNoteComposer{
+    grid-template-columns:1fr;
+  }
+
+  html[data-core-native="native-v2"] .portalPageHeader h1{
+    overflow-wrap:anywhere;
+  }
+
+  html[data-core-native="native-v2"] .budgetSummaryStrip,
+  html[data-core-native="native-v2"] .portalDashboardOps{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:430px){
+  html[data-core-native="native-v2"] .portalContent:not(.portalContentViewport){
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  html[data-core-native="native-v2"] .nativeAppIdentity small{
+    display:none;
+  }
+
+  html[data-core-native="native-v2"] .nativeAppBarStart,
+  html[data-core-native="native-v2"] .nativeAppBarActions{
+    gap:6px;
+  }
+
+  html[data-core-native="native-v2"] .nativeIconButton,
+  html[data-core-native="native-v2"] .nativeAvatarButton{
+    width:38px;
+    height:38px;
+    border-radius:10px;
+  }
+
+  html[data-core-native="native-v2"] .nativeBottomTabs{
+    left:5px;
+    right:5px;
+    padding:5px 3px;
+  }
+
+  html[data-core-native="native-v2"] .nativeBottomTabs button{
+    min-height:50px;
+    padding-left:1px;
+    padding-right:1px;
+  }
+
+  html[data-core-native="native-v2"] .nativeBottomTabs button span{
+    font-size:7px;
+  }
+
+  html[data-core-native="native-v2"] .portalDataTable{
+    min-width:660px;
+  }
+
+  html[data-core-native="native-v2"] .budgetSummaryStrip{
+    grid-template-columns:1fr;
+  }
+}
