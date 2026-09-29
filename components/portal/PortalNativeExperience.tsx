@@ -19,12 +19,6 @@ type NativeExperienceProps = {
   portalRole: string;
   canControl: boolean;
   memberInitials: string;
-  counts: {
-    tasks: number;
-    notifications: number;
-    mail: number;
-    chat: number;
-  };
 };
 
 type IconName =
@@ -142,7 +136,6 @@ export default function PortalNativeExperience({
   portalRole,
   canControl,
   memberInitials,
-  counts,
 }: NativeExperienceProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -167,6 +160,7 @@ export default function PortalNativeExperience({
   const [captureBusy, setCaptureBusy] = useState(false);
   const [captureError, setCaptureError] = useState("");
   const [pushState,setPushState] = useState<"idle"|"registering"|"registered"|"denied"|"error"|"received">("idle");
+  const [counts,setCounts] = useState({ tasks:0, notifications:0, mail:0, chat:0 });
   const pullStart = useRef<number | null>(null);
   const pullArmed = useRef(false);
   const lastBackAt = useRef(0);
@@ -328,6 +322,26 @@ export default function PortalNativeExperience({
     setNative(true);
     document.documentElement.dataset.coreNative = "native-v2";
 
+    const refreshNativeSummary = () => {
+      void fetch("/api/portal/native/summary", {
+        credentials:"same-origin",
+        cache:"no-store",
+        headers:{ accept:"application/json" },
+      })
+        .then(async (response) => response.ok ? response.json() : null)
+        .then((payload: { counts?: { tasks?: number; notifications?: number; mail?: number; chat?: number } } | null) => {
+          if (!payload?.counts) return;
+          setCounts({
+            tasks:Number(payload.counts.tasks || 0),
+            notifications:Number(payload.counts.notifications || 0),
+            mail:Number(payload.counts.mail || 0),
+            chat:Number(payload.counts.chat || 0),
+          });
+        })
+        .catch(() => undefined);
+    };
+
+    refreshNativeSummary();
     void StatusBar.setStyle({ style: Style.Dark }).catch(() => undefined);
     void Preferences.set({ key: "core_last_portal_route", value: pathname }).catch(() => undefined);
     void Promise.all([
@@ -353,7 +367,7 @@ export default function PortalNativeExperience({
       setConnectionType(status.connectionType);
       if (recovered) {
         void Haptics.notification({ type: NotificationType.Success }).catch(() => undefined);
-        router.refresh();
+        refreshNativeSummary();
       }
     }).then((handle) => handles.push(handle));
 
@@ -369,7 +383,7 @@ export default function PortalNativeExperience({
       }
       const awayFor = backgroundAt.current ? Date.now() - backgroundAt.current : 0;
       backgroundAt.current = null;
-      if (awayFor > 45_000) router.refresh();
+      if (awayFor > 45_000) refreshNativeSummary();
     }).then((handle) => handles.push(handle));
 
     void App.addListener("backButton", () => {

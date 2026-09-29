@@ -17,23 +17,29 @@ function slug(value: string) {
     .replace(/^-+|-+$/g,"");
 }
 
-export async function listPortalTeams() {
+export async function listPortalTeams(query = "", limit = 200) {
   try {
-    const response = await db().prepare(
+    const capped=Math.min(Math.max(limit,1),200);
+    const needle=query.trim().slice(0,80);
+    const search=needle ? " AND (t.code LIKE ? OR t.name LIKE ? OR t.domain LIKE ? OR t.description LIKE ?) " : " ";
+    const sql=
       "SELECT t.*," +
       "(SELECT COUNT(*) FROM portal_team_memberships tm WHERE tm.team_code=t.code AND tm.status='active') AS member_count," +
       "(SELECT COUNT(*) FROM portal_project_registry p WHERE p.team_code=t.code AND p.status!='archived') AS project_count," +
       "(SELECT COUNT(*) FROM portal_vehicle_profiles vp WHERE vp.team_code=t.code AND vp.lifecycle!='retired') AS vehicle_count " +
-      "FROM portal_teams t WHERE t.status='active' ORDER BY t.name"
-    ).all<Record<string, unknown>>();
+      "FROM portal_teams t WHERE t.status='active'" + search + "ORDER BY t.name LIMIT ?";
+    const q="%"+needle+"%";
+    const response = needle
+      ? await db().prepare(sql).bind(q,q,q,q,capped).all<Record<string, unknown>>()
+      : await db().prepare(sql).bind(capped).all<Record<string, unknown>>();
     return response.results ?? [];
   } catch {
     return [];
   }
 }
 
-export async function listAccessiblePortalTeams(member: PortalMember) {
-  const teams = await listPortalTeams();
+export async function listAccessiblePortalTeams(member: PortalMember, query = "", limit = 200) {
+  const teams = await listPortalTeams(query,limit);
   const allowed: Record<string, unknown>[] = [];
   for (const team of teams) {
     if (await canAccessPortalTeam(member,String(team.code))) allowed.push(team);
@@ -333,9 +339,14 @@ export async function updatePortalMemberGlobalRole(input: {
   ]);
 }
 
-export async function listPortalProjectRegistry() {
+export async function listPortalProjectRegistry(query = "", limit = 200) {
   try {
-    const response = await db().prepare(
+    const capped=Math.min(Math.max(limit,1),200);
+    const needle=query.trim().slice(0,80);
+    const search=needle
+      ? "WHERE p.slug LIKE ? OR p.title LIKE ? OR p.summary LIKE ? OR p.domain LIKE ? OR p.team_code LIKE ? "
+      : "";
+    const sql=
       "SELECT p.*,m.full_name AS owner_name,t.name AS team_name," +
       "(SELECT COUNT(*) FROM portal_tasks task WHERE task.project_slug=p.slug AND task.status!='done') AS open_tasks," +
       "(SELECT COUNT(*) FROM portal_vault_files vf WHERE vf.project_slug=p.slug AND vf.lifecycle_state='active') AS vault_files," +
@@ -343,8 +354,12 @@ export async function listPortalProjectRegistry() {
       "FROM portal_project_registry p " +
       "LEFT JOIN portal_members m ON m.id=p.owner_member_id " +
       "LEFT JOIN portal_teams t ON t.code=p.team_code " +
-      "ORDER BY CASE p.status WHEN 'operational' THEN 0 WHEN 'testing' THEN 1 WHEN 'prototype' THEN 2 WHEN 'design' THEN 3 ELSE 4 END,p.updated_at DESC"
-    ).all<Record<string, unknown>>();
+      search +
+      "ORDER BY CASE p.status WHEN 'operational' THEN 0 WHEN 'testing' THEN 1 WHEN 'prototype' THEN 2 WHEN 'design' THEN 3 ELSE 4 END,p.updated_at DESC LIMIT ?";
+    const q="%"+needle+"%";
+    const response=needle
+      ? await db().prepare(sql).bind(q,q,q,q,q,capped).all<Record<string, unknown>>()
+      : await db().prepare(sql).bind(capped).all<Record<string, unknown>>();
     return response.results ?? [];
   } catch {
     return [];
@@ -375,9 +390,14 @@ export async function listPortalProjectMapEdges() {
   }
 }
 
-export async function listPortalVehicleProfiles() {
+export async function listPortalVehicleProfiles(query = "", limit = 200) {
   try {
-    const response = await db().prepare(
+    const capped=Math.min(Math.max(limit,1),200);
+    const needle=query.trim().slice(0,80);
+    const search=needle
+      ? "WHERE v.code LIKE ? OR v.name LIKE ? OR v.domain LIKE ? OR vp.team_code LIKE ? OR vp.project_slug LIKE ? OR vp.platform_type LIKE ? OR vp.serial_number LIKE ? "
+      : "";
+    const sql=
       "SELECT v.id,v.code,v.name,v.domain,v.status,v.last_seen_at,v.metadata_json," +
       "vp.team_code,vp.project_slug,vp.platform_type,vp.lifecycle,vp.serial_number,vp.criticality,vp.description,vp.owner_member_id," +
       "m.full_name AS owner_name,t.name AS team_name,p.title AS project_title," +
@@ -388,8 +408,11 @@ export async function listPortalVehicleProfiles() {
       "LEFT JOIN portal_members m ON m.id=vp.owner_member_id " +
       "LEFT JOIN portal_teams t ON t.code=vp.team_code " +
       "LEFT JOIN portal_project_registry p ON p.slug=vp.project_slug " +
-      "ORDER BY v.name"
-    ).all<Record<string, unknown>>();
+      search + "ORDER BY v.name LIMIT ?";
+    const q="%"+needle+"%";
+    const response=needle
+      ? await db().prepare(sql).bind(q,q,q,q,q,q,q,capped).all<Record<string, unknown>>()
+      : await db().prepare(sql).bind(capped).all<Record<string, unknown>>();
     return response.results ?? [];
   } catch {
     return [];

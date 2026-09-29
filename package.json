@@ -27,7 +27,9 @@
     "runner:deploy": "wrangler deploy -c services/core-runner/wrangler.jsonc",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
-    "desktop:info": "tauri info"
+    "desktop:info": "tauri info",
+    "schema:generate": "node scripts/generate-portal-schema.mjs",
+    "schema:check": "node scripts/generate-portal-schema.mjs --check"
   },
   "dependencies": {
     "@vinext/cloudflare": "1.0.0-beta.11",

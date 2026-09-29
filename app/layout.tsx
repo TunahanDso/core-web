@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import "./globals.css";
+import "./base.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ytucore.com"),
   title: "YTÜ CORE",
   description: "Autonomous systems, engineering and research.",
 };

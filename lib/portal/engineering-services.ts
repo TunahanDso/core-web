@@ -47,11 +47,22 @@ export function getEngineeringServiceStatus() {
   };
 }
 
-export async function listNativeRepositories() {
+export async function listNativeRepositories(query = "", limit = 200) {
   try {
+    const capped = Math.min(Math.max(limit,1),200);
+    const needle = query.trim().slice(0,80);
+    if (needle) {
+      const q = "%" + needle + "%";
+      const response = await database().prepare(
+        "SELECT * FROM portal_native_repositories " +
+        "WHERE name LIKE ? OR slug LIKE ? OR project_slug LIKE ? OR team_code LIKE ? " +
+        "ORDER BY updated_at DESC LIMIT ?"
+      ).bind(q,q,q,q,capped).all<Record<string, unknown>>();
+      return response.results ?? [];
+    }
     const response = await database().prepare(
-      "SELECT * FROM portal_native_repositories ORDER BY updated_at DESC LIMIT 200"
-    ).all<Record<string, unknown>>();
+      "SELECT * FROM portal_native_repositories ORDER BY updated_at DESC LIMIT ?"
+    ).bind(capped).all<Record<string, unknown>>();
     return response.results ?? [];
   } catch {
     return [];

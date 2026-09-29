@@ -226,7 +226,7 @@ export default function ControlCenterRegistry({
   projects:LookupOption[];
   members:LookupOption[];
 }) {
-  const [activeType,setActiveType] = useState<EntityType>(initialType && GROUPS.some((item)=>item.type===initialType) ? initialType : "projects");
+  const activeType: EntityType = initialType && GROUPS.some((item)=>item.type===initialType) ? initialType : "projects";
   const [query,setQuery] = useState("");
   const [selected,setSelected] = useState<Record<string,unknown> | null>(null);
 
@@ -249,10 +249,10 @@ export default function ControlCenterRegistry({
           <p>Üye, rol, takım, proje, görev, araç, repository, Vault ve envanter kayıtlarını ara; satırdan incele, düzenle veya güvenli silme/arşivleme akışına gönder.</p>
         </div>
         <div className="controlCenterHeroStats">
-          <div><b>{registry.members.length}</b><small>ÜYE</small></div>
-          <div><b>{registry.projects.length}</b><small>PROJE</small></div>
-          <div><b>{registry.tasks.length}</b><small>GÖREV</small></div>
-          <div><b>{registry.vault.length + registry.repositories.length}</b><small>VAULT + REPO</small></div>
+          <div><b>{rows.length}</b><small>{group.label.toUpperCase()}</small></div>
+          <div><b>100</b><small>SAYFA SINIRI</small></div>
+          <div><b>1</b><small>AKTİF REGISTRY</small></div>
+          <div><b>0</b><small>GİZLİ FAN-OUT</small></div>
         </div>
       </div>
 
@@ -263,14 +263,13 @@ export default function ControlCenterRegistry({
         </label>
         <div className="controlCenterTabs">
           {GROUPS.map((item)=>(
-            <button
-              type="button"
+            <a
               className={activeType===item.type?"active":""}
               key={item.type}
-              onClick={() => { setActiveType(item.type); setSelected(null); }}
+              href={"/portal/control-center?type=" + encodeURIComponent(item.type)}
             >
-              {item.code} · {item.label} ({registry[item.type].length})
-            </button>
+              {item.code} · {item.label}
+            </a>
           ))}
         </div>
       </div>

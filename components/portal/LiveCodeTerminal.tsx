@@ -9,11 +9,13 @@ type ConnectionState = "idle" | "connecting" | "connected" | "closed" | "error";
 
 export default function LiveCodeTerminal({
   socketUrl,
+  socketToken,
   repository,
   snapshotRef,
   snapshotSha,
 }: {
   socketUrl: string | null;
+  socketToken: string | null;
   repository: string;
   snapshotRef: string;
   snapshotSha?: string | null;
@@ -90,7 +92,12 @@ export default function LiveCodeTerminal({
       const target = new URL(socketUrl);
       target.searchParams.set("cols",String(terminal.cols || 120));
       target.searchParams.set("rows",String(terminal.rows || 32));
-      const socket = new WebSocket(target.toString());
+      if (!socketToken) {
+        setConnection("error");
+        terminal.writeln("\x1b[31mTerminal bağlantı capability'si bulunamadı.\x1b[0m");
+        return;
+      }
+      const socket = new WebSocket(target.toString(), ["core-terminal",socketToken]);
       socketRef.current = socket;
 
       socket.addEventListener("open", () => {
@@ -139,8 +146,20 @@ export default function LiveCodeTerminal({
       }
     });
 
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     const resizeObserver = new ResizeObserver(() => {
       try { fit.fit(); } catch {}
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const socket = socketRef.current;
+        if (socket?.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            type:"resize",
+            cols:terminal.cols,
+            rows:terminal.rows,
+          }));
+        }
+      },80);
     });
     resizeObserver.observe(hostRef.current);
 
@@ -151,13 +170,14 @@ export default function LiveCodeTerminal({
       inputDisposable.dispose();
       resizeObserver.disconnect();
       if (heartbeat) clearInterval(heartbeat);
+      if (resizeTimer) clearTimeout(resizeTimer);
       const socket = socketRef.current;
       if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000,"page closed");
       terminal.dispose();
       terminalRef.current = null;
       socketRef.current = null;
     };
-  },[socketUrl]);
+  },[socketUrl,socketToken]);
 
   const sendControl = (data: string) => {
     const socket = socketRef.current;

@@ -5,7 +5,7 @@ import { timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
 
 const SESSION_COOKIE = "core_portal_session";
-const SESSION_SECONDS = 60 * 60 * 24 * 7;
+const SESSION_SECONDS = 60 * 60 * 24;
 // Cloudflare Workers WebCrypto currently rejects PBKDF2 iteration counts above 100,000.
 const PBKDF2_ITERATIONS = 100000;
 const PBKDF2_SCHEME = "pbkdf2-sha256-v1";
@@ -312,10 +312,16 @@ export async function loginPortalMember(email: string, password: string) {
   if (!valid) {
     const failures = Number(row.failed_login_count || 0) + 1;
     const lock = failures >= 5 ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null;
-    await db
-      .prepare("UPDATE portal_members SET failed_login_count=?,locked_until=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
-      .bind(lock ? 0 : failures, lock, row.id)
-      .run();
+    await db.batch([
+      db.prepare("UPDATE portal_members SET failed_login_count=?,locked_until=?,updated_at=CURRENT_TIMESTAMP WHERE id=?")
+        .bind(lock ? 0 : failures, lock, row.id),
+      db.prepare(
+        "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'member.login.failed','member',?,?)"
+      ).bind(normalizedEmail,row.id,JSON.stringify({
+        failures,
+        lockedUntil:lock,
+      })),
+    ]);
     throw new Error("E-posta veya parola hatalı.");
   }
 

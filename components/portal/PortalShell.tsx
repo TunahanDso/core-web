@@ -8,6 +8,9 @@ import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
 import PortalSidebarToggle from "@/components/portal/PortalSidebarToggle";
 import PortalContent from "@/components/portal/PortalContent";
 import PortalDensityToggle from "@/components/portal/PortalDensityToggle";
+import PortalDesktopExperience from "@/components/portal/PortalDesktopExperience";
+import PortalPwaClient from "@/components/portal/PortalPwaClient";
+import PortalNativeGate from "@/components/portal/PortalNativeGate";
 
 export default async function PortalShell({
   member,
@@ -20,7 +23,7 @@ export default async function PortalShell({
     getSiteSetting("portal_banner"),
     portalMemberCapabilitySet(member),
   ]);
-  const canControl = ["portal.admin","control.projects","control.vehicles","teams.manage","roles.manage","vault.approve"]
+  const canControl = ["portal.admin","control.projects","control.vehicles","teams.manage","roles.manage"]
     .some((capability) => capabilitySet.has(capability));
   const initials = member.fullName
     ? member.fullName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()
@@ -77,7 +80,18 @@ export default async function PortalShell({
         {banner?.enabled && banner.text ? (
           <div className="portalSystemBanner"><span>CORE DUYURU</span><b>{String(banner.text)}</b></div>
         ) : null}
-        <PortalContent>{children}</PortalContent>
+        <PortalContent>
+          {children}
+          <PortalDesktopExperience />
+          <PortalPwaClient />
+          <PortalNativeGate
+            memberName={member.fullName || member.email}
+            memberRole={portalRoleLabel(member.role)}
+            portalRole={member.role}
+            canControl={canControl}
+            memberInitials={initials}
+          />
+        </PortalContent>
       </section>
     </main>
   );
