@@ -11,14 +11,10 @@ export async function POST(
   if (!member) return Response.json({ error:"unauthorized" }, { status:401 });
 
   const { sessionId } = await context.params;
-  const capabilityToken = String(request.headers.get("x-core-upload-token") || "");
-  if (!capabilityToken) return Response.json({ error:"missing_upload_capability" }, { status:401 });
-
   try {
     const result = await completeVaultUploadSession({
       sessionId:decodeURIComponent(sessionId),
       memberId:member.id,
-      capabilityToken,
     });
     return Response.json(result,{
       headers:{ "Cache-Control":"no-store, private" },
