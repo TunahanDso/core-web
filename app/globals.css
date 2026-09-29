@@ -13266,3 +13266,20 @@ html.coreDesktopRuntime .portalChatLayout{
     border-right:1px solid var(--portal-line);
   }
 }
+
+
+.vaultCodeReader.expanded{
+  position:fixed;
+  z-index:500;
+  inset:10px;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  min-height:0;
+  border-radius:10px;
+  box-shadow:0 24px 80px rgba(0,0,0,.28);
+}
+.vaultCodeReader.expanded .vaultCodeViewport{
+  min-height:0;
+  max-height:none;
+  height:auto;
+}
