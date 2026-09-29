@@ -25,7 +25,7 @@ assert(!bootstrap.includes("CREATE TABLE"),"Bootstrap must not embed hand-mainta
 const terminal=requireFile("components/portal/LiveCodeTerminal.tsx");
 assert(!terminal.includes("token="),"Terminal capability token must never enter a browser URL.");
 
-const vaultClient=requireFile("components/portal/VaultUploadClient.tsx");
+const vaultClient=requireFile("components/portal/vault-upload-client.ts");
 assert(!vaultClient.includes("capability-token"),"Vault browser client must not receive capability bearer tokens.");
 
 for(const path of [
