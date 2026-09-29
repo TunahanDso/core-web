@@ -87,14 +87,15 @@ jobs:
               "portal_code_run_execution",
               "portal_code_run_events",
               "portal_code_run_artifacts",
-              "portal_code_terminal_sessions"
+              "portal_code_terminal_sessions",
+              "portal_vault_upload_sessions"
             ];
             for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL") || !portalBootstrap.includes("PORTAL_V9_SQL")) {
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL") || !portalBootstrap.includes("PORTAL_V9_SQL") || !portalBootstrap.includes("PORTAL_V10_SQL")) {
               throw new Error("Portal engineering/mobile/control-plane/review/code-lab migrations must be part of the idempotent bootstrap path.");
             }
             const nativeRepoEngine = fs.readFileSync("lib/portal/native-repo-engine.ts", "utf8");
@@ -174,25 +175,37 @@ jobs:
             const vaultDetail = fs.readFileSync("app/portal/(member)/library/[id]/page.tsx", "utf8");
             const vaultUploadClient = fs.readFileSync("components/portal/VaultUploadForm.tsx", "utf8");
             const vaultRevisionClient = fs.readFileSync("components/portal/VaultRevisionUploadForm.tsx", "utf8");
-            const vaultUploadApi = fs.readFileSync("app/api/portal/vault/upload/route.ts", "utf8");
-            const vaultVersionApi = fs.readFileSync("app/api/portal/vault/[id]/versions/route.ts", "utf8");
+            const vaultTransportClient = fs.readFileSync("components/portal/vault-upload-client.ts", "utf8");
+            const vaultUploadService = fs.readFileSync("lib/portal/vault-upload.ts", "utf8");
+            const vaultInitApi = fs.readFileSync("app/api/portal/vault/uploads/init/route.ts", "utf8");
+            const vaultPutApi = fs.readFileSync("app/api/portal/vault/uploads/[sessionId]/route.ts", "utf8");
+            const vaultCompleteApi = fs.readFileSync("app/api/portal/vault/uploads/[sessionId]/complete/route.ts", "utf8");
             if (!vaultLibrary.includes("VaultUploadForm") || vaultLibrary.includes("uploadPortalVaultAction")) {
-              throw new Error("Vault initial upload must use the resilient API client instead of a Server Action file body.");
+              throw new Error("Vault initial upload must stay off Server Action file bodies.");
             }
             if (!vaultDetail.includes("VaultRevisionUploadForm") || vaultDetail.includes("uploadPortalVaultVersionAction")) {
-              throw new Error("Vault revision upload must use the resilient API client instead of a Server Action file body.");
+              throw new Error("Vault revision upload must stay off Server Action file bodies.");
             }
-            for (const required of ["XMLHttpRequest", "/api/portal/vault/upload", "xhr.upload", "25 * 1024 * 1024"]) {
-              if (!vaultUploadClient.includes(required)) throw new Error(`Vault upload client missing: ${required}`);
+            for (const required of ["executeVaultUpload", "RAW R2 UPLOAD", "25 * 1024 * 1024"]) {
+              if (!vaultUploadClient.includes(required)) throw new Error(`Vault raw upload UI missing: ${required}`);
             }
-            for (const required of ["XMLHttpRequest", "/versions", "xhr.upload", "25 * 1024 * 1024"]) {
-              if (!vaultRevisionClient.includes(required)) throw new Error(`Vault revision client missing: ${required}`);
+            for (const required of ["executeVaultUpload", "mode:\"revision\"", "25 * 1024 * 1024"]) {
+              if (!vaultRevisionClient.includes(required)) throw new Error(`Vault raw revision UI missing: ${required}`);
             }
-            if (!vaultUploadApi.includes("createPortalVaultFile") || !vaultVersionApi.includes("createPortalVaultVersion")) {
-              throw new Error("Vault upload APIs must persist through the canonical Vault service.");
+            for (const required of ["XMLHttpRequest", "xhr.open(\"PUT\"", "xhr.send(file)", "/api/portal/vault/uploads/init", "completeVaultUpload"]) {
+              if (!vaultTransportClient.includes(required)) throw new Error(`Vault raw transport missing: ${required}`);
+            }
+            for (const required of ["portal_vault_upload_sessions", "writeVaultUploadBody", "completeVaultUploadSession", "mediaBucket().put", "request.arrayBuffer()"]) {
+              if (!vaultUploadService.includes(required)) throw new Error(`Vault upload session service missing: ${required}`);
+            }
+            if (!vaultInitApi.includes("createVaultUploadSession") || !vaultPutApi.includes("writeVaultUploadBody") || !vaultCompleteApi.includes("completeVaultUploadSession")) {
+              throw new Error("Vault raw upload API lifecycle is incomplete.");
+            }
+            if (vaultPutApi.includes("formData()")) {
+              throw new Error("Raw Vault upload endpoint must never parse multipart form data.");
             }
 
-            console.log("Vault API upload transport and revision progress flow validated.");
+            console.log("VA-02 session + raw PUT + finalize Vault transport validated.");
             console.log("CL-02.1 Code Lab jobs + direct container WebSocket terminal isolation validated.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
@@ -406,6 +419,30 @@ jobs:
                 throw new Error(`Control service missing: ${required}`);
               }
             }
+            const controlCenterService = fs.readFileSync("lib/portal/control-center.ts", "utf8");
+            const controlCenterPage = fs.readFileSync("app/portal/(member)/control-center/page.tsx", "utf8");
+            const controlCenterClient = fs.readFileSync("components/portal/ControlCenterRegistry.tsx", "utf8");
+            const controlCenterActions = fs.readFileSync("app/portal/control-center-actions.ts", "utf8");
+            for (const required of ["members","roles","teams","projects","tasks","vehicles","repositories","vault","inventory"]) {
+              if (!controlCenterService.includes(`"${required}"`)) throw new Error(`Control Center registry missing entity: ${required}`);
+            }
+            for (const required of ["listControlCenterRegistry","updateControlCenterEntity","deleteControlCenterEntity"]) {
+              if (!controlCenterService.includes(required)) throw new Error(`Control Center service missing: ${required}`);
+            }
+            if (!controlCenterPage.includes("ControlCenterRegistry") || !controlCenterPage.includes("memberHasPortalCapability")) {
+              throw new Error("Control Center page must be role/capability gated.");
+            }
+            for (const required of ["controlCenterTabs","controlCenterTable","controlCenterInspector","SİL / ARŞİV"]) {
+              if (!controlCenterClient.includes(required)) throw new Error(`Control Center UI missing: ${required}`);
+            }
+            if (!controlCenterActions.includes("updateControlCenterEntityAction") || !controlCenterActions.includes("deleteControlCenterEntityAction")) {
+              throw new Error("Control Center write actions are missing.");
+            }
+            const portalCss = fs.readFileSync("app/globals.css", "utf8");
+            if (!portalCss.includes(":where(.portalApp) footer") || !portalCss.includes("CORE PORTAL V12 · CARD RESET")) {
+              throw new Error("Portal card footer reset must prevent public footer styles leaking into entity cards.");
+            }
+
             const teamDirectory = fs.readFileSync("app/portal/(member)/teams/page.tsx", "utf8");
             const memberDirectory = fs.readFileSync("app/portal/(member)/members/page.tsx", "utf8");
             const repositoryDirectory = fs.readFileSync("app/portal/(member)/repositories/page.tsx", "utf8");
