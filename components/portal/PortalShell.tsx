@@ -26,7 +26,7 @@ export default function PortalShell({
     <main className="portalApp">
       <aside className="portalSidebar">
         <div className="portalBrandRow">
-          <Link className="portalBrand" href="/portal">
+          <Link className="portalBrand" href="/portal" prefetch={false}>
             <span className="portalBrandMark">C</span>
             <span className="portalBrandCopy">
               <b>YTÜ CORE</b>
@@ -60,8 +60,8 @@ export default function PortalShell({
           <div className="portalTopActions">
             <PortalDensityToggle />
             <PortalCommandCenter />
-            <Link href="/portal/notifications" className="portalTopChip">Bildirimler</Link>
-            <Link href="/portal/profile" className="portalIdentity">
+            <Link href="/portal/notifications" className="portalTopChip" prefetch={false}>Bildirimler</Link>
+            <Link href="/portal/profile" className="portalIdentity" prefetch={false}>
               <span>{initials}</span>
               <div>
                 <b>{member.fullName || member.email}</b>
