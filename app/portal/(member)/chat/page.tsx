@@ -1,3 +1,4 @@
+import PendingSubmitButton from "@/components/portal/PendingSubmitButton";
 import Link from "next/link";
 import { PortalEmpty } from "@/components/portal/PortalPage";
 import { openChatChannelAction, sendChatMessageAction } from "@/app/portal/actions";
@@ -19,9 +20,9 @@ export default async function PortalChatPage({
   const filtered=channels.filter((channel)=>!q || [channel.name,channel.description,channel.last_message]
     .some((value)=>String(value||"").toLocaleLowerCase("tr-TR").includes(q)));
   const browse=String(query.browse||"")==="1";
-  const selectedId=browse ? "" : String(query.channel||filtered[0]?.id||channels[0]?.id||"");
-  const messages=selectedId ? await listPortalMessages(selectedId) : [];
+  const selectedId=browse ? "" : String(query.channel||filtered[0]?.id||"");
   const selected=channels.find((channel)=>String(channel.id)===selectedId);
+  const messages=selected ? await listPortalMessages(selectedId) : [];
 
   return (
     <section className="chatAppShell">
@@ -31,6 +32,7 @@ export default async function PortalChatPage({
           <div><b>CORE Chat</b><small>Hızlı koordinasyon · kalıcı kararlar rapor/görev olur</small></div>
         </div>
         <form action="/portal/chat" method="get" className="chatAppSearch">
+          <input type="hidden" name="browse" value="1"/>
           <input name="q" defaultValue={String(query.q||"")} placeholder="Kanal veya mesaj özeti ara..." />
           <button type="submit">Ara</button>
         </form>
@@ -57,6 +59,7 @@ export default async function PortalChatPage({
                 </form>
               );
             })}
+            {!filtered.length?<PortalEmpty title="Kanal bulunamadı" text={q?"Aramayı değiştirerek yeniden deneyebilirsin.":"Erişebildiğin bir kanal henüz yok."}/>:null}
           </div>
         </aside>
 
@@ -72,7 +75,7 @@ export default async function PortalChatPage({
                 {messages.length?messages.map((message)=>{
                   const author=String(message.full_name||message.email);
                   const mine=String(message.email)===member.email;
-                  const initials=author.split(/s+/).slice(0,2).map((x)=>x[0]).join("").toUpperCase();
+                  const initials=author.split(/\s+/).slice(0,2).map((x)=>x[0]).join("").toUpperCase();
                   return (
                     <article className={mine?"mine":""} key={String(message.id)}>
                       <span className="portalMessageAvatar">{initials||"CR"}</span>
@@ -87,8 +90,8 @@ export default async function PortalChatPage({
 
               <form className="portalChatComposer chatFixedComposer" action={sendChatMessageAction}>
                 <input type="hidden" name="channelId" value={selectedId}/>
-                <div><textarea name="body" rows={2} placeholder={"#"+String(selected.name)+" kanalına yaz..."} required/><small>Karar çıktıysa Toplantı/Task/Document kaydına taşı.</small></div>
-                <button type="submit">Gönder</button>
+                <div><textarea name="body" rows={2} maxLength={4000} aria-label="Kanal mesajı" placeholder={"#"+String(selected.name)+" kanalına yaz..."} required/><small>Karar çıktıysa Toplantı/Task/Document kaydına taşı.</small></div>
+                <PendingSubmitButton pendingLabel="Gönderiliyor…">Gönder</PendingSubmitButton>
               </form>
             </>
           ):<PortalEmpty title="Kanal seç." text="Sol listeden bir kanal aç."/>}

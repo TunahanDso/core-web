@@ -1,3 +1,4 @@
+import PendingSubmitButton from "@/components/portal/PendingSubmitButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
@@ -20,7 +21,7 @@ export default async function PortalMeetingRoomPage({
   searchParams,
 }:{
   params:Promise<{id:string}>;
-  searchParams?:Promise<{tool?:string;created?:string;report?:string;status?:string}>;
+  searchParams?:Promise<{tool?:string;created?:string;report?:string;status?:string;noted?:string;pollCreated?:string}>;
 }){
   const {id}=await params;
   const query=searchParams ? await searchParams : {};
@@ -33,6 +34,8 @@ export default async function PortalMeetingRoomPage({
   const canManage=String(meeting.created_by)===member.id || data.participants.some(
     (item)=>String(item.member_id)===member.id && ["host","moderator"].includes(String(item.participant_role))
   );
+  const meetingStatus=String(meeting.status);
+  const statusLabel=({scheduled:"Planlandı",live:"Devam ediyor",completed:"Tamamlandı",cancelled:"İptal edildi"} as Record<string,string>)[meetingStatus]||meetingStatus;
   const returnTo="/portal/meetings/"+encodeURIComponent(id);
 
   return (
@@ -44,26 +47,28 @@ export default async function PortalMeetingRoomPage({
           <p>{String(meeting.starts_at).replace("T"," ").slice(0,16)} · {String(meeting.team_code||meeting.project_slug||"CORE")}</p>
         </div>
         <div className="meetingWorkbenchActions">
-          <span className={"portalStatusText "+String(meeting.status)}>{String(meeting.status)}</span>
-          {canManage && String(meeting.status)!=="live"?(
+          <span className={"portalStatusText "+String(meeting.status)}>{statusLabel}</span>
+          {canManage && meetingStatus==="scheduled"?(
             <form action={setMeetingStatusAction}>
               <input type="hidden" name="meetingId" value={id}/>
-              <button name="status" value="live" type="submit">Toplantıyı başlat</button>
+              <PendingSubmitButton name="status" value="live" type="submit">Toplantıyı başlat</PendingSubmitButton>
             </form>
           ):null}
-          {canManage && String(meeting.status)!=="completed"?(
+          {canManage && meetingStatus==="live"?(
             <form action={setMeetingStatusAction}>
               <input type="hidden" name="meetingId" value={id}/>
-              <button name="status" value="completed" type="submit">Tamamla</button>
+              <PendingSubmitButton name="status" value="completed" type="submit">Tamamla</PendingSubmitButton>
             </form>
           ):null}
           <Link prefetch={false} href="/portal/meetings">Listeye dön</Link>
         </div>
       </header>
 
+      {query.noted==="1" || query.report==="generated" || query.created==="1" || query.pollCreated==="1" ? <p className="meetingFeedback" role="status">{query.noted==="1"?"Not toplantı kaydına eklendi.":query.report==="generated"?"Rapor oluşturuldu ve arşivlendi.":query.pollCreated==="1"?"Oylama açıldı.":"Toplantı oluşturuldu."}</p> : null}
       <div className="meetingWorkbenchBody">
         <main className="meetingMediaPane">
           <MeetingTransportPanel
+            ended={["completed","cancelled"].includes(meetingStatus)}
             configured={transport.configured}
             joinUrl={transport.joinUrl}
             provider={transport.provider}
@@ -93,7 +98,7 @@ export default async function PortalMeetingRoomPage({
           <section className="meetingContextSection">
             <header>
               <b>Toplantı oylamaları</b>
-              <a href={returnTo+"?tool=poll"}>+ Oylama</a>
+              <Link prefetch={false} href={returnTo+"?tool=poll"}>+ Oylama</Link>
             </header>
 
             {query.tool==="poll"?(
@@ -103,7 +108,7 @@ export default async function PortalMeetingRoomPage({
                 <label><span>Açıklama</span><input name="description"/></label>
                 <label><span>Seçenekler · her satır bir seçenek</span><textarea name="options" rows={4} required/></label>
                 <label><span>Kapanış</span><input name="closesAt" type="datetime-local"/></label>
-                <div><button type="submit">Oylamayı aç</button><a href={returnTo}>Vazgeç</a></div>
+                <div><PendingSubmitButton type="submit">Oylamayı aç</PendingSubmitButton><Link prefetch={false} href={returnTo}>Vazgeç</Link></div>
               </form>
             ):null}
 
@@ -129,13 +134,13 @@ export default async function PortalMeetingRoomPage({
                           );
                         })}
                       </div>
-                      {String(poll.status)==="open"?<button type="submit">Oy ver / değiştir</button>:null}
+                      {String(poll.status)==="open"?<PendingSubmitButton type="submit">Oy ver / değiştir</PendingSubmitButton>:null}
                     </form>
                     {String(poll.created_by)===member.id && String(poll.status)==="open"?(
                       <form action={closePollAction}>
                         <input type="hidden" name="pollId" value={String(poll.id)}/>
                         <input type="hidden" name="returnTo" value={returnTo}/>
-                        <button type="submit">Oylamayı kapat</button>
+                        <PendingSubmitButton type="submit">Oylamayı kapat</PendingSubmitButton>
                       </form>
                     ):null}
                   </article>
@@ -148,10 +153,10 @@ export default async function PortalMeetingRoomPage({
         <section className="meetingRecordPane">
           <header className="meetingRecordHeader">
             <div><b>Toplantı kaydı</b><small>Not · karar · aksiyon · transcript</small></div>
-            <form action={generateMeetingReportAction}>
+            {canManage ? <form action={generateMeetingReportAction}>
               <input type="hidden" name="meetingId" value={id}/>
-              <button type="submit">{data.report?"Raporu yeniden üret":"Rapor üret & arşivle"}</button>
-            </form>
+              <PendingSubmitButton type="submit">{data.report?"Raporu yeniden üret":"Rapor üret & arşivle"}</PendingSubmitButton>
+            </form> : <small>Raporu toplantı yöneticisi oluşturabilir.</small>}
           </header>
 
           <div className="meetingRecordBody">
@@ -167,14 +172,14 @@ export default async function PortalMeetingRoomPage({
 
             <form className="meetingNoteComposer" action={addMeetingNoteAction}>
               <input type="hidden" name="meetingId" value={id}/>
-              <select name="kind" defaultValue="note">
+              <select aria-label="Kayıt türü" name="kind" defaultValue="note">
                 <option value="note">Not</option>
                 <option value="decision">Karar</option>
                 <option value="action">Aksiyon</option>
                 <option value="transcript">Transcript</option>
               </select>
-              <textarea name="body" rows={3} placeholder="Toplantı kaydına ekle..." required/>
-              <button type="submit">Kayda ekle</button>
+              <textarea name="body" rows={3} aria-label="Toplantı notu" placeholder="Toplantı kaydına ekle..." required/>
+              <PendingSubmitButton type="submit">Kayda ekle</PendingSubmitButton>
             </form>
 
             {data.report?(

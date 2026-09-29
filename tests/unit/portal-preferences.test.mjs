@@ -23,3 +23,9 @@ test('invalid saved values are normalized, public pages are untouched',()=>{
  assert.equal(result.portalThemePreference,'system');assert.equal(result.density,'comfortable');assert.equal(result.portalSidebar,'expanded');
  assert.deepEqual(boot({path:'/tr'}),{});
 });
+test('Aurora survives first paint regardless of the operating-system theme',()=>{
+ for(const dark of [true,false]){
+  const result=boot({dark,stored:{'core.portal.theme':'aurora'}});
+  assert.equal(result.portalThemePreference,'aurora');assert.equal(result.portalTheme,'aurora');
+ }
+});
