@@ -648,7 +648,7 @@ jobs:
             }
             const vaultDetailSource = fs.readFileSync("app/portal/(member)/library/[id]/page.tsx", "utf8");
             const vaultPcbWorkspace = fs.readFileSync("components/portal/VaultPcbWorkspace.tsx", "utf8");
-            if (!vaultDetailSource.includes("VaultHeavyPreview") || !vaultDetailSource.includes('kind="pcb"') || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
+            if (!vaultDetailSource.includes("VaultHeavyPreview") || !vaultDetailSource.includes("kind=\"pcb\"") || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
               throw new Error("KiCad Vault detail must defer the dedicated large-file PCB workspace.");
             }
             for (const required of ["PCB ÇALIŞMA ALANI", "KAYNAK", "KiCadBoardPreview", "VaultSourceBrowser"]) {
