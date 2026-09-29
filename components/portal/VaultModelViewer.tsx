@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 type Vec3 = [number, number, number];
 type Edge = [number, number];
 type Triangle = [number, number, number];
+type Model = { vertices: Vec3[]; edges: Edge[]; triangles: Triangle[] };
 function parseModelInWorker(
   ext:string,
   payload:{text?:string;buffer?:ArrayBuffer}
