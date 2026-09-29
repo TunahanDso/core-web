@@ -134,8 +134,34 @@ async function sendWithResend(payload: MailPayload): Promise<PortalMailDelivery>
   }
 }
 
+async function sendWithMailService(payload:MailPayload):Promise<PortalMailDelivery | null>{
+  const binding=(env as unknown as Record<string,unknown>).MAIL_SERVICE as { fetch?: typeof fetch } | undefined;
+  if(!binding || typeof binding.fetch!=="function") return null;
+  try{
+    const response=await binding.fetch("https://core-mail.internal/v1/send",{
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body:JSON.stringify({
+        ...payload,
+        from:cloudflareFrom(),
+        replyTo:mailReplyTo(),
+      }),
+    });
+    const result=await response.json().catch(()=>({})) as {ok?:boolean;provider?:string;messageId?:string;error?:string};
+    if(response.ok&&result.ok){
+      return {provider:"cloudflare",status:"sent",messageId:result.messageId};
+    }
+    return {provider:"cloudflare",status:"failed",error:result.error||"CORE Mail Service gönderimi başarısız."};
+  }catch(error){
+    return {provider:"cloudflare",status:"failed",error:error instanceof Error?error.message:"CORE Mail Service erişilemedi."};
+  }
+}
+
 async function deliverPortalEmail(payload: MailPayload): Promise<PortalMailDelivery> {
-  let cloudflareFailure: string | undefined;
+  const isolated=await sendWithMailService(payload);
+  if(isolated?.status==="sent") return isolated;
+
+  let cloudflareFailure: string | undefined = isolated?.error;
 
   if (env.EMAIL && typeof env.EMAIL.send === "function") {
     try {
