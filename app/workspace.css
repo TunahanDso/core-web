@@ -13238,3 +13238,21 @@ html.coreDesktopRuntime .portalIdentity{
   }
 }
 
+
+
+/* PERF R2 — bounded registry rendering */
+.controlCenterTable tbody tr,
+.portalDataTable tbody tr,
+.vaultVersionList article,
+.portalMobileDeviceList article {
+  content-visibility:auto;
+  contain-intrinsic-size:auto 56px;
+}
+
+.vaultDeferredPreview {
+  min-height:220px;
+  display:grid;
+  align-content:center;
+  justify-items:start;
+  gap:10px;
+}
