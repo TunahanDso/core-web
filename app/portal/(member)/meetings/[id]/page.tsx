@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -56,7 +57,7 @@ export default async function PortalMeetingRoomPage({
               <button name="status" value="completed" type="submit">Tamamla</button>
             </form>
           ):null}
-          <a href="/portal/meetings">Listeye dön</a>
+          <Link prefetch={false} href="/portal/meetings">Listeye dön</Link>
         </div>
       </header>
 
@@ -178,7 +179,7 @@ export default async function PortalMeetingRoomPage({
 
             {data.report?(
               <section className="meetingReportPreview">
-                <header><b>Arşiv raporu</b><a href="/portal/archive">Arşiv →</a></header>
+                <header><b>Arşiv raporu</b><Link prefetch={false} href="/portal/archive">Arşiv →</Link></header>
                 <pre>{String(data.report.summary)}</pre>
               </section>
             ):null}

@@ -18,22 +18,11 @@ export default function PortalDesktopExperience() {
   const [version, setVersion] = useState("");
 
   useEffect(() => {
-    if (!desktopRequested()) return;
+    if (!desktopRequested() && !window.__TAURI_INTERNALS__) return;
 
     const root = document.documentElement;
     root.classList.add("coreDesktopRuntime");
     setDesktop(true);
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return;
-      const search = document.querySelector<HTMLInputElement>(".portalGlobalSearch input");
-      if (!search) return;
-      event.preventDefault();
-      search.focus();
-      search.select();
-    };
-
-    window.addEventListener("keydown", onKeyDown);
 
     let cancelled = false;
     if (window.__TAURI_INTERNALS__) {
@@ -48,7 +37,6 @@ export default function PortalDesktopExperience() {
     return () => {
       cancelled = true;
       root.classList.remove("coreDesktopRuntime");
-      window.removeEventListener("keydown", onKeyDown);
     };
   }, []);
 
@@ -65,7 +53,7 @@ export default function PortalDesktopExperience() {
         CLOUD WORKSPACE
         {version ? <small>v{version}</small> : null}
       </span>
-      <span className="portalDesktopHint">CTRL / ⌘ + K · GLOBAL SEARCH</span>
+      <span className="portalDesktopHint">Ctrl / ⌘ + K · Ara ve git</span>
     </div>
   );
 }

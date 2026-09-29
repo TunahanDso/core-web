@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
@@ -120,12 +121,12 @@ export default async function PortalCodeLabPage() {
           <div className="portalPanelHead"><span>SON TERMINAL OTURUMLARI</span><small>{terminals.length} KAYIT</small></div>
           <div className="codeTerminalSessionList">
             {terminals.map((terminal) => (
-              <a href={"/portal/code-lab/terminal/" + encodeURIComponent(terminal.id)} key={terminal.id}>
+              <Link prefetch={false} href={"/portal/code-lab/terminal/" + encodeURIComponent(terminal.id)} key={terminal.id}>
                 <span className={"terminalStatus " + terminal.status}>{String(terminal.status).toUpperCase()}</span>
                 <div><b>{String(terminal.repo_name || terminal.repository_slug)}</b><small>{terminal.snapshot_ref}{terminal.snapshot_sha ? " · " + shortSha(terminal.snapshot_sha) : ""}</small></div>
                 <small>{formatDate(terminal.created_at)}</small>
                 <strong>OPEN →</strong>
-              </a>
+              </Link>
             ))}
           </div>
         </section>
@@ -204,7 +205,7 @@ export default async function PortalCodeLabPage() {
         {runs.length ? (
           <div className="runnerJobList runnerJobLinks">
             {runs.map((run) => (
-              <a href={"/portal/code-lab/" + encodeURIComponent(run.id)} key={run.id}>
+              <Link prefetch={false} href={"/portal/code-lab/" + encodeURIComponent(run.id)} key={run.id}>
                 <span>{String(run.language).toUpperCase()}</span>
                 <div>
                   <b>{String(run.command_label)}</b>
@@ -218,7 +219,7 @@ export default async function PortalCodeLabPage() {
                 <em className={"state " + String(run.status)}>{String(run.status).toUpperCase()}</em>
                 <small>{formatDate(run.created_at)}</small>
                 <strong>OPEN →</strong>
-              </a>
+              </Link>
             ))}
           </div>
         ) : (

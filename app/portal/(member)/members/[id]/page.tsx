@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { updatePortalMemberGlobalRoleAction } from "@/app/portal/control-actions";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -56,7 +57,7 @@ export default async function PortalMemberDetailPage({
         code="MB / ÜYE PROFİLİ"
         title={String(member.full_name || member.email)}
         lead={String(profile.headline || portalRoleLabel(String(member.role)))}
-        action={<a className="portalOutlineButton" href="/portal/members">← ÜYE DİZİNİ</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/members">← ÜYE DİZİNİ</Link>}
       />
 
       {query.role === "updated" ? <div className="portalSuccess">Üyenin global portal rolü güncellendi.</div> : null}
@@ -102,14 +103,14 @@ export default async function PortalMemberDetailPage({
           <span>TEAM ROLES</span>
           <div className="portalMemberTeamRoles">
             {memberships.length ? memberships.map((membership) => (
-              <a href={"/portal/teams/" + encodeURIComponent(String(membership.team_code))} key={String(membership.team_code)}>
+              <Link prefetch={false} href={"/portal/teams/" + encodeURIComponent(String(membership.team_code))} key={String(membership.team_code)}>
                 <b>{String(membership.team_code)}</b>
                 <span>{portalRoleLabelDetailed(String(membership.team_role))}</span>
-              </a>
+              </Link>
             )) : teams.length ? teams.map((team) => (
-              <a href={"/portal/teams/" + encodeURIComponent(team)} key={team}>
+              <Link prefetch={false} href={"/portal/teams/" + encodeURIComponent(team)} key={team}>
                 <b>{team}</b><span>Legacy üyelik</span>
-              </a>
+              </Link>
             )) : <small>Takım scope'u atanmadı.</small>}
           </div>
         </article>
@@ -127,11 +128,11 @@ export default async function PortalMemberDetailPage({
         <div className="portalPanelHead"><span>ATANMIŞ AÇIK GÖREVLER</span><small>{tasks.length} kayıt</small></div>
         <div className="portalProfessionalList">
           {tasks.length ? tasks.map((task) => (
-            <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
+            <Link prefetch={false} href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
               <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
               <div><b>{String(task.title)}</b><small>{String(task.project_slug || task.team_code || "CORE")}</small></div>
               <em>{portalTaskStatusLabel(String(task.status))}</em>
-            </a>
+            </Link>
           )) : <p className="portalMuted">Bu üyeye atanmış açık görev yok.</p>}
         </div>
       </section>

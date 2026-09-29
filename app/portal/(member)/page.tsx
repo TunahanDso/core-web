@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { portalPriorityLabel, portalTaskStatusLabel, portalVehicleStatusLabel } from "@/lib/portal/labels";
 import { requirePortalMember } from "@/lib/portal/auth";
 import {
@@ -42,20 +43,20 @@ export default async function PortalDashboard(){
       <section className="portalNativeHome" aria-label="Mobil CORE ana sayfası">
         <header>
           <div><span>CORE / MOBILE</span><h1>Merhaba, {firstName}.</h1><p>Bugün neye odaklanıyoruz?</p></div>
-          <a href="/portal/profile" className="portalNativeHomeProfile">PROFİL →</a>
+          <Link prefetch={false} href="/portal/profile" className="portalNativeHomeProfile">PROFİL →</Link>
         </header>
         <div className="portalNativeMetricGrid">
-          <a href="/portal/tasks"><span>AÇIK GÖREV</span><b>{metrics.openTasks}</b><small>iş kuyruğu</small></a>
-          <a href="/portal/notifications"><span>BİLDİRİM</span><b>{metrics.unread}</b><small>okunmamış</small></a>
-          <a href="/portal/meetings"><span>TOPLANTI</span><b>{upcomingMeetings.length}</b><small>yaklaşan / canlı</small></a>
-          <a href="/portal/polls"><span>OYLAMA</span><b>{openPolls.length}</b><small>açık</small></a>
+          <Link prefetch={false} href="/portal/tasks"><span>AÇIK GÖREV</span><b>{metrics.openTasks}</b><small>iş kuyruğu</small></Link>
+          <Link prefetch={false} href="/portal/notifications"><span>BİLDİRİM</span><b>{metrics.unread}</b><small>okunmamış</small></Link>
+          <Link prefetch={false} href="/portal/meetings"><span>TOPLANTI</span><b>{upcomingMeetings.length}</b><small>yaklaşan / canlı</small></Link>
+          <Link prefetch={false} href="/portal/polls"><span>OYLAMA</span><b>{openPolls.length}</b><small>açık</small></Link>
         </div>
         <div className="portalNativeQuickRail">
-          <a href="/portal/tasks"><span>PM</span><b>Görevler</b><small>Planla ve ilerlet</small></a>
-          <a href="/portal/chat"><span>CH</span><b>Sohbet</b><small>Takımla konuş</small></a>
-          <a href="/portal/meetings"><span>MT</span><b>Toplantılar</b><small>Karar ve rapor</small></a>
-          <a href="/portal/library"><span>VA</span><b>Vault</b><small>Teknik hafıza</small></a>
-          <a href="/portal/budget"><span>BG</span><b>Bütçe</b><small>Takım finansı</small></a>
+          <Link prefetch={false} href="/portal/tasks"><span>PM</span><b>Görevler</b><small>Planla ve ilerlet</small></Link>
+          <Link prefetch={false} href="/portal/chat"><span>CH</span><b>Sohbet</b><small>Takımla konuş</small></Link>
+          <Link prefetch={false} href="/portal/meetings"><span>MT</span><b>Toplantılar</b><small>Karar ve rapor</small></Link>
+          <Link prefetch={false} href="/portal/library"><span>VA</span><b>Vault</b><small>Teknik hafıza</small></Link>
+          <Link prefetch={false} href="/portal/budget"><span>BG</span><b>Bütçe</b><small>Takım finansı</small></Link>
         </div>
       </section>
 
@@ -71,31 +72,31 @@ export default async function PortalDashboard(){
       </header>
 
       <section className="portalDashboardMetricStrip">
-        <a href="/portal/tasks"><span>AÇIK GÖREV</span><b>{metrics.openTasks}</b><small>iş kuyruğu</small></a>
-        <a href="/portal/notifications"><span>OKUNMAMIŞ</span><b>{metrics.unread}</b><small>bildirim</small></a>
-        <a href="/portal/meetings"><span>TOPLANTI</span><b>{upcomingMeetings.length}</b><small>yaklaşan / canlı</small></a>
-        <a href="/portal/inventory"><span>DÜŞÜK STOK</span><b>{metrics.lowStock}</b><small>kontrol et</small></a>
+        <Link prefetch={false} href="/portal/tasks"><span>AÇIK GÖREV</span><b>{metrics.openTasks}</b><small>iş kuyruğu</small></Link>
+        <Link prefetch={false} href="/portal/notifications"><span>OKUNMAMIŞ</span><b>{metrics.unread}</b><small>bildirim</small></Link>
+        <Link prefetch={false} href="/portal/meetings"><span>TOPLANTI</span><b>{upcomingMeetings.length}</b><small>yaklaşan / canlı</small></Link>
+        <Link prefetch={false} href="/portal/inventory"><span>DÜŞÜK STOK</span><b>{metrics.lowStock}</b><small>kontrol et</small></Link>
       </section>
 
       <nav className="portalDashboardQuickLinks" aria-label="Hızlı modüller">
-        <a href="/portal/projects">Projeler</a>
-        <a href="/portal/tasks">Görevler</a>
-        <a href="/portal/chat">Chat</a>
-        <a href="/portal/meetings">Toplantılar</a>
-        <a href="/portal/calendar">Takvim</a>
-        <a href="/portal/library">Vault</a>
-        <a href="/portal/polls">Oylamalar · {openPolls.length}</a>
-        <a href="/portal/budget">Bütçe{pendingBudget ? " · "+pendingBudget+" onay" : ""}</a>
+        <Link prefetch={false} href="/portal/projects">Projeler</Link>
+        <Link prefetch={false} href="/portal/tasks">Görevler</Link>
+        <Link prefetch={false} href="/portal/chat">Chat</Link>
+        <Link prefetch={false} href="/portal/meetings">Toplantılar</Link>
+        <Link prefetch={false} href="/portal/calendar">Takvim</Link>
+        <Link prefetch={false} href="/portal/library">Vault</Link>
+        <Link prefetch={false} href="/portal/polls">Oylamalar · {openPolls.length}</Link>
+        <Link prefetch={false} href="/portal/budget">Bütçe{pendingBudget ? " · "+pendingBudget+" onay" : ""}</Link>
       </nav>
 
       <section className="portalDashboardGrid">
         <article className="portalDashboardPane">
-          <header><b>Bana atanan işler</b><a href="/portal/tasks">Tümü →</a></header>
+          <header><b>Bana atanan işler</b><Link prefetch={false} href="/portal/tasks">Tümü →</Link></header>
           <div className="portalCompactList">
             {tasks.length?tasks.map(task=>(
               <div key={String(task.id)}>
                 <span className={"portalPriority "+String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
-                <div><a href={"/portal/tasks/"+encodeURIComponent(String(task.id))}><b>{String(task.title)}</b></a><small>{String(task.project_slug||task.team_code||"CORE")}</small></div>
+                <div><Link prefetch={false} href={"/portal/tasks/"+encodeURIComponent(String(task.id))}><b>{String(task.title)}</b></Link><small>{String(task.project_slug||task.team_code||"CORE")}</small></div>
                 <em>{portalTaskStatusLabel(String(task.status))}</em>
               </div>
             )):<p className="portalMuted">Açık atanmış görevin yok.</p>}
@@ -103,12 +104,12 @@ export default async function PortalDashboard(){
         </article>
 
         <article className="portalDashboardPane">
-          <header><b>Toplantılar & takvim</b><a href="/portal/meetings">Toplantılar →</a></header>
+          <header><b>Toplantılar & takvim</b><Link prefetch={false} href="/portal/meetings">Toplantılar →</Link></header>
           <div className="portalAgendaList">
             {upcomingMeetings.length?upcomingMeetings.map(m=>(
               <article key={String(m.id)}>
                 <span>{String(m.starts_at).slice(0,16).replace("T"," ")}</span>
-                <div><a href={"/portal/meetings/"+encodeURIComponent(String(m.id))}><b>{String(m.title)}</b></a><small>{String(m.space_name||m.team_code||"CORE")}</small></div>
+                <div><Link prefetch={false} href={"/portal/meetings/"+encodeURIComponent(String(m.id))}><b>{String(m.title)}</b></Link><small>{String(m.space_name||m.team_code||"CORE")}</small></div>
               </article>
             )):upcoming.map(event=>(
               <article key={String(event.id)}>
@@ -121,7 +122,7 @@ export default async function PortalDashboard(){
         </article>
 
         <article className="portalDashboardPane">
-          <header><b>Bildirimler</b><a href="/portal/notifications">Tümü →</a></header>
+          <header><b>Bildirimler</b><Link prefetch={false} href="/portal/notifications">Tümü →</Link></header>
           <div className="portalAlertList">
             {unread.length?unread.map(item=>(
               <article key={String(item.id)}>
@@ -134,7 +135,7 @@ export default async function PortalDashboard(){
         </article>
 
         <article className="portalDashboardPane">
-          <header><b>Operasyon</b><a href="/portal/ops">Canlı görünüm →</a></header>
+          <header><b>Operasyon</b><Link prefetch={false} href="/portal/ops">Canlı görünüm →</Link></header>
           <div className="portalDashboardOps">
             <div>
               <span>ARAÇ</span>
@@ -165,7 +166,7 @@ export default async function PortalDashboard(){
       </section>
 
       <section className="portalDashboardActivityBar">
-        <header><b>Son etkinlik</b><a href="/portal/activity">Geçmiş →</a></header>
+        <header><b>Son etkinlik</b><Link prefetch={false} href="/portal/activity">Geçmiş →</Link></header>
         <div>
           {activity.length?activity.map(item=>(
             <span key={String(item.id)}><b>{String(item.action)}</b><small>{String(item.actor)} · {String(item.created_at)}</small></span>

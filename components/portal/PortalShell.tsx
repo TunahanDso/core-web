@@ -7,6 +7,8 @@ import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
 import PortalSidebarToggle from "@/components/portal/PortalSidebarToggle";
 import PortalContent from "@/components/portal/PortalContent";
 import PortalDensityToggle from "@/components/portal/PortalDensityToggle";
+import PortalThemeControl from "./PortalThemeControl";
+import PortalMobileMenu from "./PortalMobileMenu";
 import PortalBanner from "@/components/portal/PortalBanner";
 
 export default function PortalShell({
@@ -24,6 +26,7 @@ export default function PortalShell({
 
   return (
     <main className="portalApp">
+      <a href="#portal-content" className="portalSkipLink">İçeriğe geç</a>
       <aside className="portalSidebar">
         <div className="portalBrandRow">
           <Link className="portalBrand" href="/portal" prefetch={false}>
@@ -36,7 +39,7 @@ export default function PortalShell({
           <PortalSidebarToggle />
         </div>
 
-        <PortalNav canControl={canControl} />
+        <div id="portal-sidebar-navigation" className="portalNavScroll"><PortalNav canControl={canControl} /></div>
 
         <div className="portalSidebarFoot">
           <a href="/tr" className="portalPublicLink"><span aria-hidden="true">↗</span><b>Vitrin sitesi</b></a>
@@ -52,14 +55,11 @@ export default function PortalShell({
             <span className="portalTopLabel">CORE AĞI</span>
             <b>Öğrenci mühendislik çalışma alanı</b>
           </div>
-          <form className="portalGlobalSearch" action="/portal/search" method="get">
-            <span>⌕</span>
-            <input name="q" placeholder="Görev, Vault, repo, stok veya üye ara..." aria-label="Portal genel arama" />
-            <kbd>⌘K</kbd>
-          </form>
+          <PortalMobileMenu canControl={canControl} />
+          <PortalCommandCenter canControl={canControl} />
           <div className="portalTopActions">
             <PortalDensityToggle />
-            <PortalCommandCenter />
+            <PortalThemeControl />
             <Link href="/portal/notifications" className="portalTopChip" prefetch={false}>Bildirimler</Link>
             <Link href="/portal/profile" className="portalIdentity" prefetch={false}>
               <span>{initials}</span>

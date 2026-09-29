@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalMembers } from "@/lib/portal/db";
@@ -68,7 +69,7 @@ export default async function PortalBudgetPage({
       {query.tool==="account" && canWrite?(
         <section className="portalToolSurface">
           <div className="portalToolBody">
-            <div className="portalInlineToolHead"><div><b>Yeni bütçe hesabı</b><small>Takım veya proje bazlı finans çalışma alanı.</small></div><a href="/portal/budget">Kapat</a></div>
+            <div className="portalInlineToolHead"><div><b>Yeni bütçe hesabı</b><small>Takım veya proje bazlı finans çalışma alanı.</small></div><Link prefetch={false} href="/portal/budget">Kapat</Link></div>
             <form className="portalFormGrid" action={createBudgetAccountAction}>
               <label><span>Hesap adı</span><input name="name" required autoFocus/></label>
               <label><span>Para birimi</span><select name="currency" defaultValue="TRY"><option value="TRY">TRY</option><option value="USD">USD</option><option value="EUR">EUR</option></select></label>

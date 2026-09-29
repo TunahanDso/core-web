@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createPortalTeamAction } from "@/app/portal/control-actions";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -38,7 +39,7 @@ export default async function PortalTeamsPage({
         code="TAKIMLAR"
         title="Takım Çalışma Alanları"
         lead="CORE birimlerini erişim, domain, üye, proje ve araç sayılarıyla karşılaştır."
-        action={canManageTeams ? <a className="portalPrimaryButton" href="/portal/teams?create=1">+ TAKIM OLUŞTUR</a> : undefined}
+        action={canManageTeams ? <Link prefetch={false} className="portalPrimaryButton" href="/portal/teams?create=1">+ TAKIM OLUŞTUR</Link> : undefined}
       />
 
       {query.deleted ? (
@@ -60,7 +61,7 @@ export default async function PortalTeamsPage({
             </select>
           </label>
           <button type="submit">UYGULA</button>
-          {(q || visibility) ? <a className="subtle" href="/portal/teams">Temizle</a> : null}
+          {(q || visibility) ? <Link prefetch={false} className="subtle" href="/portal/teams">Temizle</Link> : null}
         </form>
         <div className="portalRegistrySummary">
           <span>SONUÇ</span>
@@ -74,7 +75,7 @@ export default async function PortalTeamsPage({
           <div className="portalToolBody">
             <div className="portalInlineToolHead">
               <div><b>Yeni CORE birimi oluştur</b><small>Kod oluşturulduktan sonra kimlik olarak sabit kalır.</small></div>
-              <a href="/portal/teams">Kapat</a>
+              <Link prefetch={false} href="/portal/teams">Kapat</Link>
             </div>
             <form className="portalFormGrid" action={createPortalTeamAction}>
               <label><span>Kod</span><input name="code" placeholder="AI / MAR-2" maxLength={16} required autoFocus /></label>
@@ -109,10 +110,10 @@ export default async function PortalTeamsPage({
                 return (
                   <tr key={teamCode}>
                     <td className="primaryCell">
-                      <a className="portalTeamTableIdentity" href={"/portal/teams/" + encodeURIComponent(teamCode)}>
+                      <Link prefetch={false} className="portalTeamTableIdentity" href={"/portal/teams/" + encodeURIComponent(teamCode)}>
                         <span>{teamCode.slice(0,3)}</span>
                         <div><b>{String(team.name)}</b><small>{teamCode}</small></div>
-                      </a>
+                      </Link>
                     </td>
                     <td>{String(team.domain || "Engineering")}</td>
                     <td><span className="portalStatusText">{String(team.visibility)}</span></td>
@@ -120,7 +121,7 @@ export default async function PortalTeamsPage({
                     <td className="numeric">{Number(team.project_count || 0)}</td>
                     <td className="numeric">{Number(team.vehicle_count || 0)}</td>
                     <td><span className={"portalStatusText "+String(team.status || "active")}>{String(team.status || "active")}</span></td>
-                    <td className="rowActions"><a href={"/portal/teams/" + encodeURIComponent(teamCode)}>Workspace</a></td>
+                    <td className="rowActions"><Link prefetch={false} href={"/portal/teams/" + encodeURIComponent(teamCode)}>Workspace</Link></td>
                   </tr>
                 );
               })}

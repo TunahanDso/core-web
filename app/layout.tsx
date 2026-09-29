@@ -15,7 +15,8 @@ export default async function RootLayout({
   const locale = requestHeaders.get("x-core-locale") === "en" ? "en" : "tr";
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
+      <head><script src="/portal-preferences.js" /></head>
       <body>{children}<CoreRum /></body>
     </html>
   );

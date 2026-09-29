@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CodeRunLiveRefresh } from "@/components/portal/CodeRunLiveRefresh";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
@@ -62,7 +63,7 @@ export default async function PortalCodeRunDetailPage({
         code="CL / JOB EXECUTION"
         title={String(run.command_label)}
         lead="Immutable repository snapshot üzerinde çalışan izole CORE Runner işi. Job aktifken ekran otomatik yenilenir."
-        action={<a className="portalOutlineButton" href="/portal/code-lab">← CODE LAB</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/code-lab">← CODE LAB</Link>}
       />
 
       {query.submitted === "1" ? <div className="portalSuccess">Job runner kuyruğuna gönderildi.</div> : null}

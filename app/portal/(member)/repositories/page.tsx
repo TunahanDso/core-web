@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createRepositoryAction } from "@/app/portal/actions";
 import { createNativeRepositoryAction } from "@/app/portal/engineering-actions";
@@ -36,7 +37,7 @@ export default async function PortalRepositoriesPage({
         code="REPOSITORIES"
         title="Repository Servisi"
         lead="CORE workspace ve harici Git kaynaklarını tek katalogda karşılaştır; gerçek Git remote ile R2 snapshot fallback arasındaki sınırı açık tut."
-        action={<a className="portalOutlineButton" href="/portal/code-lab">Code Lab</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/code-lab">Code Lab</Link>}
       />
 
       {query.created === "native" ? <div className="portalSuccess">Native repository oluşturuldu.</div> : null}
@@ -72,9 +73,9 @@ export default async function PortalRepositoriesPage({
 
       <section className="portalRegistryToolbar">
         <nav className="portalSegmentedControl" aria-label="Repository kapsamı">
-          <a className={scope === "all" ? "active" : ""} href="/portal/repositories">Tümü</a>
-          <a className={scope === "workspace" ? "active" : ""} href="/portal/repositories?scope=workspace">CORE Workspace</a>
-          <a className={scope === "external" ? "active" : ""} href="/portal/repositories?scope=external">Harici Git</a>
+          <Link prefetch={false} className={scope === "all" ? "active" : ""} href="/portal/repositories">Tümü</Link>
+          <Link prefetch={false} className={scope === "workspace" ? "active" : ""} href="/portal/repositories?scope=workspace">CORE Workspace</Link>
+          <Link prefetch={false} className={scope === "external" ? "active" : ""} href="/portal/repositories?scope=external">Harici Git</Link>
         </nav>
 
         <div className="portalRegistrySummary">

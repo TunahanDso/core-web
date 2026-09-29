@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { listProjects } from "@/lib/cms/db";
 import {
@@ -104,7 +105,7 @@ export default async function PortalProjectsPage({
         code="PROJELER"
         title="Proje Çalışma Alanları"
         lead="Projeleri kaynak, durum, sahiplik, readiness ve mühendislik varlıklarıyla aynı düzlemde karşılaştır."
-        action={<a className="portalOutlineButton" href="/portal/project-map">Project Map</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/project-map">Project Map</Link>}
       />
 
       <section className="portalRegistryToolbar">
@@ -136,7 +137,7 @@ export default async function PortalProjectsPage({
             </select>
           </label>
           <button type="submit">UYGULA</button>
-          {(q || source || status || team) ? <a className="subtle" href="/portal/projects">Temizle</a> : null}
+          {(q || source || status || team) ? <Link prefetch={false} className="subtle" href="/portal/projects">Temizle</Link> : null}
         </form>
         <div className="portalRegistrySummary">
           <span>SONUÇ</span>
@@ -165,10 +166,10 @@ export default async function PortalProjectsPage({
               {filtered.map((project)=>(
                 <tr key={project.id}>
                   <td className="primaryCell">
-                    <a href={"/portal/projects/" + encodeURIComponent(project.slug)}>
+                    <Link prefetch={false} href={"/portal/projects/" + encodeURIComponent(project.slug)}>
                       <b>{project.title}</b>
                       <small>{project.slug} · {project.domain}</small>
-                    </a>
+                    </Link>
                   </td>
                   <td><span className={"portalStatusText "+(project.source==="internal"?"active":"")}>{project.source==="internal"?"Internal":"Public CMS"}</span></td>
                   <td>{project.source==="internal" ? String(project.status) : cmsStatusLabel(project.status)}</td>
@@ -182,7 +183,7 @@ export default async function PortalProjectsPage({
                   <td className="numeric">{project.openTasks}</td>
                   <td className="mono">{project.resources} / {project.repos}</td>
                   <td><span className={"portalStatusText "+(project.risk==="critical"?"critical":"")}>{project.risk}</span></td>
-                  <td className="rowActions"><a href={"/portal/projects/" + encodeURIComponent(project.slug)}>Workspace</a></td>
+                  <td className="rowActions"><Link prefetch={false} href={"/portal/projects/" + encodeURIComponent(project.slug)}>Workspace</Link></td>
                 </tr>
               ))}
             </tbody>

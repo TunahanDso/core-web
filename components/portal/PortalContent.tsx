@@ -10,7 +10,7 @@ export default function PortalContent({children}:{children:React.ReactNode}) {
     /^\/portal\/meetings\/[^/]+$/.test(pathname);
 
   return (
-    <div className={"portalContent"+(viewportMode?" portalContentViewport":"")}>
+    <div id="portal-content" tabIndex={-1} className={"portalContent"+(viewportMode?" portalContentViewport":"")}>
       {children}
     </div>
   );

@@ -1,3 +1,5 @@
+import PortalThemeControl from "@/components/portal/PortalThemeControl";
+import Link from "next/link";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import { saveProfileAction } from "@/app/portal/actions";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -42,7 +44,8 @@ export default async function PortalProfilePage({
       <section className="portalProfileGrid">
         <div className="portalPanel">
           <div className="portalPanelHead"><span>PROFİL BİLGİLERİ</span><small>İÇ AĞ</small></div>
-          <form className="portalFormGrid profileForm" action={saveProfileAction}>
+          <div className="portalAppearancePanel"><h2>Görünüm</h2><PortalThemeControl /></div>
+      <form className="portalFormGrid profileForm" action={saveProfileAction}>
             <label className="portalFormWide"><span>Profesyonel başlık</span><input name="headline" defaultValue={String(profile.headline || "")} placeholder="Örn. Otonom Sistemler · Gömülü Yazılım" /></label>
             <label className="portalFormWide"><span>Kısa biyografi</span><textarea name="bio" rows={5} defaultValue={String(profile.bio || "")} /></label>
             <label className="portalFormWide"><span>Yetenekler</span><input name="skills" defaultValue={skills.join(", ")} placeholder="C++, STM32, ROS, PCB, CAD..." /></label>
@@ -74,14 +77,14 @@ export default async function PortalProfilePage({
       </section>
 
       <section className="portalPanel">
-        <div className="portalPanelHead"><span>BANA ATANAN AÇIK İŞLER</span><a href="/portal/tasks">Tüm görevler →</a></div>
+        <div className="portalPanelHead"><span>BANA ATANAN AÇIK İŞLER</span><Link prefetch={false} href="/portal/tasks">Tüm görevler →</Link></div>
         <div className="portalProfessionalList">
           {tasks.length ? tasks.map((task) => (
-            <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
+            <Link prefetch={false} href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
               <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
               <div><b>{String(task.title)}</b><small>{String(task.project_slug || task.team_code || "CORE")}</small></div>
               <em>{portalTaskStatusLabel(String(task.status))}</em>
-            </a>
+            </Link>
           )) : <p className="portalMuted">Şu anda sana atanmış açık görev yok.</p>}
         </div>
       </section>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -314,7 +315,7 @@ export default async function PortalRepositoryReviewPage({
           code="RP-02 / CODE REVIEW"
           title={repo.name}
           lead="Satır bazlı diff, review thread ve review sonucu immutable commit snapshot'larına bağlanır."
-          action={<a className="portalOutlineButton" href={"/portal/repositories/" + encodeURIComponent(repo.slug)}>← WORKSPACE</a>}
+          action={<Link prefetch={false} className="portalOutlineButton" href={"/portal/repositories/" + encodeURIComponent(repo.slug)}>← WORKSPACE</Link>}
         />
         <section className="repoServiceNotice offline">
           <b>DIFF SERVICE UNAVAILABLE</b>
@@ -355,7 +356,7 @@ export default async function PortalRepositoryReviewPage({
         code="RP-02 / CODE REVIEW"
         title={repo.name}
         lead="Gerçek diff hunks, satır bazlı konuşmalar ve review kararları. İnceleme branch adına değil immutable base/head SHA snapshot'ına sabitlenir."
-        action={<a className="portalOutlineButton" href={"/portal/repositories/" + encodeURIComponent(repo.slug)}>← WORKSPACE</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href={"/portal/repositories/" + encodeURIComponent(repo.slug)}>← WORKSPACE</Link>}
       />
 
       <section className="repoReviewSnapshot">

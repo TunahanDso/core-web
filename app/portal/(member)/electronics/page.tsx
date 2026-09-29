@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalResources } from "@/lib/portal/db";
@@ -28,7 +29,7 @@ export default async function PortalElectronicsPage() {
         code="HW / PCB & ELEKTRONİK"
         title="Elektronik Tasarım Alanı"
         lead="KiCad, Gerber, drill, BOM, Pick&Place ve kart türevlerini revision geçmişi ve proje bağlamıyla CORE Vault üzerinde tut."
-        action={<a className="portalOutlineButton" href="/portal/library">VAULT'A DOSYA YÜKLE →</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/library">VAULT'A DOSYA YÜKLE →</Link>}
       />
 
       <section className="portalHardwareRibbon">
@@ -44,13 +45,13 @@ export default async function PortalElectronicsPage() {
       {files.length ? (
         <div className="vaultFileGrid">
           {files.map((item) => (
-            <a href={"/portal/library/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
+            <Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
               <header><span>{String(item.kind).toUpperCase()}</span><small>R{String(item.revision)} · {String(item.approval_state).toUpperCase()}</small></header>
               <div className="vaultFileIcon">{String(item.extension || "PCB").toUpperCase()}</div>
               <h3>{String(item.title)}</h3>
               <p>{String(item.description || item.original_name)}</p>
               <footer><span>{String(item.project_slug || item.team_code || "CORE")}</span><small>{formatVaultBytes(item.size_bytes)} · {String(item.preview_kind)}</small></footer>
-            </a>
+            </Link>
           ))}
         </div>
       ) : <PortalEmpty title="Elektronik Vault rafı hazır." text="İlk KiCad, Gerber, BOM veya drill dosyasını Vault üzerinden yükle." />}

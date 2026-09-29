@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   deleteControlCenterEntityAction,
@@ -265,13 +266,13 @@ export default function ControlCenterRegistry({
         </label>
         <div className="controlCenterTabs">
           {GROUPS.map((item)=>(
-            <a
+            <Link prefetch={false}
               className={activeType===item.type?"active":""}
               key={item.type}
               href={"/portal/control-center?type=" + encodeURIComponent(item.type)}
             >
               {item.code} · {item.label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
@@ -324,7 +325,7 @@ export default function ControlCenterRegistry({
               <input type="hidden" name="entityId" value={selectedId} />
               <EditorFields type={activeType} row={selected} teams={teams} projects={projects} members={members} />
               <div className="controlCenterFormActions">
-                {activeType === "roles" ? <a className="portalOutlineButton" href="/portal/members#role-studio">ROLE STUDIO →</a> : null}
+                {activeType === "roles" ? <Link prefetch={false} className="portalOutlineButton" href="/portal/members#role-studio">ROLE STUDIO →</Link> : null}
                 <button className="portalPrimaryButton" type="submit">DEĞİŞİKLİKLERİ KAYDET</button>
               </div>
             </form>

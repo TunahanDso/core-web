@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listPortalResources } from "@/lib/portal/db";
@@ -28,14 +29,14 @@ export default async function PortalArchivePage({
         code="ARŞİV"
         title="Mühendislik Arşivi"
         lead="Emekli tasarımlar, tarihsel kanıtlar ve toplantı raporlarını silmeden, kaynağıyla birlikte koru."
-        action={<a className="portalOutlineButton" href="/portal/library?state=archived">Vault arşivi</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/library?state=archived">Vault arşivi</Link>}
       />
 
       <section className="portalRegistryToolbar">
         <form action="/portal/archive" method="get">
           <label className="grow"><span>ARA</span><input name="q" defaultValue={String(query.q||"")} placeholder="Dosya, toplantı raporu, proje..."/></label>
           <button type="submit">ARA</button>
-          {q?<a className="subtle" href="/portal/archive">Temizle</a>:null}
+          {q?<Link prefetch={false} className="subtle" href="/portal/archive">Temizle</Link>:null}
         </form>
         <div className="portalRegistrySummary"><span>KAYIT</span><b>{fileRows.length+resourceRows.length}</b><small>arşiv öğesi</small></div>
       </section>
@@ -47,8 +48,8 @@ export default async function PortalArchivePage({
             <tbody>
               {fileRows.map(item=>(
                 <tr key={"vault:"+String(item.id)}>
-                  <td className="primaryCell"><a href={"/portal/library/"+encodeURIComponent(String(item.id))}><b>{String(item.title)}</b><small>{String(item.description||item.original_name)}</small></a></td>
-                  <td>Vault</td><td className="mono">R{String(item.revision)}</td><td className="mono">{String(item.project_slug||item.team_code||"CORE")}</td><td className="numeric">{formatVaultBytes(item.size_bytes)}</td><td className="rowActions"><a href={"/portal/library/"+encodeURIComponent(String(item.id))}>Aç</a></td>
+                  <td className="primaryCell"><Link prefetch={false} href={"/portal/library/"+encodeURIComponent(String(item.id))}><b>{String(item.title)}</b><small>{String(item.description||item.original_name)}</small></Link></td>
+                  <td>Vault</td><td className="mono">R{String(item.revision)}</td><td className="mono">{String(item.project_slug||item.team_code||"CORE")}</td><td className="numeric">{formatVaultBytes(item.size_bytes)}</td><td className="rowActions"><Link prefetch={false} href={"/portal/library/"+encodeURIComponent(String(item.id))}>Aç</Link></td>
                 </tr>
               ))}
               {resourceRows.map(item=>(

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createTaskAction, updateTaskStatusAction } from "@/app/portal/actions";
 import { listPortalMembers, listPortalTasks } from "@/lib/portal/db";
@@ -188,7 +189,7 @@ export default async function PortalTasksPage({
           })
           .slice(0,40)
           .map((task) => (
-            <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
+            <Link prefetch={false} href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
               <div className="portalNativeTaskTop">
                 <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                 <em>{portalTaskStatusLabel(String(task.status))}</em>
@@ -199,7 +200,7 @@ export default async function PortalTasksPage({
                 <span>{String(task.assignee_name || "Atanmamış")}</span>
                 <small>{String(task.project_slug || task.team_code || "CORE")}</small>
               </footer>
-            </a>
+            </Link>
           ))}
       </section>
 
@@ -222,10 +223,10 @@ export default async function PortalTasksPage({
                 {filteredTasks.map((task) => (
                   <tr key={String(task.id)}>
                     <td className="primaryCell">
-                      <a href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
+                      <Link prefetch={false} href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
                         <b>{String(task.title)}</b>
                         <small>{String(task.description || "Açıklama yok.")}</small>
-                      </a>
+                      </Link>
                     </td>
                     <td><span className={"portalStatusText "+String(task.status)}>{portalTaskStatusLabel(String(task.status))}</span></td>
                     <td><span className={"portalPriority "+String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span></td>
@@ -265,10 +266,10 @@ export default async function PortalTasksPage({
                       <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
                       <small>{String(task.project_slug || task.team_code || "CORE")}</small>
                     </div>
-                    <a className="portalTaskOpen" href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
+                    <Link prefetch={false} className="portalTaskOpen" href={"/portal/tasks/" + encodeURIComponent(String(task.id))}>
                       <h3>{String(task.title)}</h3>
                       <p>{String(task.description || "")}</p>
-                    </a>
+                    </Link>
                     <div className="portalTaskCardFacts">
                       <small>{String(task.assignee_name || "Atanmamış")}</small>
                       <small>{task.due_at ? String(task.due_at) : "Son tarih yok"}</small>

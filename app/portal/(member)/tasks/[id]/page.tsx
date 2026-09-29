@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalPageHeader } from "@/components/portal/PortalPage";
 import {
   addTaskCommentAction,
@@ -42,7 +43,7 @@ export default async function PortalTaskDetailPage({
         code={"TASK / " + String(task.id).slice(0, 8).toUpperCase()}
         title={String(task.title)}
         lead={String(task.description || "Bu görev için açıklama eklenmemiş.")}
-        action={<a className="portalOutlineButton" href="/portal/tasks">← GÖREV PANOSU</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/tasks">← GÖREV PANOSU</Link>}
       />
 
       {query.saved === "1" ? <div className="portalSuccess">Görev ayrıntıları güncellendi.</div> : null}

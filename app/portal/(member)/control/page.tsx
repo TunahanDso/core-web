@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -156,7 +157,7 @@ export default async function PortalControlPlanePage({
         code="CONTROL PLANE"
         title="CORE Ağır Kontrol"
         lead="Yönetişim araçlarını tek sayfaya yığmak yerine proje, araç, takım ve rol bağlamlarına ayır."
-        action={<a className="portalOutlineButton" href="/portal/project-map">Project Map</a>}
+        action={<Link prefetch={false} className="portalOutlineButton" href="/portal/project-map">Project Map</Link>}
       />
 
       <section className="portalCompactServiceStrip portalControlSummaryStrip">
@@ -294,7 +295,7 @@ export default async function PortalControlPlanePage({
                 <tbody>
                   {projectCatalog.map((project)=>(
                     <tr key={project.slug}>
-                      <td className="primaryCell"><a href={"/portal/projects/"+encodeURIComponent(project.slug)}><b>{project.title}</b><small>{project.slug}</small></a></td>
+                      <td className="primaryCell"><Link prefetch={false} href={"/portal/projects/"+encodeURIComponent(project.slug)}><b>{project.title}</b><small>{project.slug}</small></Link></td>
                       <td>{project.internal ? "Internal" : "Showcase"}</td>
                       <td className="mono">{project.team}</td>
                       <td><span className={"portalStatusText "+project.status}>{project.status}</span></td>
@@ -458,7 +459,7 @@ export default async function PortalControlPlanePage({
       {section === "roles" && canRoles ? (
         <>
           <section className="portalRegistryToolbar">
-            <div className="portalRegistryTabs"><a href="/portal/members?roles=1">Rol politikalarını düzenle</a></div>
+            <div className="portalRegistryTabs"><Link prefetch={false} href="/portal/members?roles=1">Rol politikalarını düzenle</Link></div>
             <div className="portalRegistrySummary"><span>GRANT</span><b>{capabilityGrants.length}</b><small>explicit capability</small></div>
             <a className="primary" href={controlHref("roles",{tool:"grant"})}>+ Capability grant</a>
           </section>
@@ -475,7 +476,7 @@ export default async function PortalControlPlanePage({
                       <td>{String(profile.scope)}</td>
                       <td>{String(profile.description || "—")}</td>
                       <td className="numeric">{capabilities.length}</td>
-                      <td className="rowActions"><a href="/portal/members?roles=1">Politikayı aç</a></td>
+                      <td className="rowActions"><Link prefetch={false} href="/portal/members?roles=1">Politikayı aç</Link></td>
                     </tr>
                   );
                 })}

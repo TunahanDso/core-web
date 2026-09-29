@@ -31,10 +31,10 @@ export default function PortalNav({ canControl }: { canControl: boolean }) {
     .flatMap((group)=>group.items)
     .filter(([,href])=>PRIMARY_HREFS.has(href));
 
-  const contextual=visibleGroups.map((group)=>({
+  const contextual=useMemo(() => visibleGroups.map((group)=>({
     ...group,
     items:group.items.filter(([,href])=>!PRIMARY_HREFS.has(href)),
-  })).filter((group)=>group.items.length);
+  })).filter((group)=>group.items.length), [visibleGroups]);
 
   const routeGroup=Math.max(0,contextual.findIndex((group)=>
     group.items.some(([,href])=>pathname===href||pathname.startsWith(href+"/"))
@@ -79,12 +79,12 @@ export default function PortalNav({ canControl }: { canControl: boolean }) {
 
       {active ? (
         <section className="portalNavContext">
-          <div className="portalNavGroupTabs" role="tablist" aria-label="Portal modül grupları">
+          <div className="portalNavGroupTabs" role="group" aria-label="Portal modül grupları">
             {contextual.map((group,index)=>(
               <button
                 type="button"
-                role="tab"
-                aria-selected={index===activeGroup}
+
+                aria-pressed={index===activeGroup}
                 className={index===activeGroup?"active":""}
                 key={group.label}
                 onClick={()=>setActiveGroup(index)}

@@ -83,8 +83,11 @@ const quickCommands: CommandItem[] = [
 
 const allCommands = [...quickCommands, ...moduleCommands];
 
-export default function PortalCommandCenter() {
+export default function PortalCommandCenter({ canControl = false }: { canControl?: boolean }) {
   const pathname = usePathname();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const commands = useMemo(() => allCommands.filter(item => canControl || !["/portal/control", "/portal/control-center"].includes(item.href)), [canControl]);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -122,8 +125,14 @@ export default function PortalCommandCenter() {
     if (!open) return;
     setQuery("");
     setActiveIndex(0);
-    const timer = window.setTimeout(() => inputRef.current?.focus(), 20);
-    return () => window.clearTimeout(timer);
+    dialogRef.current?.showModal();
+    inputRef.current?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      triggerRef.current?.focus();
+    };
   }, [open]);
 
   useEffect(() => {
@@ -133,7 +142,7 @@ export default function PortalCommandCenter() {
   const normalized = query.trim().toLocaleLowerCase("tr-TR");
   const results = useMemo(() => {
     if (normalized) {
-      const filtered = allCommands.filter((item) =>
+      const filtered = commands.filter((item) =>
         (item.label + " " + item.hint + " " + item.keywords)
           .toLocaleLowerCase("tr-TR")
           .includes(normalized)
@@ -142,11 +151,11 @@ export default function PortalCommandCenter() {
     }
 
     const recentItems = recents
-      .map((href) => allCommands.find((item) => item.href === href))
+      .map((href) => commands.find((item) => item.href === href))
       .filter((item): item is CommandItem => Boolean(item));
     const recentSet = new Set(recentItems.map((item) => item.href));
     return [...recentItems, ...quickCommands.filter((item) => !recentSet.has(item.href))].slice(0, 10);
-  }, [normalized, recents]);
+  }, [normalized, recents, commands]);
 
   const persistRecent = (href: string) => {
     const next = [href, ...recents.filter((item) => item !== href)].slice(0, 6);
@@ -175,32 +184,38 @@ export default function PortalCommandCenter() {
     <>
       <button
         type="button"
+        ref={triggerRef}
         className="portalCommandTrigger"
         onClick={() => setOpen(true)}
-        aria-label="CORE komut merkezini aç"
+        aria-label="Portalda ara veya bir sayfaya git"
+        aria-haspopup="dialog"
+        aria-expanded={open}
       >
-        <span>⌘</span>
-        <b>Komut</b>
+        <span aria-hidden="true">⌕</span>
+        <b>Ara veya bir sayfaya git…</b>
         <kbd>Ctrl / ⌘ K</kbd>
       </button>
 
       {open ? (
-        <div
+        <dialog
+          ref={dialogRef}
+          onCancel={() => setOpen(false)}
+          aria-label="Portal arama ve gezinme"
           className="portalCommandBackdrop"
-          role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setOpen(false);
           }}
         >
-          <section className="portalCommandPalette" role="dialog" aria-modal="true" aria-label="CORE Komut Merkezi">
+          <section className="portalCommandPalette">
             <header>
-              <span>CORE COMMAND CENTER</span>
+              <span>Ara ve git</span>
               <button type="button" onClick={() => setOpen(false)}>ESC</button>
             </header>
 
             <div className="portalCommandSearch">
               <span>⌕</span>
               <input
+                aria-label="Modül, işlem veya kayıt ara"
                 ref={inputRef}
                 value={query}
                 onChange={(event) => {
@@ -262,7 +277,7 @@ export default function PortalCommandCenter() {
               <span><kbd>Esc</kbd> kapat</span>
             </footer>
           </section>
-        </div>
+        </dialog>
       ) : null}
     </>
   );

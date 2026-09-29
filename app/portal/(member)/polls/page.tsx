@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { listAccessiblePortalTeams } from "@/lib/portal/control";
@@ -39,8 +40,8 @@ export default async function PortalPollsPage({
 
       <section className="portalRegistryToolbar">
         <nav className="portalSegmentedControl">
-          <a className={filter==="open"?"active":""} href="/portal/polls">Açık</a>
-          <a className={filter==="all"?"active":""} href="/portal/polls?filter=all">Tümü</a>
+          <Link prefetch={false} className={filter==="open"?"active":""} href="/portal/polls">Açık</Link>
+          <Link prefetch={false} className={filter==="all"?"active":""} href="/portal/polls?filter=all">Tümü</Link>
         </nav>
         <div className="portalRegistrySummary"><span>OYLAMA</span><b>{visible.length}</b><small>görünür kayıt</small></div>
       </section>
@@ -50,7 +51,7 @@ export default async function PortalPollsPage({
           <div className="portalToolBody">
             <div className="portalInlineToolHead">
               <div><b>Genel / takım oylaması aç</b><small>Açıldığında ilgili kullanıcılara Portal bildirimi düşer.</small></div>
-              <a href="/portal/polls">Kapat</a>
+              <Link prefetch={false} href="/portal/polls">Kapat</Link>
             </div>
             <form className="portalFormGrid" action={createGeneralPollAction}>
               <label className="portalFormWide"><span>Başlık</span><input name="title" required autoFocus /></label>
