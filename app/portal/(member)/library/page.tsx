@@ -28,15 +28,15 @@ export default async function PortalKütüphanePage({
   return (
     <>
       <PortalPageHeader
-        code="DOSYALAR"
+        code="VAULT"
         title="Mühendislik Dosyaları"
-        lead="Teknik dosyaları proje, revizyon ve sahiplik bağlamıyla bul, incele ve sürümle."
-        action={<a className="portalPrimaryButton" href="/portal/library?upload=1#upload">YÜKLE ↑</a>}
+        lead="Dosyaları revizyon, tür, kapsam, onay durumu ve boyut bilgisiyle tek registry içinde yönet."
+        action={<a className="portalPrimaryButton" href="/portal/library?upload=1#upload">+ DOSYA YÜKLE</a>}
       />
 
-      <section className="vaultLibraryToolbar portalWorkbenchToolbar">
+      <section className="portalRegistryToolbar vaultLibraryToolbar">
         <form method="get" action="/portal/library">
-          <label className="vaultSearchInput">
+          <label className="grow">
             <span>ARA</span>
             <input name="q" defaultValue={q} placeholder="Dosya, proje, takım veya etiket..." />
           </label>
@@ -62,31 +62,50 @@ export default async function PortalKütüphanePage({
             </select>
           </label>
           <button type="submit">UYGULA</button>
+          {(q || kind || lifecycle !== "active") ? <a className="subtle" href="/portal/library">Temizle</a> : null}
         </form>
-        <div className="vaultLibrarySummary">
+        <div className="portalRegistrySummary">
           <span>SONUÇ</span>
           <b>{vaultFiles.length}</b>
-          <small>{lifecycle === "active" ? "aktif dosya" : lifecycle === "archived" ? "arşiv kaydı" : "çöp kaydı"}</small>
+          <small>{lifecycle === "active" ? "aktif" : lifecycle === "archived" ? "arşiv" : "çöp"}</small>
         </div>
       </section>
 
       {vaultFiles.length ? (
-        <div className="vaultFileGrid">
-          {vaultFiles.map((item) => (
-            <a href={"/portal/library/" + encodeURIComponent(String(item.id))} key={String(item.id)}>
-              <header>
-                <span>{String(item.kind).toUpperCase()}</span>
-                <small>R{String(item.revision)} · {String(item.approval_state).toUpperCase()}</small>
-              </header>
-              <div className="vaultFileIcon">{String(item.extension || "FILE").slice(0,8).toUpperCase()}</div>
-              <h3>{String(item.title)}</h3>
-              <p>{String(item.description || item.original_name)}</p>
-              <footer>
-                <span>{String(item.project_slug || item.team_code || "CORE")}</span>
-                <small>{formatVaultBytes(item.size_bytes)} · {String(item.preview_kind)}</small>
-              </footer>
-            </a>
-          ))}
+        <div className="portalDataTableShell">
+          <table className="portalDataTable portalVaultDataTable">
+            <thead>
+              <tr>
+                <th scope="col">Dosya</th>
+                <th scope="col">Tür</th>
+                <th scope="col">Revizyon</th>
+                <th scope="col">Kapsam</th>
+                <th scope="col">Boyut</th>
+                <th scope="col">Onay</th>
+                <th scope="col">Preview</th>
+                <th scope="col">İşlem</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vaultFiles.map((item)=>(
+                <tr key={String(item.id)}>
+                  <td className="primaryCell">
+                    <a href={"/portal/library/" + encodeURIComponent(String(item.id))}>
+                      <b>{String(item.title)}</b>
+                      <small>{String(item.original_name || item.description || "")}</small>
+                    </a>
+                  </td>
+                  <td><div className="portalFileTypeCell"><span>{String(item.extension || "FILE").slice(0,8).toUpperCase()}</span><small>{String(item.kind)}</small></div></td>
+                  <td className="mono">R{String(item.revision)}</td>
+                  <td className="mono">{String(item.project_slug || item.team_code || "CORE")}</td>
+                  <td className="numeric">{formatVaultBytes(item.size_bytes)}</td>
+                  <td><span className={"portalStatusText "+String(item.approval_state)}>{String(item.approval_state)}</span></td>
+                  <td>{String(item.preview_kind || "—")}</td>
+                  <td className="rowActions"><a href={"/portal/library/" + encodeURIComponent(String(item.id))}>İncele</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <PortalEmpty
@@ -106,23 +125,36 @@ export default async function PortalKütüphanePage({
       </details>
 
       {legacyResources.length ? (
-        <details className="portalPanel vaultLegacyIndex">
+        <details className="portalToolSurface portalLegacyRegistry">
           <summary>
-            <div><span>ESKİ BAĞLANTI KAYITLARI</span><b>{legacyResources.length} legacy kayıt</b></div>
-            <small>V1 · sadece referans</small>
+            <div><b>Eski bağlantı kayıtları</b><small>V1 · {legacyResources.length} referans</small></div>
+            <span>Göster</span>
           </summary>
-          <div className="portalResourceGrid">
-            {legacyResources.slice(0,24).map((item) => (
-              <article key={String(item.id)}>
-                <div><span>{portalResourceKindLabel(String(item.kind))}</span><small>{String(item.team_code || "CORE")}</small></div>
-                <h3>{String(item.title)}</h3>
-                <p>{String(item.description || "")}</p>
-                <footer>
-                  <small>{String(item.project_slug || "legacy")}</small>
-                  {item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">HARİCİ AÇ ↗</a> : <span>LEGACY</span>}
-                </footer>
-              </article>
-            ))}
+          <div className="portalToolBody">
+            <div className="portalDataTableShell">
+              <table className="portalDataTable portalLegacyDocumentTable">
+                <thead>
+                  <tr>
+                    <th scope="col">Kayıt</th>
+                    <th scope="col">Tür</th>
+                    <th scope="col">Takım</th>
+                    <th scope="col">Proje</th>
+                    <th scope="col">Kaynak</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {legacyResources.slice(0,80).map((item)=>(
+                    <tr key={String(item.id)}>
+                      <td className="primaryCell"><div><b>{String(item.title)}</b><small>{String(item.description || "")}</small></div></td>
+                      <td>{portalResourceKindLabel(String(item.kind))}</td>
+                      <td className="mono">{String(item.team_code || "CORE")}</td>
+                      <td className="mono">{String(item.project_slug || "legacy")}</td>
+                      <td className="rowActions">{item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">Harici aç ↗</a> : <span>Legacy</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </details>
       ) : null}
