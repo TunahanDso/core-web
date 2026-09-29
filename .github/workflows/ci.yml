@@ -182,7 +182,7 @@ jobs:
             if (!(runnerConfig.containers ?? []).length || !(runnerConfig.workflows ?? []).length) {
               throw new Error("CORE Runner Wrangler config must declare both Containers and Workflows.");
             }
-            if (rootConfig.vars?.CORE_RUNNER_URL !== "https://core-runner.oyuncunun61.workers.dev") {
+            if (rootConfig.vars?.CORE_RUNNER_URL !== "https://runner.ytucore.com") {
               throw new Error("Portal CORE_RUNNER_URL is not pointed at the production runner service.");
             }
             const vaultLibrary = fs.readFileSync("app/portal/(member)/library/page.tsx", "utf8");
