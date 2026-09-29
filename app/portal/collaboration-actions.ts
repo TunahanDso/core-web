@@ -35,6 +35,12 @@ function parseMinor(value: FormDataEntryValue | null) {
   return Math.round(amount*100);
 }
 
+function parsePositiveMinor(value: FormDataEntryValue | null) {
+  const minor=parseMinor(value);
+  if(minor<=0) throw new Error("Tutar sıfırdan büyük olmalı.");
+  return minor;
+}
+
 export async function createMeetingSpaceAction(formData: FormData) {
   const member=await requirePortalMember();
   const name=textValue(formData,"name");
@@ -222,7 +228,7 @@ export async function createBudgetEntryAction(formData: FormData) {
     accountId,
     entryType,
     category:textValue(formData,"category") || "general",
-    amountMinor:parseMinor(formData.get("amount")),
+    amountMinor:parsePositiveMinor(formData.get("amount")),
     description,
     occurredAt:textValue(formData,"occurredAt") || new Date().toISOString(),
     teamCode:textValue(formData,"teamCode") || null,
@@ -240,7 +246,7 @@ export async function approveBudgetEntryAction(formData: FormData) {
   const accountId=textValue(formData,"accountId");
   const status=textValue(formData,"status")==="rejected" ? "rejected" : "approved";
   if(!entryId) throw new Error("Bütçe hareketi kimliği gerekli.");
-  await approveBudgetEntry(entryId,member.id,status);
+  await approveBudgetEntry(entryId,member.id,status,member.role==="admin");
   revalidatePath("/portal/budget");
   redirect("/portal/budget"+(accountId?"?account="+encodeURIComponent(accountId):""));
 }
