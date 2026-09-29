@@ -13,7 +13,7 @@ export async function GET(
   const detail=await getPortalCodeRunDetail(member,decodeURIComponent(id));
   if(!detail) return new Response("Not found",{status:404});
   return Response.json(
-    { status:String(detail.run.status), updatedAt:String(detail.run.updated_at || "") },
+    { status:String(detail.run.status) },
     { headers:{ "Cache-Control":"private, no-store, max-age=0" } }
   );
 }
