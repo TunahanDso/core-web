@@ -150,8 +150,16 @@ jobs:
             for (const required of ["WebSocket", "onData", "@xterm/xterm", "@xterm/addon-fit"]) {
               if (!liveTerminal.includes(required)) throw new Error(`CL-02 terminal client missing: ${required}`);
             }
-            for (const required of ["WebSocketPair", "ctx.container.exec", "/v1/terminals", "terminalSocket", "stdin: \"pipe\""]) {
-              if (!runnerWorker.includes(required)) throw new Error(`CL-02 runner terminal transport missing: ${required}`);
+            const terminalServer = fs.readFileSync("services/core-runner/terminal_server.cjs", "utf8");
+            const runnerDockerfile = fs.readFileSync("services/core-runner/Dockerfile", "utf8");
+            for (const required of ["getTcpPort(8081)", "requiredPorts = [8080, 8081]", "/v1/terminals", "terminalSocket"]) {
+              if (!runnerWorker.includes(required)) throw new Error(`CL-02.1 container websocket transport missing: ${required}`);
+            }
+            for (const required of ["WebSocketServer", "script", "CORE_RUNNER_NETWORK", "coreTerminal", "8081"]) {
+              if (!terminalServer.includes(required)) throw new Error(`CL-02.1 terminal server missing: ${required}`);
+            }
+            if (!runnerDockerfile.includes("EXPOSE 8080 8081") || !runnerDockerfile.includes("terminal_server.cjs")) {
+              throw new Error("CL-02.1 Docker image must expose and start the terminal websocket service.");
             }
             if (!runnerSandbox.includes("/prepare-terminal") || !runnerSandbox.includes("prepare_terminal")) {
               throw new Error("CL-02 sandbox must materialize an isolated terminal workspace.");
@@ -162,7 +170,7 @@ jobs:
             if (rootConfig.vars?.CORE_RUNNER_URL !== "https://core-runner.oyuncunun61.workers.dev") {
               throw new Error("Portal CORE_RUNNER_URL is not pointed at the production runner service.");
             }
-            console.log("CL-02 Code Lab jobs + WebSocket live terminal isolation validated.");
+            console.log("CL-02.1 Code Lab jobs + direct container WebSocket terminal isolation validated.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
             if (!mailSource.includes("not_configured")) {
