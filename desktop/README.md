@@ -67,29 +67,48 @@ That query flag activates the desktop-density layer without forking the portal U
 See `desktop/PERFORMANCE.md` before adding any background service, polling loop, additional WebView or native plugin.
 
 
-## Stable Windows download channel
+## Internal Windows signing and distribution
 
-Stable Windows distribution is fail-closed. A `main` build may publish to `desktop-latest` only after Authenticode signing succeeds with the configured Windows code-signing certificate.
+CORE Desktop uses a private team trust chain rather than a paid public code-signing CA.
 
-The member-facing Portal never links to a transient Actions artifact. It links to:
+### Trust chain
+
+- Root: `YTU CORE Internal Root CA`
+- Signer: `YTU CORE Desktop Internal Signing`
+- Root lifetime: 10 years
+- Desktop signer lifetime: 3 years
+- Root SHA-256: `72:26:F0:5A:90:67:F3:19:05:27:7A:93:21:5C:2B:CE:62:3E:2D:EF:B3:82:E9:8C:BE:65:A7:4E:69:A9:A2:95`
+- Signer SHA-256: `76:1E:FD:F0:30:90:D7:EE:30:B3:B1:1F:1A:E5:DE:A1:6F:28:5D:99:C8:1C:A6:17:0A:7E:C5:28:A4:DC:F2:B5`
+
+The public certificates and the per-user installer live under `public/desktop/trust/`. Private keys never live in the repository.
+
+The Devices panel asks members to establish trust first, then download the application. The PowerShell installer verifies both certificate fingerprints before adding the Root CA to the current user's `Root` store and the signer certificate to `TrustedPublisher`.
+
+### CI secrets
+
+Stable internal builds require:
+
+- `WINDOWS_SIGNING_CERT_PFX_BASE64`
+- `WINDOWS_SIGNING_CERT_PASSWORD`
+
+The GitHub workflow imports the public internal trust chain only on the ephemeral runner, signs the executable with the PFX from repository secrets, verifies the Authenticode signature, and publishes only successful signed builds.
+
+PR artifacts remain explicitly `UNSIGNED-DEV`.
+
+### Distribution channel
+
+The authenticated portal route:
 
 ```text
 /api/portal/desktop/download/windows
 ```
 
-That authenticated route redirects to the fixed release asset:
+redirects only to:
 
 ```text
-desktop-latest/YTU-CORE-Desktop-Windows-x64.exe
+desktop-internal/YTU-CORE-Desktop-Windows-x64.exe
 ```
 
-Pull-request artifacts are explicitly labeled **UNSIGNED-DEV** and are not a team distribution channel.
+The previous unsigned `desktop-latest` channel is not used for team distribution.
 
-The authenticated download endpoint remains disabled until `PORTAL_DESKTOP_WINDOWS_RELEASE_ENABLED=true` is set after the first verified signed release.
-
-Required GitHub Actions secrets for stable Windows publishing:
-
-- `WINDOWS_SIGNING_CERT_PFX_BASE64`
-- `WINDOWS_SIGNING_CERT_PASSWORD`
-
-A build without those secrets fails before publishing. A failed signing or signature verification step also blocks the release.
+> Internal signing is deliberate trust for managed CORE devices. It does not create Microsoft SmartScreen/public-CA reputation on arbitrary Windows computers.
