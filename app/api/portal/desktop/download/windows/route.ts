@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { getPortalMember } from "@/lib/portal/auth";
 
 export const dynamic = "force-dynamic";
@@ -11,12 +12,22 @@ export async function GET() {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  if (String(env.PORTAL_DESKTOP_WINDOWS_RELEASE_ENABLED || "false").toLowerCase() !== "true") {
+    return Response.json({
+      error:"desktop_release_unavailable",
+      message:"Windows stable channel is disabled until a verified Authenticode-signed release is published.",
+    }, {
+      status:503,
+      headers:{ "Cache-Control":"private, no-store, max-age=0" },
+    });
+  }
+
   return new Response(null, {
     status: 307,
     headers: {
       Location: WINDOWS_LATEST,
       "Cache-Control": "private, no-store, max-age=0",
-      "X-CORE-Desktop-Channel": "latest",
+      "X-CORE-Desktop-Channel": "signed-latest",
     },
   });
 }
