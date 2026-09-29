@@ -175,14 +175,10 @@ async function persistRunResult(env, payload, snapshot, result) {
 
 export class RunnerContainer extends Container {
   defaultPort = 8080;
+  requiredPorts = [8080, 8081];
   sleepAfter = "15m";
   enableInternet = false;
   pingEndpoint = "localhost/health";
-
-  constructor(ctx, env) {
-    super(ctx, env);
-    this.env = env;
-  }
 
   async fetch(request) {
     const url = new URL(request.url);
@@ -193,121 +189,20 @@ export class RunnerContainer extends Container {
       return responseJson({ error:"websocket_required" }, { status:426 });
     }
 
-    if (!this.ctx.container.running) await this.start();
-
     const sessionId = String(request.headers.get("x-core-terminal-session") || "");
     if (!/^[a-f0-9-]{36}$/i.test(sessionId)) {
       return responseJson({ error:"invalid_terminal_session" }, { status:400 });
     }
-    const workspace = "/tmp/core-terminal/" + sessionId;
-    const cols = Math.max(40, Math.min(240, Number(url.searchParams.get("cols") || 120) || 120));
-    const rows = Math.max(12, Math.min(100, Number(url.searchParams.get("rows") || 32) || 32));
-    const shell = "stty cols " + Math.round(cols) + " rows " + Math.round(rows) +
-      "; printf '\\033[38;5;208mCORE LIVE TERMINAL\\033[0m  snapshot workspace hazır\\r\\n'; " +
-      "exec bash --noprofile --norc -i";
 
-    const process = await this.ctx.container.exec(
-      ["script", "-qefc", shell, "/dev/null"],
-      {
-        cwd: workspace,
-        env: {
-          HOME: workspace,
-          TERM: "xterm-256color",
-          COLORTERM: "truecolor",
-          CORE_RUNNER_NETWORK: "deny",
-          PS1: "\\[\\033[38;5;208m\\]core\\[\\033[0m\\]:\\[\\033[36m\\]\\w\\[\\033[0m\\]$ ",
-        },
-        user: "runner",
-        stdin: "pipe",
-        stdout: "pipe",
-        stderr: "combined",
-      }
-    );
+    if (!this.ctx.container.running) {
+      await this.startAndWaitForPorts({ ports:[8080,8081] });
+    } else {
+      await this.waitForPort({ portToCheck:8081,retries:30,waitInterval:100 });
+    }
 
-    const pair = new WebSocketPair();
-    const client = pair[0];
-    const server = pair[1];
-    server.accept();
-
-    const writer = process.stdin?.getWriter();
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
-    let writeChain = Promise.resolve();
-    let finished = false;
-
-    const touch = async () => {
-      try {
-        await this.env.DB.prepare(
-          "UPDATE portal_code_terminal_sessions SET last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
-        ).bind(sessionId).run();
-      } catch {}
-    };
-    const closeSession = async (status = "closed") => {
-      if (finished) return;
-      finished = true;
-      try {
-        await this.env.DB.prepare(
-          "UPDATE portal_code_terminal_sessions SET status=?,ended_at=COALESCE(ended_at,CURRENT_TIMESTAMP),last_activity_at=CURRENT_TIMESTAMP WHERE id=?"
-        ).bind(status,sessionId).run();
-      } catch {}
-    };
-
-    server.addEventListener("message", (event) => {
-      let message = null;
-      try { message = JSON.parse(String(event.data || "")); } catch {}
-      if (!message || typeof message !== "object") return;
-      if (message.type === "input" && writer) {
-        const data = String(message.data || "").slice(0, 32 * 1024);
-        writeChain = writeChain
-          .then(() => writer.write(encoder.encode(data)))
-          .then(touch)
-          .catch(() => {});
-      } else if (message.type === "ping") {
-        try { server.send(JSON.stringify({ type:"pong",at:Date.now() })); } catch {}
-      } else if (message.type === "signal" && String(message.signal) === "SIGINT" && writer) {
-        writeChain = writeChain
-          .then(() => writer.write(encoder.encode("\u0003")))
-          .then(touch)
-          .catch(() => {});
-      }
-    });
-
-    server.addEventListener("close", () => {
-      try { process.kill(); } catch {}
-      if (writer) writeChain = writeChain.then(() => writer.close()).catch(() => {});
-      this.ctx.waitUntil(closeSession("closed"));
-    });
-
-    server.addEventListener("error", () => {
-      try { process.kill(); } catch {}
-      this.ctx.waitUntil(closeSession("failed"));
-    });
-
-    this.ctx.waitUntil((async () => {
-      try {
-        if (process.stdout) {
-          for await (const chunk of process.stdout) {
-            const data = decoder.decode(chunk, { stream:true });
-            if (data) {
-              try { server.send(JSON.stringify({ type:"output",data })); } catch { break; }
-            }
-          }
-          const tail = decoder.decode();
-          if (tail) {
-            try { server.send(JSON.stringify({ type:"output",data:tail })); } catch {}
-          }
-        }
-        const exitCode = await process.exitCode;
-        try { server.send(JSON.stringify({ type:"exit",exitCode })); } catch {}
-        await closeSession("closed");
-        try { server.close(1000, "terminal process ended"); } catch {}
-      } catch {
-        await closeSession("failed");
-        try { server.close(1011, "terminal stream failed"); } catch {}
-      }
-    })());
-
-    return new Response(null, { status:101, webSocket:client });
+    const port = this.ctx.container.getTcpPort(8081);
+    const response = await port.fetch(request);
+    return response;
   }
 }
 
