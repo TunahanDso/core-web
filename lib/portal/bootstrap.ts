@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { splitSqlStatements } from "@/lib/shared/sql";
 import {
   PORTAL_SCHEMA_SQL,
   PORTAL_V2_SQL,
@@ -13,62 +14,6 @@ import {
   PORTAL_V12_SQL,
   PORTAL_MIGRATION_SQL,
 } from "@/lib/generated/portal-migrations";
-
-function splitPortalSql(sql: string) {
-  const source = sql
-    .split("\n")
-    .filter((line) => !line.trimStart().startsWith("--"))
-    .join("\n");
-
-  const statements: string[] = [];
-  let current = "";
-  let inSingleQuote = false;
-  let inDoubleQuote = false;
-
-  for (let index = 0; index < source.length; index += 1) {
-    const char = source[index];
-
-    if (char === "'" && !inDoubleQuote) {
-      current += char;
-      if (inSingleQuote && source[index + 1] === "'") {
-        current += source[index + 1];
-        index += 1;
-        continue;
-      }
-      inSingleQuote = !inSingleQuote;
-      continue;
-    }
-
-    if (char === '"' && !inSingleQuote) {
-      current += char;
-      if (inDoubleQuote && source[index + 1] === '"') {
-        current += source[index + 1];
-        index += 1;
-        continue;
-      }
-      inDoubleQuote = !inDoubleQuote;
-      continue;
-    }
-
-    if (char === ";" && !inSingleQuote && !inDoubleQuote) {
-      const statement = current.trim();
-      if (statement) statements.push(statement);
-      current = "";
-      continue;
-    }
-
-    current += char;
-  }
-
-  const trailing = current.trim();
-  if (trailing) statements.push(trailing);
-
-  if (inSingleQuote || inDoubleQuote) {
-    throw new Error("Portal migration contains an unterminated SQL string.");
-  }
-
-  return statements;
-}
 
 const REQUIRED_PORTAL_TABLES = [
   "portal_members",
@@ -144,7 +89,7 @@ export async function ensurePortalRepoReviewSchema() {
   repoReviewSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitPortalSql(PORTAL_V7_SQL);
+    const statements = splitSqlStatements(PORTAL_V7_SQL);
     if (!statements.length) throw new Error("Repository review migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -161,7 +106,7 @@ export async function ensurePortalCodeLabSchema() {
   codeLabSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitPortalSql(PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL + "\n" + PORTAL_V10_SQL);
+    const statements = splitSqlStatements(PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL + "\n" + PORTAL_V10_SQL);
     if (!statements.length) throw new Error("Code Lab migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -179,7 +124,7 @@ export async function ensurePortalVaultUploadSchema() {
   vaultUploadSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitPortalSql(PORTAL_V10_SQL);
+    const statements = splitSqlStatements(PORTAL_V10_SQL);
     if (!statements.length) throw new Error("Vault upload migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -197,7 +142,7 @@ export async function ensurePortalMailWorkspaceSchema() {
   mailWorkspaceSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitPortalSql(PORTAL_V11_SQL);
+    const statements = splitSqlStatements(PORTAL_V11_SQL);
     if (!statements.length) throw new Error("Mail workspace migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -215,7 +160,7 @@ export async function ensurePortalCollaborationFinanceSchema() {
   collaborationFinanceSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitPortalSql(PORTAL_V12_SQL);
+    const statements = splitSqlStatements(PORTAL_V12_SQL);
     if (!statements.length) throw new Error("Collaboration & finance migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -298,7 +243,7 @@ export async function applyPortalFoundation(actor: string) {
   const db = env.DB;
   if (!db) throw new Error("DB binding is not available.");
 
-  const statements = splitPortalSql(PORTAL_MIGRATION_SQL);
+  const statements = splitSqlStatements(PORTAL_MIGRATION_SQL);
   if (!statements.length) throw new Error("Portal migration is empty.");
 
   await db.batch(statements.map((statement) => db.prepare(statement)));
