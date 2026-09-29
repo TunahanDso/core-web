@@ -32,25 +32,57 @@ export default async function PortalSecurityPage() {
 
       <section className="portalPanel portalDesktopDownloadPanel">
         <div className="portalPanelHead">
-          <span>CORE DESKTOP / WORKBENCH</span>
-          <small>STABLE LATEST CHANNEL</small>
+          <span>CORE DESKTOP / WINDOWS TRUST</span>
+          <small>INTERNAL SIGNED CHANNEL</small>
         </div>
         <div className="portalDesktopDownloadGrid">
           <article>
             <div>
-              <span className="portalDesktopPlatform">WINDOWS · X64</span>
+              <span className="portalDesktopPlatform">1 · CORE TRUST</span>
+              <h3>YTÜ CORE Internal Root CA</h3>
+              <p>
+                Windows bu sertifikayı yalnız mevcut kullanıcı hesabında güvenilir kök olarak tanır.
+                Private imza anahtarı bu dosyada veya portalda bulunmaz.
+              </p>
+            </div>
+            <div className="portalDeviceActions">
+              <a className="portalPrimaryButton" href="/desktop/trust/YTU-CORE-Internal-Root-CA.cer" download>
+                ROOT CA İNDİR ↓
+              </a>
+              <a className="portalPrimaryButton" href="/desktop/trust/install-core-trust.ps1" download>
+                OTOMATİK KURULUM PS1 ↓
+              </a>
+            </div>
+            <small>ROOT SHA-256 · 72:26:F0:5A:90:67:F3:19:05:27:7A:93:21:5C:2B:CE:62:3E:2D:EF:B3:82:E9:8C:BE:65:A7:4E:69:A9:A2:95</small>
+          </article>
+
+          <article>
+            <div>
+              <span className="portalDesktopPlatform">2 · WINDOWS · X64</span>
               <h3>CORE Desktop Workbench</h3>
-              <p>Portalın tam masaüstü istemcisi. Vault, repo, mühendislik araçları ve ilerleyen native atölye özellikleri aynı CORE hesabıyla çalışır.</p>
+              <p>
+                Internal CORE sertifikasıyla Authenticode imzalanmış son başarılı masaüstü build'i.
+                Sertifika kurulmadan Windows bu yayıncıyı genel CA'lar gibi tanımaz.
+              </p>
             </div>
             <a className="portalPrimaryButton portalDesktopDownloadButton" href="/api/portal/desktop/download/windows">
               WINDOWS UYGULAMASINI İNDİR ↓
             </a>
           </article>
+
           <aside>
-            <span>GÜNCELLEME MODELİ</span>
-            <b>DAİMA SON BAŞARILI BUILD</b>
-            <p>Bu portal bağlantısı sabittir. Her başarılı <code>main</code> masaüstü build'inde <code>desktop-latest</code> paketi aynı dosya adıyla yenilenir; başarısız build eski çalışan sürümün üzerine yazamaz.</p>
-            <small>Şimdilik imzasız developer preview · Windows SmartScreen uyarısı gösterebilir.</small>
+            <span>KURULUM SIRASI</span>
+            <b>ÖNCE TRUST · SONRA APP</b>
+            <p>
+              En kolay yol: PowerShell dosyasını indir, sağ tıkla PowerShell ile çalıştır;
+              script CORE Root CA ve Desktop signer fingerprint'lerini doğrulayıp yalnız mevcut
+              Windows kullanıcısının <code>Root</code> ve <code>TrustedPublisher</code> depolarına ekler.
+              Ardından uygulamayı indir.
+            </p>
+            <small>
+              Bu internal trust modeli yalnız CORE tarafından yönetilen ekip cihazları içindir;
+              Microsoft SmartScreen public reputation yerine ekip içi güven zinciri sağlar.
+            </small>
           </aside>
         </div>
       </section>
