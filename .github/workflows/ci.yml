@@ -619,12 +619,20 @@ jobs:
               if (!codeReader.includes(required)) throw new Error(`Engineering code reader missing: ${required}`);
             }
             const modelViewer = fs.readFileSync("components/portal/VaultModelViewer.tsx", "utf8");
-            for (const required of ["parseGlb", "parseGltfText", "triangles", "perspective", "wire"]) {
+            const modelWorker = fs.readFileSync("public/workers/model-parser.js", "utf8");
+            for (const required of ["parseModelInWorker", "triangles", "perspective", "wire"]) {
               if (!modelViewer.includes(required)) throw new Error(`3D engineering viewer missing: ${required}`);
             }
+            for (const required of ["parseGlb", "parseGltfText", "parseStl", "parseObj"]) {
+              if (!modelWorker.includes(required)) throw new Error(`3D model worker missing: ${required}`);
+            }
             const pcbViewer = fs.readFileSync("components/portal/KiCadBoardPreview.tsx", "utf8");
-            for (const required of ["segmentRe", "viaRe", "selectedNet", "F.Cu", "B.Cu", "response.body?.getReader()", "R2 source okunuyor"]) {
+            const pcbWorker = fs.readFileSync("public/workers/kicad-parser.js", "utf8");
+            for (const required of ["parseBoardAsync", "selectedNet", "F.Cu", "B.Cu", "response.body?.getReader()", "R2 source okunuyor"]) {
               if (!pcbViewer.includes(required)) throw new Error(`KiCad engineering viewer missing: ${required}`);
+            }
+            for (const required of ["segmentRe", "viaRe", "footprints", "tracks"]) {
+              if (!pcbWorker.includes(required)) throw new Error(`KiCad parser worker missing: ${required}`);
             }
             const vaultSourceBrowser = fs.readFileSync("components/portal/VaultSourceBrowser.tsx", "utf8");
             for (const required of ["CHUNK_BYTES", "/source?", "192 KB pencere", "SONRAKİ"]) {
