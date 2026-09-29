@@ -393,7 +393,7 @@ export async function generateMeetingReport(meetingId: string, memberId: string,
   if(!existing?.resource_id){
     statements.push(
       database.prepare(
-        "INSERT INTO portal_resources (id,kind,title,description,team_code,project_slug,external_url,tags_json,visibility,created_by) VALUES (?,'archive',?,?,?,?,?,?,?,?,?)"
+        "INSERT INTO portal_resources (id,kind,title,description,team_code,project_slug,external_url,tags_json,visibility,created_by) VALUES (?,'archive',?,?,?,?,?,?,?,?)"
       ).bind(resourceId,"Toplantı Raporu · "+String(meeting.title),summary.slice(0,4000),meeting.team_code || null,meeting.project_slug || null,"/portal/meetings/"+meetingId,JSON.stringify(["meeting","report",meetingId]),meeting.team_code ? "team" : "members",memberId)
     );
   } else {
@@ -418,7 +418,7 @@ export async function generateMeetingReport(meetingId: string, memberId: string,
 export async function listBudgetAccounts(memberId?: string, canReadAll=false) {
   await ensurePortalCollaborationFinanceSchema();
   const where=memberId && !canReadAll
-    ? " WHERE a.team_code IS NULL OR a.owner_member_id=? OR EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=a.team_code AND tm.member_id=? AND tm.status='active') "
+    ? " WHERE (a.team_code IS NULL OR a.owner_member_id=? OR EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=a.team_code AND tm.member_id=? AND tm.status='active')) "
     : " ";
   const sql=
     "SELECT a.*,m.full_name AS owner_name," +
