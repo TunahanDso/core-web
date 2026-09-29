@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ComponentType } from "react";
 
 type NativeGateProps = {
   memberName: string;
@@ -10,7 +11,7 @@ type NativeGateProps = {
   memberInitials: string;
 };
 
-type NativeComponent = React.ComponentType<NativeGateProps>;
+type NativeComponent = ComponentType<NativeGateProps>;
 
 export default function PortalNativeGate(props: NativeGateProps) {
   const [NativeExperience,setNativeExperience] = useState<NativeComponent | null>(null);
