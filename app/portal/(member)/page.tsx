@@ -25,7 +25,7 @@ export default async function PortalDashboard(){
     listPortalInventory(),
     listMeetings(member.id,20),
     listPolls(member.id),
-    listBudgetEntries(),
+    member.role==="admin"||member.role==="lead" ? listBudgetEntries() : Promise.resolve([]),
   ]);
   const lowStock=inventory.filter(item=>Number(item.available_quantity)<=Number(item.minimum_quantity)).slice(0,5);
   const unread=notifications.filter(item=>!item.read_at).slice(0,5);
