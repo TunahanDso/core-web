@@ -16,8 +16,11 @@ Invoke-WebRequest "$base/YTU-CORE-Desktop-Code-Signing.cer" -OutFile $signer
 $rootExpected = "7226F05A9067F31905277A93215C2BCE623E2DEFB382E98CBE65A74E69A9A295"
 $signerExpected = "761EFDF03090D7EE30B3B11F1AE5DEA16F285D99C81CA6170A7EC528A4DCF2B5"
 
-$rootActual = (Get-FileHash $root -Algorithm SHA256).Hash
-$signerActual = (Get-FileHash $signer -Algorithm SHA256).Hash
+$rootCert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($root)
+$signerCert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($signer)
+$sha256 = [System.Security.Cryptography.HashAlgorithmName]::SHA256
+$rootActual = $rootCert.GetCertHashString($sha256)
+$signerActual = $signerCert.GetCertHashString($sha256)
 
 if ($rootActual -ne $rootExpected) { throw "CORE Root CA fingerprint mismatch." }
 if ($signerActual -ne $signerExpected) { throw "CORE Desktop signer fingerprint mismatch." }
