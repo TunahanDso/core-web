@@ -508,10 +508,10 @@ export async function getPortalCodeTerminal(member: PortalMember, sessionId: str
   const socketUrl = service.url && token && ["ready","connected"].includes(terminal.status)
     ? service.url.replace(/^https:/,"wss:") +
       "/v1/terminals/" + encodeURIComponent(sessionId) +
-      "/socket?token=" + encodeURIComponent(token)
+      "/socket"
     : null;
   const { connect_token: _hidden, ...safeTerminal } = terminal;
-  return { terminal:safeTerminal,socketUrl };
+  return { terminal:safeTerminal,socketUrl,socketToken:socketUrl ? token : null };
 }
 
 export async function closePortalCodeTerminal(member: PortalMember, sessionId: string) {
