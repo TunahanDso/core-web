@@ -170,6 +170,29 @@ jobs:
             if (rootConfig.vars?.CORE_RUNNER_URL !== "https://core-runner.oyuncunun61.workers.dev") {
               throw new Error("Portal CORE_RUNNER_URL is not pointed at the production runner service.");
             }
+            const vaultLibrary = fs.readFileSync("app/portal/(member)/library/page.tsx", "utf8");
+            const vaultDetail = fs.readFileSync("app/portal/(member)/library/[id]/page.tsx", "utf8");
+            const vaultUploadClient = fs.readFileSync("components/portal/VaultUploadForm.tsx", "utf8");
+            const vaultRevisionClient = fs.readFileSync("components/portal/VaultRevisionUploadForm.tsx", "utf8");
+            const vaultUploadApi = fs.readFileSync("app/api/portal/vault/upload/route.ts", "utf8");
+            const vaultVersionApi = fs.readFileSync("app/api/portal/vault/[id]/versions/route.ts", "utf8");
+            if (!vaultLibrary.includes("VaultUploadForm") || vaultLibrary.includes("uploadPortalVaultAction")) {
+              throw new Error("Vault initial upload must use the resilient API client instead of a Server Action file body.");
+            }
+            if (!vaultDetail.includes("VaultRevisionUploadForm") || vaultDetail.includes("uploadPortalVaultVersionAction")) {
+              throw new Error("Vault revision upload must use the resilient API client instead of a Server Action file body.");
+            }
+            for (const required of ["XMLHttpRequest", "/api/portal/vault/upload", "xhr.upload", "25 * 1024 * 1024"]) {
+              if (!vaultUploadClient.includes(required)) throw new Error(`Vault upload client missing: ${required}`);
+            }
+            for (const required of ["XMLHttpRequest", "/versions", "xhr.upload", "25 * 1024 * 1024"]) {
+              if (!vaultRevisionClient.includes(required)) throw new Error(`Vault revision client missing: ${required}`);
+            }
+            if (!vaultUploadApi.includes("createPortalVaultFile") || !vaultVersionApi.includes("createPortalVaultVersion")) {
+              throw new Error("Vault upload APIs must persist through the canonical Vault service.");
+            }
+
+            console.log("Vault API upload transport and revision progress flow validated.");
             console.log("CL-02.1 Code Lab jobs + direct container WebSocket terminal isolation validated.");
 
             const mailSource = fs.readFileSync("lib/portal/mail.ts", "utf8");
