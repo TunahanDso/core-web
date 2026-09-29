@@ -36,7 +36,7 @@ export default async function PortalBudgetPage({
   const member=await requirePortalMember();
   const canWrite=member.role==="admin" || member.role==="lead";
   const [accounts,members,teams,projects]=await Promise.all([
-    listBudgetAccounts(),listPortalMembers(),listAccessiblePortalTeams(member),listPortalProjectRegistry()
+    listBudgetAccounts(member.id,canWrite),listPortalMembers(),listAccessiblePortalTeams(member),listPortalProjectRegistry()
   ]);
   const accountId=String(query.account||accounts[0]?.id||"");
   const selected=accounts.find((a)=>String(a.id)===accountId);
@@ -60,7 +60,7 @@ export default async function PortalBudgetPage({
 
       <section className="budgetSummaryStrip">
         <article><span>HESAP</span><b>{accounts.length}</b><small>aktif bütçe hesabı</small></article>
-        <article><span>TOPLAM BAKİYE</span><b>{money(accounts.reduce((sum,a)=>sum+Number(a.balance_minor||0),0),"TRY")}</b><small>TRY hesapları toplam gösterim</small></article>
+        <article><span>TRY BAKİYE</span><b>{money(accounts.filter(a=>String(a.currency)==="TRY").reduce((sum,a)=>sum+Number(a.balance_minor||0),0),"TRY")}</b><small>görülebilen TRY hesapları</small></article>
         <article><span>BEKLEYEN ONAY</span><b>{pending.length}</b><small>seçili hesap</small></article>
         <article><span>TAAHHÜT</span><b>{selected?money(selected.committed_minor,selected.currency):"—"}</b><small>seçili hesap</small></article>
       </section>
