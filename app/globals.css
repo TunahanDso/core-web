@@ -11290,3 +11290,455 @@ html[data-core-native="native-v2"] .portalDeviceActions{
   line-height:1.5;
 }
 .vaultUploadStatus.error p{color:#98443d}
+
+
+/* =========================================================
+   CORE PORTAL V12 · CARD RESET + DENSE ENTITY SURFACES
+   Prevent public-site footer styling from leaking into portal cards.
+   ========================================================= */
+:where(.portalApp) footer{
+  min-height:0;
+  padding:0;
+  background:transparent;
+  color:inherit;
+  display:block;
+  align-items:initial;
+  justify-content:initial;
+  gap:0;
+}
+
+.portalProjectCard,
+.portalEntityCard,
+.vaultFileGrid>a,
+.portalVehicleGrid article,
+.portalResourceGrid article{
+  overflow:hidden;
+  border-radius:18px;
+  border-color:#e5ddd6;
+  background:
+    radial-gradient(circle at 100% 0,rgba(255,118,0,.045),transparent 28%),
+    linear-gradient(180deg,#fff 0%,#fffdfa 100%);
+  box-shadow:0 10px 28px rgba(44,31,20,.05);
+}
+.portalProjectCard{min-height:315px;padding:18px}
+.portalProjectCard h2{margin:28px 0 9px;font-size:24px}
+.portalProjectProgress{margin:17px 0 12px}
+.portalProjectFacts>div{
+  padding:9px 10px;
+  border:1px solid #ece5de;
+  background:#fbf9f7;
+}
+.portalProjectCard footer{
+  min-height:0;
+  margin-top:14px;
+  padding:12px 2px 0;
+  border-top:1px solid #eee7e0;
+  background:transparent;
+  align-items:center;
+}
+.portalProjectCard footer span{color:#756d65;font-size:8px}
+.portalProjectCard footer b{font-size:8px}
+
+.portalEntityCard{
+  min-height:235px;
+  padding:15px;
+}
+.portalMemberEntityCard{min-height:250px}
+.portalRepositoryEntityCard{min-height:235px}
+.portalTeamEntityCard{min-height:255px}
+.portalEntityBody{padding:18px 0 11px}
+.portalEntityBody h2{font-size:19px}
+.portalEntityInfoRow>div{padding:8px 9px}
+.portalEntityFooter{
+  min-height:0;
+  margin-top:11px;
+  padding:10px 1px 0;
+  background:transparent;
+  align-items:center;
+}
+
+.vaultFileGrid>a{
+  min-height:210px;
+  padding:14px;
+}
+.vaultFileIcon{
+  width:46px;
+  height:46px;
+  margin:18px 0 12px;
+  border-radius:11px;
+  background:#fbf8f5;
+}
+.vaultFileGrid h3{font-size:16px}
+.vaultFileGrid p{margin-bottom:13px}
+.vaultFileGrid footer{
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:auto;
+  padding:10px 1px 0;
+  border-top:1px solid #eee7e0;
+  background:transparent;
+}
+
+.portalVehicleGrid{gap:12px}
+.portalVehicleGrid article{
+  min-height:255px;
+  padding:17px;
+}
+.portalVehicleGrid article h2{margin:28px 0 4px}
+.portalTelemetryGrid{margin-top:16px}
+.portalTelemetryGrid>div{
+  padding:9px;
+  border:1px solid #ece6df;
+  border-radius:9px;
+  background:#fbf9f7;
+}
+.portalVehicleGrid footer{
+  min-height:0;
+  display:flex;
+  align-items:center;
+  margin-top:12px;
+  padding:10px 1px 0;
+  border-top:1px solid #eee7e0;
+  background:transparent;
+  color:#8a8179;
+}
+
+.portalResourceGrid article{min-height:220px;padding:17px}
+.portalResourceGrid h3{margin:28px 0 8px}
+.portalResourceGrid footer{
+  min-height:0;
+  margin-top:12px;
+  padding:10px 1px 0;
+  background:transparent;
+}
+
+/* compact action rail shared by dense portal cards */
+.portalCardActionRail{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:11px;
+  padding-top:10px;
+  border-top:1px solid #eee7e0;
+}
+.portalCardActionRail span{
+  color:#8e857d;
+  font:800 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.portalCardActionRail strong{
+  color:#dd6600;
+  font:900 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.07em;
+}
+
+/* =========================================================
+   CORE CONTROL CENTER V12
+   ========================================================= */
+.controlCenterShell{
+  display:grid;
+  gap:14px;
+  margin:16px 0 24px;
+}
+.controlCenterHero{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(310px,.85fr);
+  gap:18px;
+  padding:22px;
+  border:1px solid #e2dad2;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 0 0,rgba(255,118,0,.12),transparent 32%),
+    linear-gradient(135deg,#fff8f1,#fff 52%,#f8f6f3);
+  box-shadow:0 16px 42px rgba(42,29,18,.06);
+}
+.controlCenterHero span{
+  color:#df6700;
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.12em;
+}
+.controlCenterHero h2{
+  margin:7px 0 8px;
+  font-size:30px;
+  letter-spacing:-.045em;
+}
+.controlCenterHero p{
+  max-width:760px;
+  margin:0;
+  color:#726961;
+  font-size:11px;
+  line-height:1.65;
+}
+.controlCenterHeroStats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.controlCenterHeroStats div{
+  display:grid;
+  gap:3px;
+  padding:12px;
+  border:1px solid #e8e0d8;
+  border-radius:12px;
+  background:rgba(255,255,255,.84);
+}
+.controlCenterHeroStats b{font-size:20px;letter-spacing:-.04em}
+.controlCenterHeroStats small{
+  color:#8c837a;
+  font:800 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.07em;
+}
+
+.controlCenterToolbar{
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) auto;
+  gap:10px;
+  align-items:center;
+}
+.controlCenterSearch{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:46px;
+  padding:0 13px;
+  border:1px solid #ded6ce;
+  border-radius:12px;
+  background:#fff;
+}
+.controlCenterSearch span{color:#df6700;font-size:15px}
+.controlCenterSearch input{
+  flex:1;
+  min-width:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:#211d19;
+}
+.controlCenterTabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  justify-content:flex-end;
+}
+.controlCenterTabs button{
+  min-height:38px;
+  border:1px solid #ded7d0;
+  border-radius:9px;
+  background:#fff;
+  padding:0 10px;
+  color:#625b54;
+  font:850 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  cursor:pointer;
+}
+.controlCenterTabs button.active{
+  border-color:#171411;
+  background:#171411;
+  color:#fff;
+}
+
+.controlCenterTableWrap{
+  overflow:auto;
+  border:1px solid #e2dbd4;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 9px 28px rgba(35,27,20,.045);
+}
+.controlCenterTable{
+  width:100%;
+  min-width:930px;
+  border-collapse:collapse;
+}
+.controlCenterTable th{
+  position:sticky;
+  top:0;
+  z-index:1;
+  padding:10px 12px;
+  border-bottom:1px solid #e6dfd8;
+  background:#f8f6f3;
+  color:#8f867d;
+  text-align:left;
+  font:900 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+}
+.controlCenterTable td{
+  padding:11px 12px;
+  border-bottom:1px solid #f0ebe6;
+  color:#4f4841;
+  font-size:10px;
+  vertical-align:middle;
+}
+.controlCenterTable tbody tr:hover{background:#fffaf5}
+.controlCenterTable td:first-child b{
+  display:block;
+  color:#1d1915;
+  font-size:11px;
+}
+.controlCenterTable td:first-child small{
+  display:block;
+  margin-top:3px;
+  color:#9a9189;
+  font:750 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.controlCenterState{
+  display:inline-flex;
+  align-items:center;
+  min-height:23px;
+  padding:0 7px;
+  border-radius:999px;
+  background:#f1efec;
+  color:#635c55;
+  font:900 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.controlCenterState.active,
+.controlCenterState.ready,
+.controlCenterState.operational,
+.controlCenterState.done{background:#eaf8ef;color:#1d7540}
+.controlCenterState.testing,
+.controlCenterState.review,
+.controlCenterState.invited{background:#fff4df;color:#8c5a00}
+.controlCenterState.archived,
+.controlCenterState.trashed,
+.controlCenterState.retired{background:#eee;color:#716b65}
+
+.controlCenterRowActions{
+  display:flex;
+  gap:5px;
+  justify-content:flex-end;
+}
+.controlCenterRowActions button,
+.controlCenterRowActions a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:30px;
+  border:1px solid #ddd5ce;
+  border-radius:7px;
+  background:#fff;
+  padding:0 8px;
+  color:#554e47;
+  text-decoration:none;
+  font:850 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  cursor:pointer;
+}
+.controlCenterRowActions button:hover,
+.controlCenterRowActions a:hover{border-color:#ff8b2d;color:#d45f00}
+.controlCenterRowActions .danger{border-color:#efcfca;color:#a34036}
+
+.controlCenterInspectorBackdrop{
+  position:fixed;
+  inset:0;
+  z-index:120;
+  display:flex;
+  justify-content:flex-end;
+  background:rgba(17,14,12,.28);
+  backdrop-filter:blur(3px);
+}
+.controlCenterInspector{
+  width:min(520px,94vw);
+  height:100%;
+  overflow:auto;
+  padding:20px;
+  background:#fbfaf8;
+  box-shadow:-20px 0 60px rgba(20,15,11,.18);
+}
+.controlCenterInspectorHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+.controlCenterInspectorHead span{
+  color:#df6700;
+  font:900 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.1em;
+}
+.controlCenterInspectorHead h3{margin:5px 0 0;font-size:23px;letter-spacing:-.035em}
+.controlCenterInspectorHead button{
+  width:34px;height:34px;border:1px solid #ddd5ce;border-radius:50%;background:#fff;cursor:pointer;
+}
+.controlCenterForm{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.controlCenterForm label{display:grid;gap:5px}
+.controlCenterForm label.wide{grid-column:1/-1}
+.controlCenterForm label>span{
+  color:#7e756d;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.controlCenterForm input,
+.controlCenterForm select,
+.controlCenterForm textarea{
+  width:100%;
+  min-height:40px;
+  border:1px solid #ddd5ce;
+  border-radius:9px;
+  background:#fff;
+  color:#25211d;
+  padding:8px 10px;
+  outline:none;
+}
+.controlCenterForm textarea{resize:vertical}
+.controlCenterForm input:focus,
+.controlCenterForm select:focus,
+.controlCenterForm textarea:focus{border-color:#ff7a00;box-shadow:0 0 0 3px rgba(255,122,0,.08)}
+.controlCenterFormActions{
+  grid-column:1/-1;
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  padding-top:5px;
+}
+.controlCenterDangerBox{
+  margin-top:18px;
+  padding:14px;
+  border:1px solid #efcbc6;
+  border-radius:12px;
+  background:#fff7f6;
+}
+.controlCenterDangerBox span{
+  display:block;
+  color:#a53f36;
+  font:900 8px ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.08em;
+}
+.controlCenterDangerBox p{
+  margin:7px 0 10px;
+  color:#7e6662;
+  font-size:10px;
+  line-height:1.55;
+}
+.controlCenterDangerBox input{
+  width:100%;
+  min-height:38px;
+  margin-bottom:8px;
+  border:1px solid #e1b9b4;
+  border-radius:8px;
+  padding:0 9px;
+}
+.controlCenterEmpty{
+  padding:34px;
+  color:#827971;
+  text-align:center;
+}
+
+@media(max-width:960px){
+  .controlCenterHero{grid-template-columns:1fr}
+  .controlCenterToolbar{grid-template-columns:1fr}
+  .controlCenterTabs{justify-content:flex-start}
+}
+@media(max-width:620px){
+  .portalProjectCard,
+  .portalEntityCard,
+  .vaultFileGrid>a,
+  .portalVehicleGrid article{border-radius:15px}
+  .controlCenterHeroStats{grid-template-columns:1fr 1fr}
+  .controlCenterForm{grid-template-columns:1fr}
+  .controlCenterForm label.wide,
+  .controlCenterFormActions{grid-column:auto}
+}
