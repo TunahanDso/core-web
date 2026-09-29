@@ -72,4 +72,22 @@ assert(requireFile("services/core-converter/src/index.js").includes("Edge.Cuts")
 const migrationV13=requireFile("migrations/0013_authority_cleanup.sql");
 assert(migrationV13.includes("portal_team_memberships"),"V13 membership authority migration missing.");
 
+
+
+assert(!pkg.scripts?.["build:next"],"A second Next production build path must not exist.");
+
+const shell=requireFile("components/portal/PortalShell.tsx");
+assert(!shell.includes("portalMemberCapabilitySet"),"PortalShell must not refetch member capabilities.");
+
+const memberLayout=requireFile("app/portal/(member)/layout.tsx");
+assert(memberLayout.includes("portalMemberCapabilitySet"),"Member layout must resolve capabilities once for the shell.");
+
+assert(!(wranglerFull.send_email||[]).some((item)=>item.name==="EMAIL"),"Web Worker must not own transactional EMAIL binding.");
+
+const mailGateway=requireFile("lib/portal/mail.ts");
+assert(mailGateway.includes("MAIL_SERVICE"),"Portal mail delivery must prefer the isolated mail Worker.");
+
+const vaultService=requireFile("lib/portal/vault.ts");
+assert(vaultService.includes("CONVERTER_SERVICE"),"Vault derivative queue must dispatch to CORE Converter.");
+
 console.log("Focused CORE security/build/schema contracts validated.");
