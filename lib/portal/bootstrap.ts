@@ -216,6 +216,53 @@ ON CONFLICT(setting_key) DO UPDATE SET
   updated_at=CURRENT_TIMESTAMP;
 `;
 
+
+const PORTAL_V10_SQL = `-- YTÜ CORE Portal V12 Vault raw upload sessions
+-- Files are uploaded as raw request bodies to R2, then finalized into Vault metadata.
+
+CREATE TABLE IF NOT EXISTS portal_vault_upload_sessions (
+  id TEXT PRIMARY KEY,
+  member_id TEXT NOT NULL,
+  actor_email TEXT NOT NULL,
+  mode TEXT NOT NULL DEFAULT 'new'
+    CHECK (mode IN ('new','revision')),
+  target_file_id TEXT,
+  file_id TEXT NOT NULL,
+  revision INTEGER NOT NULL,
+  original_name TEXT NOT NULL,
+  mime_type TEXT NOT NULL DEFAULT 'application/octet-stream',
+  expected_size INTEGER NOT NULL,
+  actual_size INTEGER,
+  checksum_sha256 TEXT,
+  object_key TEXT NOT NULL UNIQUE,
+  capability_token TEXT NOT NULL,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'initiated'
+    CHECK (status IN ('initiated','uploaded','completed','failed','expired')),
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  completed_at TEXT,
+  FOREIGN KEY (member_id) REFERENCES portal_members(id) ON DELETE CASCADE,
+  FOREIGN KEY (target_file_id) REFERENCES portal_vault_files(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_vault_upload_member
+  ON portal_vault_upload_sessions(member_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_vault_upload_status
+  ON portal_vault_upload_sessions(status, expires_at);
+
+INSERT INTO site_settings (setting_key,value_json,updated_at)
+VALUES (
+  'portal_vault_upload_schema',
+  '{"version":"2026.09-va02","features":["upload-session","raw-put","r2-direct-binding","finalize-metadata","revision-session","upload-progress"]}',
+  CURRENT_TIMESTAMP
+)
+ON CONFLICT(setting_key) DO UPDATE SET
+  value_json=excluded.value_json,
+  updated_at=CURRENT_TIMESTAMP;
+`;
+
 function splitPortalSql(sql: string) {
   const source = sql
     .split("\n")
@@ -322,6 +369,7 @@ const REQUIRED_PORTAL_TABLES = [
   "portal_code_run_events",
   "portal_code_run_artifacts",
   "portal_code_terminal_sessions",
+  "portal_vault_upload_sessions",
 ] as const;
 
 let repoReviewSchemaPromise: Promise<void> | null = null;
@@ -348,7 +396,7 @@ export async function ensurePortalCodeLabSchema() {
   codeLabSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitPortalSql(PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL);
+    const statements = splitPortalSql(PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL + "\n" + PORTAL_V10_SQL);
     if (!statements.length) throw new Error("Code Lab migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -356,6 +404,24 @@ export async function ensurePortalCodeLabSchema() {
     throw error;
   });
   return codeLabSchemaPromise;
+}
+
+
+let vaultUploadSchemaPromise: Promise<void> | null = null;
+
+export async function ensurePortalVaultUploadSchema() {
+  if (vaultUploadSchemaPromise) return vaultUploadSchemaPromise;
+  vaultUploadSchemaPromise = (async () => {
+    const db = env.DB;
+    if (!db) throw new Error("DB binding is not available.");
+    const statements = splitPortalSql(PORTAL_V10_SQL);
+    if (!statements.length) throw new Error("Vault upload migration is empty.");
+    await db.batch(statements.map((statement) => db.prepare(statement)));
+  })().catch((error) => {
+    vaultUploadSchemaPromise = null;
+    throw error;
+  });
+  return vaultUploadSchemaPromise;
 }
 
 export async function portalBootstrapStatus() {
@@ -442,11 +508,11 @@ export async function applyPortalFoundation(actor: string) {
   `).bind(
     actor,
     JSON.stringify({
-      version: "2026.09-cl02",
+      version: "2026.09-va02",
       statementCount: statements.length,
       modules: [
         "members","auth","tasks","resources","repositories","inventory",
-        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal"
+        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal","vault-raw-upload"
       ],
     })
   ).run();
