@@ -41,8 +41,16 @@ export function getEngineeringServiceStatus() {
       url: serviceUrl(env.CORE_RUNNER_URL),
     },
     converter: {
-      configured: Boolean(serviceUrl(env.CORE_CONVERTER_URL)),
+      configured: Boolean(
+        ((env as unknown as Record<string,unknown>).CONVERTER_SERVICE as {fetch?:unknown}|undefined)?.fetch
+        || serviceUrl(env.CORE_CONVERTER_URL)
+      ),
       url: serviceUrl(env.CORE_CONVERTER_URL),
+      mode: ((env as unknown as Record<string,unknown>).CONVERTER_SERVICE as {fetch?:unknown}|undefined)?.fetch
+        ? "internal-service"
+        : serviceUrl(env.CORE_CONVERTER_URL)
+          ? "external"
+          : "offline",
     },
   };
 }
