@@ -42,6 +42,19 @@ Production CORE Runner is addressed through `runner.ytucore.com`. Personal `work
 
 Production responses enforce HTTPS and emit centralized HSTS, CSP, frame, MIME-sniffing, referrer and permissions policies.
 
+## Internal desktop signing
+
+CORE Desktop uses an internal two-tier PKI for team-device distribution:
+
+- `YTU CORE Internal Root CA` is the internal trust anchor. Its public certificate may be distributed to managed team devices.
+- `YTU CORE Desktop Internal Signing` is the leaf Authenticode signer and has only the code-signing EKU.
+- Root and signer private keys must never be published in the repository, portal, Vault, release assets or downloadable device packages.
+- GitHub Actions receives only the current signer PFX through encrypted repository secrets.
+- The member Devices panel distributes public certificates and a fingerprint-verifying per-user trust installer only.
+- Signed internal releases publish to the isolated `desktop-internal` channel. The historical unsigned channel is not a production source.
+
+The internal CA does not create Microsoft/public-CA reputation. It establishes a controlled trust relationship only on devices where the CORE Root CA has been deliberately installed.
+
 ## Reporting
 
 Do not publish active credentials, private keys, live bearer tokens or exploitable security details in public issues. Revoke exposed credentials before documenting the incident.
