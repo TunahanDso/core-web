@@ -84,13 +84,12 @@ function expired(session: VaultUploadSession) {
   return Number.isFinite(at) && at <= Date.now();
 }
 
-async function loadSession(sessionId: string, memberId: string, capabilityToken: string) {
+async function loadSession(sessionId: string, memberId: string) {
   await ensurePortalVaultUploadSchema();
   const row = await database().prepare(
     "SELECT * FROM portal_vault_upload_sessions WHERE id=? AND member_id=? LIMIT 1"
   ).bind(sessionId,memberId).first<VaultUploadSession>();
   if (!row) throw new Error("Vault upload session bulunamadı.");
-  if (row.capability_token !== capabilityToken) throw new Error("Vault upload capability geçersiz.");
   if (expired(row) && !["completed","expired"].includes(row.status)) {
     await database().prepare(
       "UPDATE portal_vault_upload_sessions SET status='expired',updated_at=CURRENT_TIMESTAMP WHERE id=?"
@@ -151,7 +150,6 @@ export async function createVaultUploadSession(input: {
     mimeType,
     sizeBytes,
     objectKey,
-    capabilityToken,
     JSON.stringify(input.metadata || {}),
     expiresAt
   ).run();
@@ -170,10 +168,9 @@ export async function createVaultUploadSession(input: {
 export async function writeVaultUploadBody(input: {
   sessionId: string;
   memberId: string;
-  capabilityToken: string;
   request: Request;
 }) {
-  const session = await loadSession(input.sessionId,input.memberId,input.capabilityToken);
+  const session = await loadSession(input.sessionId,input.memberId);
   if (session.status === "completed") {
     return {
       uploaded:true,
@@ -218,9 +215,8 @@ export async function writeVaultUploadBody(input: {
 export async function completeVaultUploadSession(input: {
   sessionId: string;
   memberId: string;
-  capabilityToken: string;
 }) {
-  const session = await loadSession(input.sessionId,input.memberId,input.capabilityToken);
+  const session = await loadSession(input.sessionId,input.memberId);
   if (session.status === "completed") {
     return {
       completed:true,
