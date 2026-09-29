@@ -15446,3 +15446,19 @@ html[data-density="comfortable"] .portalDataTable thead th{
     min-width:820px;
   }
 }
+
+
+@media(max-width:900px){
+  html[data-density="compact"],
+  html[data-density="comfortable"]{
+    --core-control-h:44px;
+    --core-row-h:48px;
+    --core-cell-x:10px;
+    --core-cell-y:8px;
+  }
+  .portalDensityToggle{
+    min-width:44px;
+    min-height:44px;
+    justify-content:center;
+  }
+}
