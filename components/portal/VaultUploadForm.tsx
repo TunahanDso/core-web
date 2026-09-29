@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { executeVaultUpload } from "@/components/portal/vault-upload-client";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
@@ -12,38 +13,8 @@ function humanBytes(bytes: number) {
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 
-function uploadRequest(
-  url: string,
-  formData: FormData,
-  onProgress: (progress: number) => void
-) {
-  return new Promise<{ href?: string; error?: string }>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url, true);
-    xhr.responseType = "json";
-    xhr.setRequestHeader("Accept", "application/json");
-
-    xhr.upload.addEventListener("progress", (event) => {
-      if (!event.lengthComputable) return;
-      onProgress(Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100))));
-    });
-
-    xhr.addEventListener("load", () => {
-      const payload = xhr.response && typeof xhr.response === "object"
-        ? xhr.response as { href?: string; error?: string }
-        : {};
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress(100);
-        resolve(payload);
-        return;
-      }
-      reject(new Error(payload.error || "Vault yüklemesi HTTP " + xhr.status + " ile başarısız oldu."));
-    });
-
-    xhr.addEventListener("error", () => reject(new Error("Vault upload bağlantısı kesildi.")));
-    xhr.addEventListener("abort", () => reject(new Error("Vault yüklemesi iptal edildi.")));
-    xhr.send(formData);
-  });
+function field(data: FormData,key: string) {
+  return String(data.get(key) ?? "").trim();
 }
 
 export default function VaultUploadForm() {
@@ -54,7 +25,11 @@ export default function VaultUploadForm() {
   const [fileSize,setFileSize] = useState(0);
 
   const statusText = useMemo(() => {
-    if (state === "uploading") return "R2 Vault'a aktarılıyor · %" + progress;
+    if (state === "uploading") {
+      if (progress < 4) return "Upload session hazırlanıyor…";
+      if (progress < 98) return "Dosya raw PUT ile R2 Vault'a aktarılıyor · %" + progress;
+      return "R2 tamam · checksum ve revision finalize ediliyor…";
+    }
     if (state === "success") return "Yükleme tamamlandı. Dosya açılıyor…";
     if (state === "error") return error;
     if (fileName) return fileName + " · " + humanBytes(fileSize);
@@ -64,8 +39,7 @@ export default function VaultUploadForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state === "uploading") return;
-    const form = event.currentTarget;
-    const data = new FormData(form);
+    const data = new FormData(event.currentTarget);
     const file = data.get("file");
 
     if (!(file instanceof File) || file.size <= 0) {
@@ -84,13 +58,25 @@ export default function VaultUploadForm() {
     setState("uploading");
 
     try {
-      const result = await uploadRequest("/api/portal/vault/upload",data,setProgress);
+      const result = await executeVaultUpload({
+        mode:"new",
+        file,
+        metadata:{
+          kind:field(data,"kind") || "document",
+          title:field(data,"title"),
+          teamCode:field(data,"teamCode") || null,
+          projectSlug:field(data,"projectSlug") || null,
+          visibility:field(data,"visibility") || "members",
+          description:field(data,"description"),
+          tags:field(data,"tags")
+            .split(",")
+            .map((item)=>item.trim().toLowerCase())
+            .filter(Boolean),
+        },
+        onProgress:setProgress,
+      });
       setState("success");
-      if (result.href) {
-        window.location.assign(result.href);
-        return;
-      }
-      window.location.assign("/portal/library");
+      window.location.assign(result.href || "/portal/library");
     } catch (uploadError) {
       setState("error");
       setError(uploadError instanceof Error ? uploadError.message : "Vault yüklemesi başarısız.");
@@ -182,7 +168,7 @@ export default function VaultUploadForm() {
 
       <div className={"vaultUploadStatus " + state}>
         <div className="vaultUploadStatusHead">
-          <span>{state === "uploading" ? "UPLOAD" : state === "success" ? "READY" : state === "error" ? "ERROR" : "VAULT"}</span>
+          <span>{state === "uploading" ? "RAW R2 UPLOAD" : state === "success" ? "READY" : state === "error" ? "ERROR" : "VAULT"}</span>
           <b>{state === "uploading" ? progress + "%" : fileName ? humanBytes(fileSize) : "25 MB MAX"}</b>
         </div>
         <div className="vaultUploadProgress" aria-hidden="true">
@@ -192,7 +178,7 @@ export default function VaultUploadForm() {
       </div>
 
       <button type="submit" className="portalPrimaryButton" disabled={state === "uploading" || state === "success"}>
-        {state === "uploading" ? "YÜKLENİYOR · %" + progress : state === "success" ? "DOSYA AÇILIYOR…" : "R2 VAULT'A YÜKLE →"}
+        {state === "uploading" ? "R2'YE AKTARILIYOR · %" + progress : state === "success" ? "DOSYA AÇILIYOR…" : "R2 VAULT'A YÜKLE →"}
       </button>
     </form>
   );
