@@ -76,8 +76,9 @@ export async function listMeetings(memberId: string, limit=120) {
     "LEFT JOIN portal_members pm ON pm.id=m.created_by " +
     "WHERE m.created_by=? " +
     "OR EXISTS (SELECT 1 FROM portal_meeting_participants mp WHERE mp.meeting_id=m.id AND mp.member_id=?) " +
-    "OR (COALESCE(s.visibility,'members')='members') " +
-    "OR (COALESCE(s.visibility,'members')='team' AND EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=COALESCE(m.team_code,s.team_code) AND tm.member_id=? AND tm.status='active')) " +
+    "OR (s.id IS NOT NULL AND s.visibility='members') " +
+    "OR (s.id IS NULL AND m.team_code IS NULL) " +
+    "OR ((s.visibility='team' OR (s.id IS NULL AND m.team_code IS NOT NULL)) AND EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=COALESCE(m.team_code,s.team_code) AND tm.member_id=? AND tm.status='active')) " +
     "ORDER BY CASE m.status WHEN 'live' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'completed' THEN 2 ELSE 3 END,m.starts_at DESC LIMIT ?"
   ).bind(memberId,memberId,memberId,limit).all<Record<string, unknown>>();
   return response.results ?? [];
@@ -94,7 +95,7 @@ export async function getMeeting(meetingId: string, memberId: string) {
   const isParticipant=await db().prepare(
     "SELECT 1 AS ok FROM portal_meeting_participants WHERE meeting_id=? AND member_id=? LIMIT 1"
   ).bind(meetingId,memberId).first<{ok:number}>();
-  const visibility=String(meeting.space_visibility || "members");
+  const visibility=String(meeting.space_visibility || (meeting.team_code ? "team" : "members"));
   let allowed=String(meeting.created_by)===memberId || Boolean(isParticipant) || visibility==="members";
   if(!allowed && visibility==="team"){
     const team=String(meeting.team_code || "");
@@ -149,7 +150,7 @@ export async function createMeeting(input: {
     ).bind(calendarId,input.title,input.agenda,input.startsAt,input.endsAt,"CORE Meeting",input.teamCode,input.projectSlug,input.createdBy),
     database.prepare(
       "INSERT INTO portal_meetings (id,space_id,calendar_event_id,title,agenda,starts_at,ends_at,team_code,project_slug,status,transport_mode,transport_room,created_by) VALUES (?,?,?,?,?,?,?,?,?,'scheduled',?,?,?)"
-    ).bind(id,input.spaceId,input.title,input.agenda,input.startsAt,input.endsAt,input.teamCode,input.projectSlug,input.transportMode,room,input.createdBy),
+    ).bind(id,input.spaceId,calendarId,input.title,input.agenda,input.startsAt,input.endsAt,input.teamCode,input.projectSlug,input.transportMode,room,input.createdBy),
     database.prepare(
       "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'meeting.create','meeting',?,?)"
     ).bind(input.actorEmail,id,JSON.stringify({title:input.title,startsAt:input.startsAt,participants:participants.length})),
