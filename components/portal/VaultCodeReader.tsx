@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function languageFromExtension(extension: string) {
   const ext = extension.toLowerCase().replace(/^\./,"");
@@ -31,6 +31,21 @@ export default function VaultCodeReader({
   const [wrap,setWrap] = useState(false);
   const [copied,setCopied] = useState(false);
   const [lineTarget,setLineTarget] = useState("");
+  const [expanded,setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    window.addEventListener("keydown",onKeyDown);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown",onKeyDown);
+    };
+  },[expanded]);
 
   const lines = useMemo(() => source.split(/\r?\n/),[source]);
   const normalizedQuery = query.trim().toLocaleLowerCase("tr-TR");
@@ -58,7 +73,7 @@ export default function VaultCodeReader({
   };
 
   return (
-    <section className="vaultCodeReader">
+    <section className={"vaultCodeReader " + (expanded ? "expanded" : "")}>
       <header>
         <div className="vaultCodeIdentity">
           <span>{languageFromExtension(extension)}</span>
@@ -75,8 +90,9 @@ export default function VaultCodeReader({
             <input value={lineTarget} onChange={(event) => setLineTarget(event.target.value.replace(/\D/g,""))} placeholder="Satır" />
             <button type="button" onClick={gotoLine}>GİT</button>
           </label>
-          <button type="button" className={wrap ? "active" : ""} onClick={() => setWrap((value) => !value)}>WRAP</button>
+          <button type="button" className={wrap ? "active" : ""} onClick={() => setWrap((value) => !value)}>SATIR SAR</button>
           <button type="button" onClick={() => void copyAll()}>{copied ? "KOPYALANDI" : "KOPYALA"}</button>
+          <button type="button" className={expanded ? "active" : ""} onClick={() => setExpanded((value) => !value)}>{expanded ? "KAPAT" : "TAM EKRAN"}</button>
         </div>
       </header>
 
@@ -99,7 +115,7 @@ export default function VaultCodeReader({
 
       <footer>
         <span>Salt okunur kaynak görünümü</span>
-        <span>{normalizedQuery ? matchLines.size + " eşleşen satır" : "Ara · satıra git · wrap · copy"}</span>
+        <span>{normalizedQuery ? matchLines.size + " eşleşen satır" : "Ara · satıra git · satır sar · kopyala"}</span>
       </footer>
     </section>
   );
