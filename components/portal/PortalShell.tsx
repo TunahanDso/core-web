@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { PortalMember } from "@/lib/portal/auth";
 import PortalNav from "@/components/portal/PortalNav";
 import { logoutPortalAction } from "@/app/portal/actions";
@@ -25,13 +26,13 @@ export default function PortalShell({
     <main className="portalApp">
       <aside className="portalSidebar">
         <div className="portalBrandRow">
-          <a className="portalBrand" href="/portal">
+          <Link className="portalBrand" href="/portal">
             <span className="portalBrandMark">C</span>
             <span className="portalBrandCopy">
               <b>YTÜ CORE</b>
               <small>İÇ PORTAL</small>
             </span>
-          </a>
+          </Link>
           <PortalSidebarToggle />
         </div>
 
@@ -59,14 +60,14 @@ export default function PortalShell({
           <div className="portalTopActions">
             <PortalDensityToggle />
             <PortalCommandCenter />
-            <a href="/portal/notifications" className="portalTopChip">Bildirimler</a>
-            <a href="/portal/profile" className="portalIdentity">
+            <Link href="/portal/notifications" className="portalTopChip">Bildirimler</Link>
+            <Link href="/portal/profile" className="portalIdentity">
               <span>{initials}</span>
               <div>
                 <b>{member.fullName || member.email}</b>
                 <small>{portalRoleLabel(member.role)} · {member.teams.length ? member.teams.join(" / ") : "CORE"}</small>
               </div>
-            </a>
+            </Link>
           </div>
         </header>
         <PortalBanner />
