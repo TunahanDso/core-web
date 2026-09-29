@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePortalMember } from "@/lib/portal/auth";
-import { memberHasPortalCapability } from "@/lib/portal/governance";
+import { memberHasPortalCapability, type PortalCapability } from "@/lib/portal/governance";
 import {
   deleteControlCenterEntity,
   updateControlCenterEntity,
@@ -38,7 +38,7 @@ async function requireEntityPermission(type: ControlCenterEntityType) {
             ? ["vault.approve","control.projects","portal.admin"]
             : ["control.projects","portal.admin"];
 
-  const checks = await Promise.all(required.map((capability) => memberHasPortalCapability(member,capability as never)));
+  const checks = await Promise.all(required.map((capability) => memberHasPortalCapability(member,capability as PortalCapability)));
   if (!checks.some(Boolean)) {
     throw new Error("Bu Control Center nesnesini yönetme yetkin yok.");
   }
