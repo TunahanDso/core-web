@@ -91,14 +91,25 @@ jobs:
               "portal_code_run_events",
               "portal_code_run_artifacts",
               "portal_code_terminal_sessions",
-              "portal_vault_upload_sessions"
+              "portal_vault_upload_sessions",
+              "portal_meeting_spaces",
+              "portal_meetings",
+              "portal_meeting_participants",
+              "portal_meeting_notes",
+              "portal_meeting_reports",
+              "portal_polls",
+              "portal_poll_options",
+              "portal_poll_votes",
+              "portal_budget_accounts",
+              "portal_budget_allocations",
+              "portal_budget_entries"
             ];
             for (const table of portalV4Tables) {
               if (!portalBootstrap.includes(table)) {
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL") || !portalBootstrap.includes("PORTAL_V9_SQL") || !portalBootstrap.includes("PORTAL_V10_SQL") || !portalBootstrap.includes("PORTAL_V11_SQL")) {
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL") || !portalBootstrap.includes("PORTAL_V9_SQL") || !portalBootstrap.includes("PORTAL_V10_SQL") || !portalBootstrap.includes("PORTAL_V11_SQL") || !portalBootstrap.includes("PORTAL_V12_SQL")) {
               throw new Error("Portal engineering/mobile/control-plane/review/code-lab migrations must be part of the idempotent bootstrap path.");
             }
             const nativeRepoEngine = fs.readFileSync("lib/portal/native-repo-engine.ts", "utf8");
@@ -388,7 +399,11 @@ jobs:
               "ctrlKey",
               "/portal/search?q=",
               "/portal/tasks?create=1",
-              "/portal/library?upload=1#upload"
+              "/portal/library?upload=1#upload",
+              "/portal/calendar?create=1",
+              "/portal/meetings?create=meeting",
+              "/portal/polls?create=1",
+              "/portal/budget"
             ]) {
               if (!commandCenter.includes(required)) {
                 throw new Error(`CORE Command Center missing capability: ${required}`);
@@ -413,6 +428,59 @@ jobs:
               throw new Error("Notification mark-all persistence helper is missing.");
             }
             console.log("Deliverability diagnostics, Command Center, task filters and notification controls validated.");
+
+            const collaborationService = fs.readFileSync("lib/portal/collaboration.ts", "utf8");
+            const collaborationActions = fs.readFileSync("app/portal/collaboration-actions.ts", "utf8");
+            const meetingsPage = fs.readFileSync("app/portal/(member)/meetings/page.tsx", "utf8");
+            const meetingRoomPage = fs.readFileSync("app/portal/(member)/meetings/[id]/page.tsx", "utf8");
+            const pollsPage = fs.readFileSync("app/portal/(member)/polls/page.tsx", "utf8");
+            const budgetPage = fs.readFileSync("app/portal/(member)/budget/page.tsx", "utf8");
+            const chatPageV12 = fs.readFileSync("app/portal/(member)/chat/page.tsx", "utf8");
+            const calendarPageV12 = fs.readFileSync("app/portal/(member)/calendar/page.tsx", "utf8");
+            const archivePageV12 = fs.readFileSync("app/portal/(member)/archive/page.tsx", "utf8");
+            const searchPageV12 = fs.readFileSync("app/portal/(member)/search/page.tsx", "utf8");
+            const dashboardV12 = fs.readFileSync("app/portal/(member)/page.tsx", "utf8");
+            const portalModules = fs.readFileSync("lib/portal/modules.ts", "utf8");
+            for (const required of [
+              "createMeeting","generateMeetingReport","createPoll","votePoll",
+              "createBudgetAccount","createBudgetEntry","approveBudgetEntry","createBudgetAllocation"
+            ]) {
+              if (!collaborationService.includes(required)) throw new Error(`Collaboration/finance service missing: ${required}`);
+            }
+            for (const required of [
+              "createMeetingAction","createMeetingPollAction","createGeneralPollAction",
+              "generateMeetingReportAction","createBudgetAccountAction","createBudgetEntryAction"
+            ]) {
+              if (!collaborationActions.includes(required)) throw new Error(`Collaboration/finance action missing: ${required}`);
+            }
+            for (const required of ["portalMeetingDataTable","createMeetingAction","createMeetingSpaceAction"]) {
+              if (!meetingsPage.includes(required)) throw new Error(`Meeting registry missing: ${required}`);
+            }
+            for (const required of ["MeetingTransportPanel","meetingWorkbench","generateMeetingReportAction","createMeetingPollAction"]) {
+              if (!meetingRoomPage.includes(required)) throw new Error(`Meeting room missing: ${required}`);
+            }
+            for (const required of ["portalPollDataTable","votePollAction","createGeneralPollAction"]) {
+              if (!pollsPage.includes(required)) throw new Error(`Voting center missing: ${required}`);
+            }
+            for (const required of ["portalBudgetAccountTable","portalBudgetLedgerTable","approveBudgetEntryAction"]) {
+              if (!budgetPage.includes(required)) throw new Error(`Budget panel missing: ${required}`);
+            }
+            for (const required of ["chatAppShell","chatMessageViewport"]) {
+              if (!chatPageV12.includes(required)) throw new Error(`Chat V12 workbench missing: ${required}`);
+            }
+            if (!calendarPageV12.includes("portalCalendarDataTable") || !archivePageV12.includes("portalArchiveDataTable")) {
+              throw new Error("Calendar/archive V12 registries are incomplete.");
+            }
+            if (!searchPageV12.includes("portalSearchDataTable") || !dashboardV12.includes("portalDashboardMetricStrip")) {
+              throw new Error("Search/dashboard V12 surfaces are incomplete.");
+            }
+            for (const href of ["/portal/meetings","/portal/polls","/portal/budget"]) {
+              if (!portalModules.includes(href)) throw new Error(`Portal navigation missing module: ${href}`);
+            }
+            if (!portalCss.includes("CORE V12 WAVE 3 — CHAT / MEETINGS / POLLS / BUDGET / TODAY")) {
+              throw new Error("CORE V12 wave three style contract is missing.");
+            }
+            console.log("CORE V12 wave three collaboration/finance contract validated.");
 
             const governance = fs.readFileSync("lib/portal/governance.ts", "utf8");
             for (const required of ["portalMemberCapabilitySet", "canAccessPortalTeam", "canManagePortalTeam", "team.project.manage", "team.vehicle.manage", "portalRoleProfileCapabilities", "portal_role_profiles", "PORTAL_CAPABILITY_OPTIONS"]) {
