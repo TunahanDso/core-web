@@ -1,0 +1,18 @@
+{
+  "$schema":"../../node_modules/wrangler/config-schema.json",
+  "name":"core-telemetry",
+  "main":"src/index.js",
+  "compatibility_date":"2026-09-29",
+  "compatibility_flags":["nodejs_compat"],
+  "observability":{"enabled":true},
+  "d1_databases":[
+    {
+      "binding":"DB",
+      "database_name":"core-web-cms",
+      "database_id":"7c3b6174-8deb-4934-ae53-1f3da5d944a3"
+    }
+  ],
+  "routes":[
+    {"pattern":"telemetry.ytucore.com","custom_domain":true}
+  ]
+}
