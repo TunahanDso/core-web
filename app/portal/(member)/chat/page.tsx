@@ -1,54 +1,57 @@
-import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
+import { PortalEmpty } from "@/components/portal/PortalPage";
 import { openChatChannelAction, sendChatMessageAction } from "@/app/portal/actions";
 import { listPortalChannelsForMember, listPortalMessages } from "@/lib/portal/db";
 import { requirePortalMember } from "@/lib/portal/auth";
 import { portalRoleLabel } from "@/lib/portal/labels";
 
-export const dynamic = "force-dynamic";
+export const dynamic="force-dynamic";
 
 export default async function PortalChatPage({
   searchParams,
-}: {
-  searchParams?: Promise<{ channel?: string }>;
-}) {
-  const query = searchParams ? await searchParams : {};
-  const member = await requirePortalMember();
-  const channels = await listPortalChannelsForMember(member.id);
-  const selectedId = query.channel || String(channels[0]?.id || "");
-  const messages = selectedId ? await listPortalMessages(selectedId) : [];
-  const selected = channels.find((channel) => String(channel.id) === selectedId);
+}:{
+  searchParams?:Promise<{channel?:string;q?:string;browse?:string}>;
+}){
+  const query=searchParams ? await searchParams : {};
+  const member=await requirePortalMember();
+  const channels=await listPortalChannelsForMember(member.id);
+  const q=String(query.q||"").trim().toLocaleLowerCase("tr-TR");
+  const filtered=channels.filter((channel)=>!q || [channel.name,channel.description,channel.last_message]
+    .some((value)=>String(value||"").toLocaleLowerCase("tr-TR").includes(q)));
+  const browse=String(query.browse||"")==="1";
+  const selectedId=browse ? "" : String(query.channel||filtered[0]?.id||channels[0]?.id||"");
+  const messages=selectedId ? await listPortalMessages(selectedId) : [];
+  const selected=channels.find((channel)=>String(channel.id)===selectedId);
 
   return (
-    <>
-      <PortalPageHeader
-        code="CH / SOHBET"
-        title="Takım Sohbeti"
-        lead="Hızlı koordinasyon burada kalır; kalıcı kararları görev, doküman veya rapora taşı."
-      />
+    <section className="chatAppShell">
+      <header className="chatAppTopbar">
+        <div className="chatAppIdentity">
+          <span>CH</span>
+          <div><b>CORE Chat</b><small>Hızlı koordinasyon · kalıcı kararlar rapor/görev olur</small></div>
+        </div>
+        <form action="/portal/chat" method="get" className="chatAppSearch">
+          <input name="q" defaultValue={String(query.q||"")} placeholder="Kanal veya mesaj özeti ara..." />
+          <button type="submit">Ara</button>
+        </form>
+        <div className="chatAppTopActions">
+          <a href="/portal/meetings">Toplantılar</a>
+          <a href="/portal/mail">Mail</a>
+        </div>
+      </header>
 
-      <section className="portalChatLayout portalWorkbenchSurface">
-        <aside className="portalChatSidebar">
-          <header>
-            <div>
-              <span>KANALLAR</span>
-              <b>{channels.length}</b>
-            </div>
-            <small>CORE LIVE</small>
-          </header>
-
+      <div className="chatAppBody">
+        <aside className="chatChannelPane">
+          <header><b>Kanallar</b><span>{filtered.length}</span></header>
           <div className="portalChannelList">
-            {channels.map((channel) => {
-              const active = String(channel.id) === selectedId;
-              const unread = Number(channel.unread_count || 0);
+            {filtered.map((channel)=>{
+              const active=String(channel.id)===selectedId;
+              const unread=Number(channel.unread_count||0);
               return (
                 <form action={openChatChannelAction} key={String(channel.id)}>
-                  <input type="hidden" name="channelId" value={String(channel.id)} />
-                  <button className={active ? "active" : ""} type="submit">
-                    <div className="portalChannelTitle">
-                      <b># {String(channel.name)}</b>
-                      {unread > 0 ? <em>{String(unread)}</em> : null}
-                    </div>
-                    <small>{String(channel.last_message || channel.description || "Henüz mesaj yok.")}</small>
+                  <input type="hidden" name="channelId" value={String(channel.id)}/>
+                  <button className={active?"active":""} type="submit">
+                    <div className="portalChannelTitle"><b># {String(channel.name)}</b>{unread>0?<em>{unread}</em>:null}</div>
+                    <small>{String(channel.last_message||channel.description||"Henüz mesaj yok.")}</small>
                   </button>
                 </form>
               );
@@ -56,56 +59,40 @@ export default async function PortalChatPage({
           </div>
         </aside>
 
-        <div className="portalChatRoom">
-          <header className="portalChatRoomHeader">
-            <div className="portalChatRoomIdentity">
-              <span>#</span>
-              <div>
-                <b>{String(selected?.name || "Kanal")}</b>
-                <small>{String(selected?.description || "CORE takım kanalı")}</small>
-              </div>
-            </div>
-            <div className="portalChatRoomMeta">
-              <span>{messages.length} MESAJ</span>
-              <b>{selected ? "AKTİF KANAL" : "KANAL SEÇ"}</b>
-            </div>
-          </header>
+        <main className="chatConversationPane">
+          {selected?(
+            <>
+              <header className="chatConversationHeader">
+                <div><a className="chatMobileBack" href="/portal/chat?browse=1">←</a><span>#</span><div><b>{String(selected.name)}</b><small>{String(selected.description||"CORE takım kanalı")}</small></div></div>
+                <small>{messages.length} mesaj</small>
+              </header>
 
-          <div className="portalMessages">
-            {messages.length ? messages.map((message) => {
-              const author = String(message.full_name || message.email);
-              const mine = String(message.email) === member.email;
-              const initials = author.split(/\s+/).slice(0,2).map((part) => part[0]).join("").toUpperCase();
-              return (
-                <article className={mine ? "mine" : ""} key={String(message.id)}>
-                  <span className="portalMessageAvatar">{initials || "CR"}</span>
-                  <div className="portalMessageContent">
-                    <header>
-                      <div>
-                        <b>{author}</b>
-                        <span>{portalRoleLabel(String(message.role))}</span>
+              <div className="portalMessages chatMessageViewport">
+                {messages.length?messages.map((message)=>{
+                  const author=String(message.full_name||message.email);
+                  const mine=String(message.email)===member.email;
+                  const initials=author.split(/s+/).slice(0,2).map((x)=>x[0]).join("").toUpperCase();
+                  return (
+                    <article className={mine?"mine":""} key={String(message.id)}>
+                      <span className="portalMessageAvatar">{initials||"CR"}</span>
+                      <div className="portalMessageContent">
+                        <header><div><b>{author}</b><span>{portalRoleLabel(String(message.role))}</span></div><small>{String(message.created_at)}</small></header>
+                        <p>{String(message.body)}</p>
                       </div>
-                      <small>{String(message.created_at)}</small>
-                    </header>
-                    <p>{String(message.body)}</p>
-                  </div>
-                </article>
-              );
-            }) : <PortalEmpty title="Kanal sessiz." text="İlk mesajı aşağıdan gönder." />}
-          </div>
-
-          {selectedId ? (
-            <form className="portalChatComposer" action={sendChatMessageAction}>
-              <input type="hidden" name="channelId" value={selectedId} />
-              <div>
-                <textarea name="body" rows={2} placeholder={"#" + String(selected?.name || "kanal") + " kanalına yaz..."} required />
-                <small>Hızlı koordinasyon · Kalıcı kararları göreve veya dokümana taşı.</small>
+                    </article>
+                  );
+                }):<PortalEmpty title="Kanal sessiz." text="İlk mesajı aşağıdan gönder."/>}
               </div>
-              <button type="submit">GÖNDER ↗</button>
-            </form>
-          ) : null}
-        </div>
-      </section>
-    </>
+
+              <form className="portalChatComposer chatFixedComposer" action={sendChatMessageAction}>
+                <input type="hidden" name="channelId" value={selectedId}/>
+                <div><textarea name="body" rows={2} placeholder={"#"+String(selected.name)+" kanalına yaz..."} required/><small>Karar çıktıysa Toplantı/Task/Document kaydına taşı.</small></div>
+                <button type="submit">Gönder</button>
+              </form>
+            </>
+          ):<PortalEmpty title="Kanal seç." text="Sol listeden bir kanal aç."/>}
+        </main>
+      </div>
+    </section>
   );
 }
