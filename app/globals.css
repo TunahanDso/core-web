@@ -15251,3 +15251,198 @@ html[data-density="compact"]{
     border-radius:0;
   }
 }
+
+
+/* V12 registry-specific composition */
+.portalInlineToolHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+}
+.portalInlineToolHead>div{
+  display:grid;
+  gap:3px;
+}
+.portalInlineToolHead b{font-size:11px}
+.portalInlineToolHead small{color:var(--core-text-muted);font-size:8px}
+.portalInlineToolHead>a{
+  min-height:30px;
+  display:inline-flex;
+  align-items:center;
+  border:1px solid var(--core-border);
+  border-radius:6px;
+  padding:0 8px;
+  color:var(--core-text-secondary);
+  font-size:8px;
+  font-weight:800;
+}
+.portalInlineStatusForm{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:4px;
+}
+.portalInlineStatusForm select{
+  height:30px;
+  max-width:105px;
+  border:1px solid var(--core-border);
+  border-radius:6px;
+  background:#fff;
+  padding:0 5px;
+  color:var(--core-text-secondary);
+  font-size:7px;
+}
+.portalInlineStatusForm button{
+  height:30px;
+  border:1px solid var(--core-border);
+  border-radius:6px;
+  background:#fff;
+  padding:0 7px;
+  color:var(--core-text-secondary);
+  font-size:7px;
+  font-weight:800;
+  cursor:pointer;
+}
+.portalTaskDataTable th:nth-child(1){width:28%}
+.portalTaskDataTable th:nth-child(2){width:11%}
+.portalTaskDataTable th:nth-child(3){width:9%}
+.portalTaskDataTable th:nth-child(4){width:12%}
+.portalTaskDataTable th:nth-child(5){width:11%}
+.portalTaskDataTable th:nth-child(6){width:13%}
+.portalTaskDataTable th:nth-child(7){width:16%}
+.portalTaskBoardCompact{
+  gap:8px;
+}
+.portalTaskBoardCompact .portalTaskColumn{
+  min-width:210px;
+}
+.portalTaskBoardCompact .portalTaskCard{
+  min-height:0;
+  padding:10px;
+}
+.portalTaskBoardCompact .portalTaskCard h3{
+  margin:8px 0 4px;
+  font-size:11px;
+}
+.portalTaskBoardCompact .portalTaskCard p{
+  max-height:40px;
+  overflow:hidden;
+  font-size:8px;
+}
+
+.portalMemberTableIdentity{
+  display:grid!important;
+  grid-template-columns:32px minmax(0,1fr);
+  align-items:center;
+  gap:8px!important;
+}
+.portalMemberTableIdentity>span{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border-radius:7px;
+  background:#202328;
+  color:#fff;
+  font:850 7px ui-monospace,monospace;
+}
+.portalMemberTableIdentity>div{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+.portalMemberDataTable th:nth-child(1){width:25%}
+.portalMemberDataTable th:nth-child(2){width:11%}
+.portalMemberDataTable th:nth-child(3){width:17%}
+.portalMemberDataTable th:nth-child(4){width:19%}
+.portalMemberDataTable th:nth-child(5){width:18%}
+.portalMemberDataTable th:nth-child(6){width:10%}
+.portalInlineTags{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:3px;
+}
+.portalInlineTags span{
+  display:inline-flex;
+  align-items:center;
+  min-height:20px;
+  border:1px solid var(--core-border);
+  border-radius:5px;
+  background:#f5f6f2;
+  padding:0 5px;
+  color:var(--core-text-secondary);
+  font:750 6px ui-monospace,monospace;
+}
+.portalRoleStudioCompact{
+  margin-top:0;
+}
+.portalRoleStudioCompact>header{
+  margin-bottom:10px;
+  padding:12px 14px;
+  border:1px solid var(--core-border);
+  border-radius:var(--core-radius-surface);
+  background:#fff;
+}
+.portalRoleStudioCompact>header h2{
+  margin:4px 0;
+  font-size:18px;
+}
+.portalRoleStudioCompact>header p{
+  margin:0;
+  font-size:9px;
+}
+.portalRoleProfileList{
+  display:grid;
+  gap:6px;
+}
+.portalRoleProfileEditor{
+  display:grid;
+  gap:10px;
+}
+
+.portalInventoryDataTable th:nth-child(1){width:12%}
+.portalInventoryDataTable th:nth-child(2){width:22%}
+.portalInventoryDataTable th:nth-child(3){width:13%}
+.portalInventoryDataTable th:nth-child(4){width:18%}
+.portalInventoryDataTable th:nth-child(5){width:13%}
+.portalInventoryDataTable th:nth-child(6){width:10%}
+.portalInventoryDataTable th:nth-child(7){width:12%}
+.portalMovementDataTable th:nth-child(1){width:15%}
+.portalMovementDataTable th:nth-child(2){width:20%}
+.portalMovementDataTable th:nth-child(3){width:11%}
+.portalMovementDataTable th:nth-child(4){width:12%}
+.portalMovementDataTable th:nth-child(5){width:27%}
+.portalMovementDataTable th:nth-child(6){width:15%}
+.portalRepositoryDataTable th:nth-child(1){width:28%}
+.portalRepositoryDataTable th:nth-child(2){width:12%}
+.portalRepositoryDataTable th:nth-child(3){width:12%}
+.portalRepositoryDataTable th:nth-child(4){width:12%}
+.portalRepositoryDataTable th:nth-child(5){width:16%}
+.portalRepositoryDataTable th:nth-child(6){width:11%}
+.portalRepositoryDataTable th:nth-child(7){width:9%}
+
+html[data-density="compact"] .portalFormGrid{
+  gap:8px;
+}
+html[data-density="compact"] .portalFormGrid input,
+html[data-density="compact"] .portalFormGrid select{
+  min-height:34px;
+}
+html[data-density="compact"] .portalFormGrid textarea{
+  min-height:72px;
+}
+html[data-density="comfortable"] .portalDataTable thead th{
+  height:38px;
+}
+
+@media(max-width:900px){
+  .portalRegistryToolbar .portalSegmentedControl{
+    align-self:flex-start;
+  }
+  .portalDataTable{
+    min-width:820px;
+  }
+}
