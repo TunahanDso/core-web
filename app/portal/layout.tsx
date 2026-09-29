@@ -1,4 +1,5 @@
 import PortalMobileRuntimeGate from "@/components/portal/PortalMobileRuntimeGate";
+import "./portal.css";
 import { portalMobilePublicConfig } from "@/lib/portal/mobile";
 
 export const dynamic = "force-dynamic";
