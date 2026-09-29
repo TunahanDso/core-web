@@ -33,7 +33,7 @@ export function getEngineeringServiceStatus() {
     repository: {
       configured: Boolean(externalRepository || embeddedRepository),
       url: externalRepository ? repositoryUrl : null,
-      mode: externalRepository ? "external" : embeddedRepository ? "embedded-r2" : "offline",
+      mode: externalRepository ? "external" : embeddedRepository ? "snapshot-r2" : "offline",
       embedded: embeddedRepository,
     },
     runner: {
@@ -41,8 +41,16 @@ export function getEngineeringServiceStatus() {
       url: serviceUrl(env.CORE_RUNNER_URL),
     },
     converter: {
-      configured: Boolean(serviceUrl(env.CORE_CONVERTER_URL)),
+      configured: Boolean(
+        ((env as unknown as Record<string,unknown>).CONVERTER_SERVICE as {fetch?:unknown}|undefined)?.fetch
+        || serviceUrl(env.CORE_CONVERTER_URL)
+      ),
       url: serviceUrl(env.CORE_CONVERTER_URL),
+      mode: ((env as unknown as Record<string,unknown>).CONVERTER_SERVICE as {fetch?:unknown}|undefined)?.fetch
+        ? "internal-service"
+        : serviceUrl(env.CORE_CONVERTER_URL)
+          ? "external"
+          : "offline",
     },
   };
 }
@@ -70,7 +78,7 @@ export async function createNativeRepository(input: {
   const url = serviceUrl(env.CORE_REPO_SERVICE_URL);
   const token = String(env.CORE_REPO_SERVICE_TOKEN || "").trim();
 
-  let payload: { id: string; defaultBranch: string; headSha?: string; engine?: string };
+  let payload: { id: string; defaultBranch: string; headSha?: string; engine?: string; cloneUrl?: string | null };
   if (url && token) {
     const response = await fetch(url + "/v1/repositories", {
       method: "POST",
@@ -88,13 +96,14 @@ export async function createNativeRepository(input: {
       }),
     });
     if (!response.ok) throw new Error("CORE Repo Service repository oluşturamadı.");
-    const remote = await response.json() as { id?: string; defaultBranch?: string; headSha?: string };
+    const remote = await response.json() as { id?: string; defaultBranch?: string; headSha?: string; cloneUrl?: string };
     if (!remote.id) throw new Error("CORE Repo Service geçersiz repository cevabı döndürdü.");
     payload = {
       id: remote.id,
       defaultBranch: remote.defaultBranch || "main",
       headSha: remote.headSha,
-      engine: "external",
+      engine: "external-git-service",
+      cloneUrl: remote.cloneUrl || null,
     };
   } else {
     payload = await provisionEmbeddedRepository({
@@ -110,9 +119,9 @@ export async function createNativeRepository(input: {
   const db = database();
   await db.batch([
     db.prepare(
-      "INSERT INTO portal_native_repositories (id,name,slug,service_repository_id,project_slug,team_code,visibility,default_branch,status,created_by) VALUES (?,?,?,?,?,?,?,?, 'ready',?)"
+      "INSERT INTO portal_native_repositories (id,name,slug,service_repository_id,project_slug,team_code,visibility,default_branch,status,mirror_url,created_by) VALUES (?,?,?,?,?,?,?,?, 'ready',?,?)"
     ).bind(
-      id,input.name,input.slug,payload.id,input.projectSlug,input.teamCode,input.visibility,payload.defaultBranch,input.actorEmail
+      id,input.name,input.slug,payload.id,input.projectSlug,input.teamCode,input.visibility,payload.defaultBranch,payload.cloneUrl || null,input.actorEmail
     ),
     db.prepare(
       "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'repository.native.create','native_repository',?,?)"
@@ -120,7 +129,7 @@ export async function createNativeRepository(input: {
       name: input.name,
       slug: input.slug,
       serviceRepositoryId: payload.id,
-      engine: payload.engine || (url ? "external" : "embedded-r2"),
+      engine: payload.engine || (url ? "external-git-service" : "snapshot-r2"),
       headSha: payload.headSha || null,
     })),
   ]);

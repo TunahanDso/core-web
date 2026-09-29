@@ -39,4 +39,55 @@ for(const path of [
   requireFile(path);
 }
 
+
+
+const auth=requireFile("lib/portal/auth.ts");
+assert(auth.includes("portal_team_memberships"),"Portal sessions must derive teams from authoritative memberships.");
+
+const governance=requireFile("lib/portal/governance.ts");
+assert(!governance.includes("legacy: 1"),"Legacy teams_json must not participate in authorization.");
+assert(governance.includes("PORTAL_SENSITIVE_CAPABILITIES"),"Sensitive capability policy is required.");
+
+const control=requireFile("lib/portal/control.ts");
+assert(control.includes('"APPLY "+roleKey'),"High-risk role expansion confirmation is required.");
+assert(control.includes('"GRANT "+input.capability'),"Sensitive direct grants require explicit confirmation.");
+
+const repoEngine=requireFile("lib/portal/native-repo-engine.ts");
+assert(repoEngine.includes("not a Git remote"),"R2 snapshot fallback must not masquerade as Git.");
+assert(repoEngine.includes('engine:"snapshot-r2"'),"Snapshot repository mode must be explicit.");
+
+const repoPage=requireFile("app/portal/(member)/repositories/page.tsx");
+assert(repoPage.includes("listAccessibleRepositoryCatalog"),"Repository UI must use the unified catalog.");
+assert(repoPage.includes("clone/push"),"Repository UI must disclose snapshot Git limitations.");
+
+const wranglerFull=JSON.parse(requireFile("wrangler.jsonc"));
+const serviceBindings=new Set((wranglerFull.services||[]).map((item)=>item.binding));
+assert(serviceBindings.has("MAIL_SERVICE"),"Internal mail service binding missing.");
+assert(serviceBindings.has("CONVERTER_SERVICE"),"Internal converter service binding missing.");
+
+requireFile("services/core-mail/src/index.js");
+requireFile("services/core-converter/src/index.js");
+assert(requireFile("services/core-converter/src/index.js").includes("Edge.Cuts"),"CORE Converter must contain a real KiCad derivative engine.");
+
+const migrationV13=requireFile("migrations/0013_authority_cleanup.sql");
+assert(migrationV13.includes("portal_team_memberships"),"V13 membership authority migration missing.");
+
+
+
+assert(!pkg.scripts?.["build:next"],"A second Next production build path must not exist.");
+
+const shell=requireFile("components/portal/PortalShell.tsx");
+assert(!shell.includes("portalMemberCapabilitySet"),"PortalShell must not refetch member capabilities.");
+
+const memberLayout=requireFile("app/portal/(member)/layout.tsx");
+assert(memberLayout.includes("portalMemberCapabilitySet"),"Member layout must resolve capabilities once for the shell.");
+
+assert(!(wranglerFull.send_email||[]).some((item)=>item.name==="EMAIL"),"Web Worker must not own transactional EMAIL binding.");
+
+const mailGateway=requireFile("lib/portal/mail.ts");
+assert(mailGateway.includes("MAIL_SERVICE"),"Portal mail delivery must prefer the isolated mail Worker.");
+
+const vaultService=requireFile("lib/portal/vault.ts");
+assert(vaultService.includes("CONVERTER_SERVICE"),"Vault derivative queue must dispatch to CORE Converter.");
+
 console.log("Focused CORE security/build/schema contracts validated.");

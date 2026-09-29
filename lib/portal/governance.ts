@@ -22,6 +22,21 @@ export const PORTAL_CAPABILITY_OPTIONS = [
 
 export type PortalCapability = typeof PORTAL_CAPABILITY_OPTIONS[number];
 
+export const PORTAL_SENSITIVE_CAPABILITIES = new Set<PortalCapability>([
+  "portal.admin",
+  "roles.manage",
+  "teams.manage",
+  "control.projects",
+  "control.vehicles",
+  "project.map.edit",
+  "vault.approve",
+]);
+
+export function isSensitivePortalCapability(value:string): value is PortalCapability {
+  return PORTAL_SENSITIVE_CAPABILITIES.has(value as PortalCapability);
+}
+
+
 export type PortalTeamRole =
   | "owner"
   | "captain"
@@ -190,17 +205,8 @@ export async function portalTeamMembershipFor(member: PortalMember, teamCode: st
     ).bind(member.id,code).first<Record<string, unknown>>();
     if (row) return row;
   } catch {
-    // V6 may not be applied yet. Fall back to legacy teams_json below.
-  }
-
-  if (member.teams.some((item) => normalizeCode(item) === code)) {
-    return {
-      team_code: code,
-      team_role: member.role === "lead" ? "lead" : "engineer",
-      status: "active",
-      capabilities_json: "[]",
-      legacy: 1,
-    };
+    // During bootstrap/migration failure, fail closed instead of resurrecting
+    // legacy teams_json as a second authorization source.
   }
   return null;
 }

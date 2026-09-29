@@ -254,6 +254,7 @@ export async function grantPortalCapabilityAction(formData: FormData) {
     memberId: text(formData,"memberId"),
     capability: text(formData,"capability"),
     actorEmail: member.email,
+    confirmation: text(formData,"confirmation"),
   });
   revalidatePath("/portal/control");
   redirect("/portal/control?section=roles&capability=granted");
@@ -360,6 +361,7 @@ export async function updatePortalRoleProfileAction(formData: FormData) {
     description:text(formData,"description"),
     capabilities:formData.getAll("capability").map((item) => String(item)),
     actorEmail:member.email,
+    confirmation:text(formData,"confirmation"),
   });
   revalidatePath("/portal/members");
   revalidatePath("/portal/control");

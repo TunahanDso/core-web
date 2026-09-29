@@ -254,7 +254,7 @@ export async function applyPortalFoundation(actor: string) {
   `).bind(
     actor,
     JSON.stringify({
-      version: "2026.09-v12-collab-finance",
+      version: "2026.09-v13-authority-cleanup",
       statementCount: statements.length,
       modules: [
         "members","auth","tasks","resources","repositories","inventory",

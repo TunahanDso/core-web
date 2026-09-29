@@ -467,6 +467,22 @@ export function formatVaultBytes(value: unknown) {
 }
 
 
+async function dispatchPortalDesignDerivative(id:string){
+  const binding=(env as unknown as Record<string,unknown>).CONVERTER_SERVICE as {fetch?:typeof fetch}|undefined;
+  if(!binding||typeof binding.fetch!=="function") return { dispatched:false };
+  try{
+    const response=await binding.fetch("https://core-converter.internal/v1/jobs",{
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body:JSON.stringify({id}),
+    });
+    const result=await response.json().catch(()=>({})) as {ok?:boolean;status?:string;error?:string};
+    return {dispatched:true,ok:response.ok&&Boolean(result.ok),status:result.status,error:result.error};
+  }catch(error){
+    return {dispatched:true,ok:false,error:error instanceof Error?error.message:"CORE Converter erişilemedi."};
+  }
+}
+
 export async function queuePortalDesignDerivative(input: {
   fileId: string;
   derivativeType: "gltf" | "glb" | "preview-svg" | "preview-png" | "pcb-3d" | "thumbnail" | "pdf";
@@ -495,5 +511,11 @@ export async function queuePortalDesignDerivative(input: {
       derivativeType: input.derivativeType,
     })),
   ]);
-  return { id, status: "queued" };
+  const conversion=await dispatchPortalDesignDerivative(id);
+  return {
+    id,
+    status: conversion.status || "queued",
+    dispatched: conversion.dispatched,
+    error: conversion.error,
+  };
 }

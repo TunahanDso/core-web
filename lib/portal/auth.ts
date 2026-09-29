@@ -250,7 +250,13 @@ export async function getPortalMember(): Promise<PortalMember | null> {
   const hash = await sha256Hex(token);
   try {
     const row = await env.DB
-      .prepare("SELECT m.id,m.email,m.full_name,m.role,m.status,m.teams_json,m.activated_at,m.last_login_at FROM portal_sessions s JOIN portal_members m ON m.id=s.member_id WHERE s.session_hash=? AND datetime(s.expires_at)>datetime('now') AND m.status='active' LIMIT 1")
+      .prepare(
+        "SELECT m.id,m.email,m.full_name,m.role,m.status," +
+        "COALESCE((SELECT json_group_array(tm.team_code) FROM portal_team_memberships tm WHERE tm.member_id=m.id AND tm.status='active'),'[]') AS teams_json," +
+        "m.activated_at,m.last_login_at " +
+        "FROM portal_sessions s JOIN portal_members m ON m.id=s.member_id " +
+        "WHERE s.session_hash=? AND datetime(s.expires_at)>datetime('now') AND m.status='active' LIMIT 1"
+      )
       .bind(hash)
       .first<PortalMemberRow>();
     return row ? rowToMember(row) : null;
@@ -303,7 +309,12 @@ export async function loginPortalMember(email: string, password: string) {
   const normalizedEmail = normalizePortalEmail(email);
 
   const row = await db
-    .prepare("SELECT id,email,full_name,role,status,teams_json,password_hash,failed_login_count,locked_until,activated_at,last_login_at FROM portal_members WHERE email=? LIMIT 1")
+    .prepare(
+      "SELECT m.id,m.email,m.full_name,m.role,m.status," +
+      "COALESCE((SELECT json_group_array(tm.team_code) FROM portal_team_memberships tm WHERE tm.member_id=m.id AND tm.status='active'),'[]') AS teams_json," +
+      "m.password_hash,m.failed_login_count,m.locked_until,m.activated_at,m.last_login_at " +
+      "FROM portal_members m WHERE m.email=? LIMIT 1"
+    )
     .bind(normalizedEmail)
     .first<PortalMemberRow & { password_hash: string | null; failed_login_count: number; locked_until: string | null }>();
 

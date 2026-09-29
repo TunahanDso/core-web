@@ -227,6 +227,11 @@ export default async function PortalMembersPage({
                           </label>
                         ))}
                       </div>
+                      <label className="portalRoleDescription">
+                        <span>Yüksek yetki ekleme onayı</span>
+                        <input name="confirmation" autoComplete="off" placeholder={"Gerekirse: APPLY " + roleKey} />
+                        <small>portal.admin, roles.manage, teams.manage, control.*, project.map.edit veya vault.approve ekleniyorsa bu ifade zorunludur.</small>
+                      </label>
                       <button className="portalOutlineButton" type="submit">Rol politikasını kaydet</button>
                     </form>
                   </div>

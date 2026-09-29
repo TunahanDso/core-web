@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import type { PortalMember } from "@/lib/portal/auth";
-import { canAccessPortalTeam, PORTAL_CAPABILITY_OPTIONS } from "@/lib/portal/governance";
+import { canAccessPortalTeam, isSensitivePortalCapability, PORTAL_CAPABILITY_OPTIONS } from "@/lib/portal/governance";
 
 function db() {
   if (!env.DB) throw new Error("DB bağlantısı kullanılamıyor.");
@@ -53,48 +53,18 @@ export async function getPortalTeam(codeValue: string) {
 
 export async function listPortalTeamMembers(teamCode: string) {
   const normalized = code(teamCode);
-  const explicit: Record<string, unknown>[] = [];
   try {
     const response = await db().prepare(
-      "SELECT tm.team_code,tm.team_role,tm.status,tm.capabilities_json,m.id,m.full_name,m.email,m.role,m.teams_json,m.last_login_at " +
+      "SELECT tm.team_code,tm.team_role,tm.status,tm.capabilities_json,m.id,m.full_name,m.email,m.role,m.last_login_at " +
       "FROM portal_team_memberships tm JOIN portal_members m ON m.id=tm.member_id " +
       "WHERE tm.team_code=? AND tm.status='active' ORDER BY " +
       "CASE tm.team_role WHEN 'owner' THEN 0 WHEN 'captain' THEN 1 WHEN 'lead' THEN 2 WHEN 'engineer' THEN 3 WHEN 'contributor' THEN 4 ELSE 5 END," +
       "m.full_name"
     ).bind(normalized).all<Record<string, unknown>>();
-    explicit.push(...(response.results ?? []));
+    return response.results ?? [];
   } catch {
-    // V6 may not be applied yet. Legacy membership fallback is handled below.
+    return [];
   }
-
-  const known = new Set(explicit.map((item) => String(item.id)));
-  try {
-    const legacy = await db().prepare(
-      "SELECT id,full_name,email,role,teams_json,last_login_at FROM portal_members WHERE status='active' ORDER BY full_name"
-    ).all<Record<string, unknown>>();
-    for (const member of legacy.results ?? []) {
-      if (known.has(String(member.id))) continue;
-      let teams: string[] = [];
-      try {
-        const parsed = JSON.parse(String(member.teams_json || "[]"));
-        if (Array.isArray(parsed)) teams = parsed.map((item) => String(item).trim().toUpperCase());
-      } catch {
-        teams = [];
-      }
-      if (!teams.includes(normalized)) continue;
-      explicit.push({
-        ...member,
-        team_code: normalized,
-        team_role: String(member.role) === "lead" ? "lead" : "engineer",
-        status: "active",
-        capabilities_json: "[]",
-        legacy: 1,
-      });
-    }
-  } catch {
-    // If the legacy member table is unavailable, return what the V6 query produced.
-  }
-  return explicit;
 }
 
 export async function listPortalCapabilityGrants() {
@@ -186,26 +156,7 @@ export async function deletePortalTeam(input: {
   ).bind(teamCode).first<{ code:string; name:string }>();
   if (!existing) throw new Error("Takım bulunamadı.");
 
-  const members = await database.prepare(
-    "SELECT id,teams_json FROM portal_members WHERE teams_json LIKE ?"
-  ).bind("%" + teamCode + "%").all<{ id:string; teams_json:string }>();
-
-  const legacyUpdates = (members.results ?? []).map((member) => {
-    let teams: string[] = [];
-    try {
-      const parsed = JSON.parse(member.teams_json || "[]");
-      if (Array.isArray(parsed)) teams = parsed.map((item) => String(item));
-    } catch {
-      teams = [];
-    }
-    const next = teams.filter((item) => code(item) !== teamCode);
-    return database.prepare(
-      "UPDATE portal_members SET teams_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?"
-    ).bind(JSON.stringify(next),member.id);
-  });
-
   await database.batch([
-    ...legacyUpdates,
     database.prepare("UPDATE portal_tasks SET team_code=NULL WHERE team_code=?").bind(teamCode),
     database.prepare("UPDATE portal_resources SET team_code=NULL WHERE team_code=?").bind(teamCode),
     database.prepare("UPDATE portal_repositories SET team_code=NULL WHERE team_code=?").bind(teamCode),
@@ -225,7 +176,6 @@ export async function deletePortalTeam(input: {
     ).bind(input.actorEmail,teamCode,JSON.stringify({
       name:existing.name,
       detached:["tasks","resources","repositories","channels","calendar","vault","native-repositories","projects","vehicles"],
-      legacyMembershipsUpdated:legacyUpdates.length,
     })),
   ]);
   return true;
@@ -240,28 +190,13 @@ export async function removePortalTeamMembership(input: {
   if (!teamCode || !input.memberId) throw new Error("Takım ve üye gerekli.");
   const database = db();
 
-  const member = await database.prepare(
-    "SELECT teams_json FROM portal_members WHERE id=? LIMIT 1"
-  ).bind(input.memberId).first<{ teams_json:string }>();
-  let teams: string[] = [];
-  try {
-    const parsed = JSON.parse(member?.teams_json || "[]");
-    if (Array.isArray(parsed)) teams = parsed.map((item) => String(item));
-  } catch {
-    teams = [];
-  }
-  const next = teams.filter((item) => code(item) !== teamCode);
-
   await database.batch([
     database.prepare(
       "DELETE FROM portal_team_memberships WHERE team_code=? AND member_id=?"
     ).bind(teamCode,input.memberId),
     database.prepare(
-      "UPDATE portal_members SET teams_json=?,updated_at=CURRENT_TIMESTAMP WHERE id=?"
-    ).bind(JSON.stringify(next),input.memberId),
-    database.prepare(
       "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.team.membership.remove','team',?,?)"
-    ).bind(input.actorEmail,teamCode,JSON.stringify({ memberId:input.memberId })),
+    ).bind(input.actorEmail,teamCode,JSON.stringify({ memberId:input.memberId, authority:"portal_team_memberships" })),
   ]);
 }
 
@@ -270,6 +205,7 @@ export async function updatePortalRoleProfile(input: {
   description: string;
   capabilities: string[];
   actorEmail: string;
+  confirmation?: string;
 }) {
   const roleKey = input.roleKey.trim();
   if (!/^[a-z0-9_-]{2,40}$/.test(roleKey)) throw new Error("Geçersiz rol anahtarı.");
@@ -279,9 +215,19 @@ export async function updatePortalRoleProfile(input: {
 
   const database = db();
   const existing = await database.prepare(
-    "SELECT role_key,scope FROM portal_role_profiles WHERE role_key=? LIMIT 1"
-  ).bind(roleKey).first<{ role_key:string; scope:string }>();
+    "SELECT role_key,scope,capabilities_json FROM portal_role_profiles WHERE role_key=? LIMIT 1"
+  ).bind(roleKey).first<{ role_key:string; scope:string; capabilities_json:string }>();
   if (!existing) throw new Error("Rol profili bulunamadı.");
+
+  let previous:string[]=[];
+  try{
+    const parsed=JSON.parse(existing.capabilities_json || "[]");
+    if(Array.isArray(parsed)) previous=parsed.map((item)=>String(item));
+  }catch{}
+  const addedHighRisk=capabilities.filter((capability)=>isSensitivePortalCapability(capability)&&!previous.includes(capability));
+  if(addedHighRisk.length && String(input.confirmation||"").trim() !== "APPLY "+roleKey){
+    throw new Error("Yüksek yetki eklemek için APPLY "+roleKey+" onayı gerekli.");
+  }
 
   await database.batch([
     database.prepare(
@@ -289,7 +235,13 @@ export async function updatePortalRoleProfile(input: {
     ).bind(input.description.trim(),JSON.stringify(capabilities),roleKey),
     database.prepare(
       "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'control.role.profile.update','role',?,?)"
-    ).bind(input.actorEmail,roleKey,JSON.stringify({ scope:existing.scope,capabilities })),
+    ).bind(input.actorEmail,roleKey,JSON.stringify({
+      scope:existing.scope,
+      previousCapabilities:previous,
+      capabilities,
+      added:capabilities.filter((item)=>!previous.includes(item)),
+      removed:previous.filter((item)=>!capabilities.includes(item)),
+    })),
   ]);
 }
 
@@ -544,8 +496,12 @@ export async function grantPortalMemberCapability(input: {
   memberId: string;
   capability: string;
   actorEmail: string;
+  confirmation?: string;
 }) {
   if (!/^[a-z0-9._-]{3,80}$/.test(input.capability)) throw new Error("Geçersiz capability.");
+  if (isSensitivePortalCapability(input.capability) && String(input.confirmation||"").trim() !== "GRANT "+input.capability) {
+    throw new Error("Kritik capability için GRANT "+input.capability+" onayı gerekli.");
+  }
   const database = db();
   await database.batch([
     database.prepare(

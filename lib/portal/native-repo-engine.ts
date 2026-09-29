@@ -274,8 +274,8 @@ export async function provisionEmbeddedRepository(input: {
   const now = new Date().toISOString();
   const readmePath = "README.md";
   const readme = "# " + input.name + "\n\n"
-    + "Native YTÜ CORE repository.\n\n"
-    + "This repository is managed by CORE Repo Engine and its project/team permissions are enforced by the portal.\n";
+    + "YTÜ CORE snapshot workspace.\n\n"
+    + "This fallback stores revision snapshots in R2. It is not a Git remote and does not provide git clone/push. Project/team permissions are enforced by the portal.\n";
   const readmeMeta = await storeBlob(repoId,readmePath,encoder.encode(readme));
   const commit = await createCommit({
     repoId,
@@ -298,7 +298,7 @@ export async function provisionEmbeddedRepository(input: {
     updatedAt:now,
   };
   await putJson(metaKey(repoId),meta);
-  return { id:repoId,defaultBranch,headSha:commit.sha,engine:"embedded-r2" };
+  return { id:repoId,defaultBranch,headSha:commit.sha,engine:"snapshot-r2" };
 }
 
 export async function listEmbeddedRepoBranches(repoId: string) {
