@@ -17,7 +17,7 @@ export default async function PortalShell({
     getSiteSetting("portal_banner"),
     portalMemberCapabilitySet(member),
   ]);
-  const canControl = ["portal.admin","control.projects","control.vehicles","teams.manage","roles.manage"]
+  const canControl = ["portal.admin","control.projects","control.vehicles","teams.manage","roles.manage","vault.approve"]
     .some((capability) => capabilitySet.has(capability));
   const initials = member.fullName
     ? member.fullName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()
