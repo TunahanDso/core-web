@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { executeVaultUpload } from "@/components/portal/vault-upload-client";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
@@ -19,7 +20,11 @@ export default function VaultRevisionUploadForm({ fileId }: { fileId: string }) 
 
   const status = useMemo(() => {
     if (error) return error;
-    if (uploading) return "Yeni revision R2 Vault'a aktarılıyor · %" + progress;
+    if (uploading) {
+      if (progress < 4) return "Revision upload session hazırlanıyor…";
+      if (progress < 98) return "Yeni revision raw PUT ile R2'ye aktarılıyor · %" + progress;
+      return "R2 tamam · revision metadata finalize ediliyor…";
+    }
     if (fileName) return fileName + " · " + humanBytes(fileSize);
     return "Yeni kaynak dosyayı seç.";
   },[error,uploading,progress,fileName,fileSize]);
@@ -44,30 +49,13 @@ export default function VaultRevisionUploadForm({ fileId }: { fileId: string }) 
     setError("");
 
     try {
-      const result = await new Promise<{ href?: string; error?: string }>((resolve,reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST","/api/portal/vault/" + encodeURIComponent(fileId) + "/versions",true);
-        xhr.responseType = "json";
-        xhr.setRequestHeader("Accept","application/json");
-        xhr.upload.addEventListener("progress",(progressEvent) => {
-          if (!progressEvent.lengthComputable) return;
-          setProgress(Math.max(0,Math.min(100,Math.round((progressEvent.loaded / progressEvent.total) * 100))));
-        });
-        xhr.addEventListener("load",() => {
-          const payload = xhr.response && typeof xhr.response === "object"
-            ? xhr.response as { href?: string; error?: string }
-            : {};
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(payload);
-          } else {
-            reject(new Error(payload.error || "Revision yüklemesi HTTP " + xhr.status + " ile başarısız oldu."));
-          }
-        });
-        xhr.addEventListener("error",() => reject(new Error("Revision upload bağlantısı kesildi.")));
-        xhr.send(data);
+      const result = await executeVaultUpload({
+        mode:"revision",
+        targetFileId:fileId,
+        file,
+        metadata:{ note:String(data.get("note") ?? "").trim() },
+        onProgress:setProgress,
       });
-
-      setProgress(100);
       window.location.assign(result.href || ("/portal/library/" + encodeURIComponent(fileId) + "?versioned=1"));
     } catch (uploadError) {
       setUploading(false);
@@ -105,7 +93,7 @@ export default function VaultRevisionUploadForm({ fileId }: { fileId: string }) 
 
       <div className={"vaultUploadStatus " + (error ? "error" : uploading ? "uploading" : "idle")}>
         <div className="vaultUploadStatusHead">
-          <span>REVISION UPLOAD</span>
+          <span>RAW REVISION UPLOAD</span>
           <b>{uploading ? progress + "%" : fileName ? humanBytes(fileSize) : "25 MB MAX"}</b>
         </div>
         <div className="vaultUploadProgress" aria-hidden="true"><i style={{ width:progress + "%" }} /></div>
@@ -113,7 +101,7 @@ export default function VaultRevisionUploadForm({ fileId }: { fileId: string }) 
       </div>
 
       <button className="portalPrimaryButton" type="submit" disabled={uploading}>
-        {uploading ? "REVISION YÜKLENİYOR · %" + progress : "YENİ REVISION YÜKLE →"}
+        {uploading ? "REVISION R2'YE AKTARILIYOR · %" + progress : "YENİ REVISION YÜKLE →"}
       </button>
     </form>
   );

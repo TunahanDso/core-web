@@ -39,6 +39,7 @@ export const portalNavigation = [
       ["Canlı Araç", "/portal/ops", "OP"],
       ["Etkinlik Geçmişi", "/portal/activity", "AC"],
       ["İstatistikler", "/portal/analytics", "AN"],
+      ["Control Center", "/portal/control-center", "CC"],
       ["Ağır Kontrol", "/portal/control", "CTL"],
     ],
   },
@@ -60,4 +61,5 @@ export const portalModuleCards = [
   ["Canlı Araç", "Salt okunur araç durumu ve onaylı telemetri.", "/portal/ops", "OP"],
   ["Takvim", "Testler, toplantılar, son tarihler ve saha operasyonları.", "/portal/calendar", "CL"],
   ["İstatistikler", "Takım, içerik ve operasyon sağlığına tek bakış.", "/portal/analytics", "AN"],
+  ["Control Center", "Yetkili roller için merkezi kayıt, düzenleme ve lifecycle yönetimi.", "/portal/control-center", "CC"],
 ] as const;
