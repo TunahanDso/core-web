@@ -263,6 +263,62 @@ ON CONFLICT(setting_key) DO UPDATE SET
   updated_at=CURRENT_TIMESTAMP;
 `;
 
+
+
+const PORTAL_V11_SQL = `-- CORE Mail Workspace V2
+CREATE TABLE IF NOT EXISTS portal_mail_groups (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  owner_id TEXT NOT NULL,
+  access_mode TEXT NOT NULL DEFAULT 'private'
+    CHECK (access_mode IN ('private','locked')),
+  access_code_salt TEXT,
+  access_code_hash TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (owner_id) REFERENCES portal_members(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS portal_mail_group_members (
+  group_id TEXT NOT NULL,
+  member_id TEXT NOT NULL,
+  member_role TEXT NOT NULL DEFAULT 'member'
+    CHECK (member_role IN ('owner','member')),
+  added_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (group_id, member_id),
+  FOREIGN KEY (group_id) REFERENCES portal_mail_groups(id) ON DELETE CASCADE,
+  FOREIGN KEY (member_id) REFERENCES portal_members(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS portal_mail_thread_groups (
+  thread_id TEXT NOT NULL,
+  group_id TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (thread_id, group_id),
+  FOREIGN KEY (thread_id) REFERENCES portal_mail_threads(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES portal_mail_groups(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_portal_mail_group_member
+  ON portal_mail_group_members(member_id, group_id);
+CREATE INDEX IF NOT EXISTS idx_portal_mail_group_mode
+  ON portal_mail_groups(access_mode, updated_at);
+CREATE INDEX IF NOT EXISTS idx_portal_mail_thread_group
+  ON portal_mail_thread_groups(group_id, thread_id);
+
+INSERT INTO site_settings (setting_key,value_json,updated_at)
+VALUES (
+  'portal_mail_schema',
+  '{"version":"2026.09-mail-v2","features":["distribution-groups","locked-groups","integrated-reader","viewport-mail"]}',
+  CURRENT_TIMESTAMP
+)
+ON CONFLICT(setting_key) DO UPDATE SET
+  value_json=excluded.value_json,
+  updated_at=CURRENT_TIMESTAMP;
+`;
+
 function splitPortalSql(sql: string) {
   const source = sql
     .split("\n")
@@ -370,6 +426,9 @@ const REQUIRED_PORTAL_TABLES = [
   "portal_code_run_artifacts",
   "portal_code_terminal_sessions",
   "portal_vault_upload_sessions",
+  "portal_mail_groups",
+  "portal_mail_group_members",
+  "portal_mail_thread_groups",
 ] as const;
 
 let repoReviewSchemaPromise: Promise<void> | null = null;
@@ -422,6 +481,24 @@ export async function ensurePortalVaultUploadSchema() {
     throw error;
   });
   return vaultUploadSchemaPromise;
+}
+
+
+let mailWorkspaceSchemaPromise: Promise<void> | null = null;
+
+export async function ensurePortalMailWorkspaceSchema() {
+  if (mailWorkspaceSchemaPromise) return mailWorkspaceSchemaPromise;
+  mailWorkspaceSchemaPromise = (async () => {
+    const db = env.DB;
+    if (!db) throw new Error("DB binding is not available.");
+    const statements = splitPortalSql(PORTAL_V11_SQL);
+    if (!statements.length) throw new Error("Mail workspace migration is empty.");
+    await db.batch(statements.map((statement) => db.prepare(statement)));
+  })().catch((error) => {
+    mailWorkspaceSchemaPromise = null;
+    throw error;
+  });
+  return mailWorkspaceSchemaPromise;
 }
 
 export async function portalBootstrapStatus() {
@@ -497,7 +574,7 @@ export async function applyPortalFoundation(actor: string) {
   const db = env.DB;
   if (!db) throw new Error("DB binding is not available.");
 
-  const statements = splitPortalSql(PORTAL_SCHEMA_SQL + "\n" + PORTAL_V2_SQL + "\n" + PORTAL_V4_SQL + "\n" + PORTAL_V5_SQL + "\n" + PORTAL_V6_SQL + "\n" + PORTAL_V7_SQL + "\n" + PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL);
+  const statements = splitPortalSql(PORTAL_SCHEMA_SQL + "\n" + PORTAL_V2_SQL + "\n" + PORTAL_V4_SQL + "\n" + PORTAL_V5_SQL + "\n" + PORTAL_V6_SQL + "\n" + PORTAL_V7_SQL + "\n" + PORTAL_V8_SQL + "\n" + PORTAL_V9_SQL + "\n" + PORTAL_V10_SQL + "\n" + PORTAL_V11_SQL);
   if (!statements.length) throw new Error("Portal migration is empty.");
 
   await db.batch(statements.map((statement) => db.prepare(statement)));
@@ -508,11 +585,11 @@ export async function applyPortalFoundation(actor: string) {
   `).bind(
     actor,
     JSON.stringify({
-      version: "2026.09-va02",
+      version: "2026.09-mail-v2",
       statementCount: statements.length,
       modules: [
         "members","auth","tasks","resources","repositories","inventory",
-        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal","vault-raw-upload"
+        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal","vault-raw-upload","mail-groups","mail-locked-groups","mail-integrated-reader"
       ],
     })
   ).run();
