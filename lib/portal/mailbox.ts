@@ -313,7 +313,6 @@ export async function listPortalMailGroupMembers(groupId: string, viewerId: stri
 }
 
 export async function createPortalMailGroup(input: {
-  await ensurePortalMailWorkspaceSchema();
   ownerId: string;
   name: string;
   description: string;
@@ -321,6 +320,7 @@ export async function createPortalMailGroup(input: {
   accessCode?: string | null;
   memberIds: string[];
 }) {
+  await ensurePortalMailWorkspaceSchema();
   const name = input.name.trim().slice(0,80);
   if (!name) throw new Error("Grup adı gerekli.");
 
@@ -351,11 +351,11 @@ export async function createPortalMailGroup(input: {
 }
 
 export async function joinPortalMailGroup(input: {
-  await ensurePortalMailWorkspaceSchema();
   groupId: string;
   memberId: string;
   accessCode: string;
 }) {
+  await ensurePortalMailWorkspaceSchema();
   const group = await database().prepare(
     "SELECT id,access_mode,access_code_salt,access_code_hash FROM portal_mail_groups WHERE id=? LIMIT 1"
   ).bind(input.groupId).first<Record<string, unknown>>();
