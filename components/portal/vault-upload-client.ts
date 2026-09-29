@@ -1,6 +1,5 @@
 export type VaultUploadSessionResponse = {
   sessionId: string;
-  capabilityToken: string;
   fileId: string;
   revision: number;
   expiresAt: string;
@@ -51,7 +50,6 @@ export function putVaultUpload(
     xhr.responseType = "json";
     xhr.setRequestHeader("Accept","application/json");
     xhr.setRequestHeader("Content-Type",file.type || "application/octet-stream");
-    xhr.setRequestHeader("X-Core-Upload-Token",session.capabilityToken);
 
     xhr.upload.addEventListener("progress",(event) => {
       if (!event.lengthComputable) return;
@@ -80,7 +78,6 @@ export async function completeVaultUpload(session: VaultUploadSessionResponse) {
     method:"POST",
     headers:{
       "accept":"application/json",
-      "x-core-upload-token":session.capabilityToken,
     },
   });
   const payload = await parseJson(response);
