@@ -25,14 +25,14 @@ export default async function PortalSearchPage({
   const [results,vaultFiles,nativeRepositories,teams,internalProjects,vehicleProfiles,meetings,polls,budgets]=q
     ? await Promise.all([
         searchPortal(q),
-        listPortalVaultFiles({query:q,lifecycle:"active",limit:40,viewer:member}),
-        listNativeRepositories(),
+        listPortalVaultFiles({query:q,lifecycle:"active",limit:30,viewer:member}),
+        listNativeRepositories(q,30),
         listAccessiblePortalTeams(member),
-        listPortalProjectRegistry(),
-        listPortalVehicleProfiles(),
-        listMeetings(member.id,100),
-        listPolls(member.id),
-        listBudgetAccounts(member.id,member.role==="admin"||member.role==="lead"),
+        listPortalProjectRegistry(q,30),
+        listPortalVehicleProfiles(q,30),
+        listMeetings(member.id,30,q),
+        listPolls(member.id,q,30),
+        listBudgetAccounts(member.id,member.role==="admin"||member.role==="lead",q,30),
       ])
     : [{tasks:[],resources:[],repositories:[],inventory:[],members:[]},[],[],[],[],[],[],[],[]];
 
