@@ -5,6 +5,8 @@ import { getSiteSetting } from "@/lib/cms/extensions";
 import { portalRoleLabel } from "@/lib/portal/labels";
 import { portalMemberCapabilitySet } from "@/lib/portal/governance";
 import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
+import PortalSidebarToggle from "@/components/portal/PortalSidebarToggle";
+import PortalContent from "@/components/portal/PortalContent";
 
 export default async function PortalShell({
   member,
@@ -26,20 +28,23 @@ export default async function PortalShell({
   return (
     <main className="portalApp">
       <aside className="portalSidebar">
-        <a className="portalBrand" href="/portal">
-          <span className="portalBrandMark">C</span>
-          <span>
-            <b>YTÜ CORE</b>
-            <small>İÇ PORTAL</small>
-          </span>
-        </a>
+        <div className="portalBrandRow">
+          <a className="portalBrand" href="/portal">
+            <span className="portalBrandMark">C</span>
+            <span className="portalBrandCopy">
+              <b>YTÜ CORE</b>
+              <small>İÇ PORTAL</small>
+            </span>
+          </a>
+          <PortalSidebarToggle />
+        </div>
 
         <PortalNav canControl={canControl} />
 
         <div className="portalSidebarFoot">
-          <a href="/tr" className="portalPublicLink">← Vitrin sitesi</a>
+          <a href="/tr" className="portalPublicLink"><span aria-hidden="true">↗</span><b>Vitrin sitesi</b></a>
           <form action={logoutPortalAction}>
-            <button type="submit">Çıkış yap</button>
+            <button type="submit"><span aria-hidden="true">↪</span><b>Çıkış yap</b></button>
           </form>
         </div>
       </aside>
@@ -70,7 +75,7 @@ export default async function PortalShell({
         {banner?.enabled && banner.text ? (
           <div className="portalSystemBanner"><span>CORE DUYURU</span><b>{String(banner.text)}</b></div>
         ) : null}
-        <div className="portalContent">{children}</div>
+        <PortalContent>{children}</PortalContent>
       </section>
     </main>
   );
