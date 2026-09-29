@@ -107,6 +107,9 @@ export default function LiveCodeTerminal({
             setExitCode(Number.isFinite(code) ? code : null);
             terminal.writeln("\r\n\x1b[2m[CORE] shell kapandı · exit " + String(message.exitCode ?? "?") + "\x1b[0m");
           }
+          if (message.type === "runner-error") {
+            terminal.writeln("\r\n\x1b[31m[CORE] " + String(message.message || "terminal process error") + "\x1b[0m");
+          }
         } catch {
           terminal.write(String(event.data || ""));
         }
