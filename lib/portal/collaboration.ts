@@ -393,8 +393,8 @@ export async function generateMeetingReport(meetingId: string, memberId: string,
   if(!existing?.resource_id){
     statements.push(
       database.prepare(
-        "INSERT INTO portal_resources (id,kind,title,description,team_code,project_slug,external_url,tags_json,created_by) VALUES (?,'archive',?,?,?,?,?,?,?)"
-      ).bind(resourceId,"Toplantı Raporu · "+String(meeting.title),summary.slice(0,4000),meeting.team_code || null,meeting.project_slug || null,"/portal/meetings/"+meetingId,JSON.stringify(["meeting","report",meetingId]),memberId)
+        "INSERT INTO portal_resources (id,kind,title,description,team_code,project_slug,external_url,tags_json,visibility,created_by) VALUES (?,'archive',?,?,?,?,?,?,?,?,?)"
+      ).bind(resourceId,"Toplantı Raporu · "+String(meeting.title),summary.slice(0,4000),meeting.team_code || null,meeting.project_slug || null,"/portal/meetings/"+meetingId,JSON.stringify(["meeting","report",meetingId]),meeting.team_code ? "team" : "members",memberId)
     );
   } else {
     statements.push(
@@ -415,15 +415,24 @@ export async function generateMeetingReport(meetingId: string, memberId: string,
   return {summary,resourceId};
 }
 
-export async function listBudgetAccounts() {
+export async function listBudgetAccounts(memberId?: string, canReadAll=false) {
   await ensurePortalCollaborationFinanceSchema();
-  const response=await db().prepare(
+  const where=memberId && !canReadAll
+    ? " WHERE a.team_code IS NULL OR a.owner_member_id=? OR EXISTS (SELECT 1 FROM portal_team_memberships tm WHERE tm.team_code=a.team_code AND tm.member_id=? AND tm.status='active') "
+    : " ";
+  const sql=
     "SELECT a.*,m.full_name AS owner_name," +
     "(a.opening_balance_minor + COALESCE((SELECT SUM(CASE e.entry_type WHEN 'income' THEN e.amount_minor WHEN 'expense' THEN -e.amount_minor ELSE 0 END) FROM portal_budget_entries e WHERE e.account_id=a.id AND e.status='approved'),0)) AS balance_minor," +
     "COALESCE((SELECT SUM(e.amount_minor) FROM portal_budget_entries e WHERE e.account_id=a.id AND e.entry_type='commitment' AND e.status IN ('pending','approved')),0) AS committed_minor," +
     "COALESCE((SELECT SUM(x.amount_minor) FROM portal_budget_allocations x WHERE x.account_id=a.id),0) AS allocated_minor " +
-    "FROM portal_budget_accounts a LEFT JOIN portal_members m ON m.id=a.owner_member_id WHERE a.status='active' ORDER BY a.name"
-  ).all<Record<string,unknown>>();
+    "FROM portal_budget_accounts a LEFT JOIN portal_members m ON m.id=a.owner_member_id" +
+    where +
+    (where.includes("WHERE") ? " AND a.status='active' " : " WHERE a.status='active' ") +
+    "ORDER BY a.name";
+  const statement=db().prepare(sql);
+  const response=memberId && !canReadAll
+    ? await statement.bind(memberId,memberId).all<Record<string,unknown>>()
+    : await statement.all<Record<string,unknown>>();
   return response.results ?? [];
 }
 
