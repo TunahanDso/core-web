@@ -9,7 +9,7 @@ export const dynamic="force-dynamic";
 export default async function PortalChatPage({
   searchParams,
 }:{
-  searchParams?:Promise<{channel?:string;q?:string}>;
+  searchParams?:Promise<{channel?:string;q?:string;browse?:string}>;
 }){
   const query=searchParams ? await searchParams : {};
   const member=await requirePortalMember();
@@ -17,7 +17,8 @@ export default async function PortalChatPage({
   const q=String(query.q||"").trim().toLocaleLowerCase("tr-TR");
   const filtered=channels.filter((channel)=>!q || [channel.name,channel.description,channel.last_message]
     .some((value)=>String(value||"").toLocaleLowerCase("tr-TR").includes(q)));
-  const selectedId=String(query.channel||filtered[0]?.id||channels[0]?.id||"");
+  const browse=String(query.browse||"")==="1";
+  const selectedId=browse ? "" : String(query.channel||filtered[0]?.id||channels[0]?.id||"");
   const messages=selectedId ? await listPortalMessages(selectedId) : [];
   const selected=channels.find((channel)=>String(channel.id)===selectedId);
 
@@ -62,7 +63,7 @@ export default async function PortalChatPage({
           {selected?(
             <>
               <header className="chatConversationHeader">
-                <div><span>#</span><div><b>{String(selected.name)}</b><small>{String(selected.description||"CORE takım kanalı")}</small></div></div>
+                <div><a className="chatMobileBack" href="/portal/chat?browse=1">←</a><span>#</span><div><b>{String(selected.name)}</b><small>{String(selected.description||"CORE takım kanalı")}</small></div></div>
                 <small>{messages.length} mesaj</small>
               </header>
 
