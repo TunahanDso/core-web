@@ -82,9 +82,9 @@ const tabs = [
 ] as const;
 
 const quickActions = [
-  ["Yeni görev", "/portal/tasks#create-task", "İş oluştur veya görev panosuna git"],
+  ["Yeni görev", "/portal/tasks?create=1", "İş oluştur veya görev panosuna git"],
   ["Mail yaz", "/portal/mail?compose=1", "CORE iç yazışmasını başlat"],
-  ["Vault'a yükle", "/portal/library#upload", "Dosya ve teknik veri ekle"],
+  ["Vault'a yükle", "/portal/library?upload=1#upload", "Dosya ve teknik veri ekle"],
   ["Toplantı planla", "/portal/meetings?create=meeting", "Ses, görüntü, karar ve rapor çalışma alanı"],
   ["Oylamalara git", "/portal/polls", "Takım ve toplantı kararları"],
   ["Takvime git", "/portal/calendar", "Toplantı, test ve saha planı"],
