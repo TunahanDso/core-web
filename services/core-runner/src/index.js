@@ -520,6 +520,7 @@ async function terminalSocket(sessionId, request, env) {
   // sees the non-secret protocol identifier.
   headers.set("sec-websocket-protocol","core-terminal");
   headers.set("x-core-terminal-session",sessionId);
+  headers.set("x-core-terminal-expires-at",String(row.expires_at || ""));
 
   try {
     const response = await container.fetch(new Request(internal.toString(), {
