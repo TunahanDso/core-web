@@ -403,7 +403,13 @@ export async function readPortalVaultTextChunk(
     };
   }
 
-  const object = await mediaBucket().get(descriptor.objectKey, {
+  const rangedBucket = mediaBucket() as unknown as {
+    get(
+      key: string,
+      options: { range: { offset: number; length: number } }
+    ): Promise<{ body: ReadableStream<Uint8Array> } | null>;
+  };
+  const object = await rangedBucket.get(descriptor.objectKey, {
     range: { offset, length },
   });
   if (!object) return null;
