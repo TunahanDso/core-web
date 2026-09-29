@@ -66,13 +66,5 @@
     "CORE_TELEMETRY_URL": "",
     "PORTAL_MEETING_PROVIDER": "",
     "PORTAL_MEETING_PROVIDER_URL": ""
-  },
-  "send_email": [
-    {
-      "name": "EMAIL",
-      "allowed_sender_addresses": [
-        "portal@ytucore.com"
-      ]
-    }
-  ]
+  }
 }
