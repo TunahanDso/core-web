@@ -32,7 +32,7 @@ export default async function PortalSearchPage({
         listPortalVehicleProfiles(),
         listMeetings(member.id,100),
         listPolls(member.id),
-        listBudgetAccounts(),
+        listBudgetAccounts(member.id,member.role==="admin"||member.role==="lead"),
       ])
     : [{tasks:[],resources:[],repositories:[],inventory:[],members:[]},[],[],[],[],[],[],[],[]];
 
