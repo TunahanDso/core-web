@@ -348,8 +348,8 @@ jobs:
               }
             }
             const nativeLayout = fs.readFileSync("app/portal/(member)/layout.tsx", "utf8");
-            if (!nativeLayout.includes("getPortalMailboxCounts") || !nativeLayout.includes("listPortalChannelsForMember") || !nativeLayout.includes("counts={{")) {
-              throw new Error("Native shell must receive live mail/chat/task/notification counters.");
+            if (!nativeLayout.includes("getPortalShellCounts") || !nativeLayout.includes("counts={counts}")) {
+              throw new Error("Native shell must receive compact live mail/chat/task/notification counters.");
             }
             const taskPage = fs.readFileSync("app/portal/(member)/tasks/page.tsx", "utf8");
             if (!taskPage.includes("portalNativeTaskList") || !taskPage.includes("createOpen") || !taskPage.includes("portalToolSurface") || !taskPage.includes("createTaskAction")) {
