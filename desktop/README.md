@@ -8,9 +8,9 @@ It is **not** a Chromium-heavy clone of the portal and it is not a second backen
 
 - **CORE Web** — universal browser access and administration.
 - **CORE Mobile** — field, notification, capture and one-handed workflows.
-- **CORE Desktop** — full workshop / engineering workstation.
+- **CORE Desktop** — native shell baseline for a future workshop/engineering workstation.
 
-The desktop client must preserve the existing CORE visual language while using the larger screen for denser project context, multi-tool engineering work and local hardware integrations.
+Version 0.1 is intentionally a constrained Tauri shell around the authenticated portal. Local workspace, Git, shell, USB/serial, SSH and CAD integration are roadmap items, not current product capabilities.
 
 ## Bootstrap architecture
 
@@ -62,14 +62,14 @@ That query flag activates the desktop-density layer without forking the portal U
 7. Serial / USB engineering console and embedded flashing.
 8. KiCad / FreeCAD / OpenSCAD launch and watched-file bridges.
 9. Offline metadata/cache and conflict-aware resync.
-10. Signed Windows/macOS/Linux releases and updater.
+10. macOS/Linux packaging and updater after signed Windows distribution is operational.
 
 See `desktop/PERFORMANCE.md` before adding any background service, polling loop, additional WebView or native plugin.
 
 
 ## Stable Windows download channel
 
-After merge to `main`, the desktop workflow publishes the last successful Windows x64 executable to the rolling GitHub release tag `desktop-latest`.
+Stable Windows distribution is fail-closed. A `main` build may publish to `desktop-latest` only after Authenticode signing succeeds with the configured Windows code-signing certificate.
 
 The member-facing Portal never links to a transient Actions artifact. It links to:
 
@@ -83,4 +83,13 @@ That authenticated route redirects to the fixed release asset:
 desktop-latest/YTU-CORE-Desktop-Windows-x64.exe
 ```
 
-Every successful main desktop build overwrites that asset and its SHA-256 companion. A failed build never replaces the previous working download.
+Pull-request artifacts are explicitly labeled **UNSIGNED-DEV** and are not a team distribution channel.
+
+The authenticated download endpoint remains disabled until `PORTAL_DESKTOP_WINDOWS_RELEASE_ENABLED=true` is set after the first verified signed release.
+
+Required GitHub Actions secrets for stable Windows publishing:
+
+- `WINDOWS_SIGNING_CERT_PFX_BASE64`
+- `WINDOWS_SIGNING_CERT_PASSWORD`
+
+A build without those secrets fails before publishing. A failed signing or signature verification step also blocks the release.
