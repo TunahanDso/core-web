@@ -174,6 +174,17 @@ async function codeRunAccess(member: PortalMember, runId: string) {
   return row;
 }
 
+export async function getPortalCodeRunStatus(member: PortalMember, runId: string) {
+  const run = await codeRunAccess(member,runId);
+  if (!run) return null;
+  return {
+    id:run.id,
+    status:run.status,
+    startedAt:run.started_at ?? null,
+    finishedAt:run.finished_at ?? null,
+  };
+}
+
 export async function getPortalCodeRunDetail(member: PortalMember, runId: string) {
   const run = await codeRunAccess(member,runId);
   if (!run) return null;
