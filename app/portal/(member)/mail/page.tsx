@@ -242,9 +242,9 @@ export default async function PortalMailPage({
           <div className="mailboxComposeHeader">
             <div>
               <span>{draft ? "TASLAĞI DÜZENLE" : forward ? "YAZIŞMAYI İLET" : "YENİ MAIL"}</span>
-              <b>{draft ? String(draft.subject || "Taslak") : forward ? "Forward" : "Compose"}</b>
+              <b>{draft ? String(draft.subject || "Taslak") : forward ? "İletme" : "Yeni yazışma"}</b>
             </div>
-            <small>CORE INTERNAL</small>
+            <small>İÇ YAZIŞMA</small>
           </div>
 
           <form className="portalMailCompose" action={createMailboxThreadAction}>
