@@ -508,8 +508,8 @@ jobs:
             if (!vaultDetailSource.includes("VaultPcbWorkspace") || !vaultDetailSource.includes("sizeBytes={Number(file.size_bytes || 0)}")) {
               throw new Error("KiCad Vault detail must use the dedicated large-file PCB workspace.");
             }
-            for (const required of ["PCB GÖRÜNÜMÜ", "KAYNAK", "KiCadBoardPreview", "VaultSourceBrowser"]) {
-              if (!vaultPcbWorkspace.includes(required)) throw new Error(`Tabbed PCB workspace missing: ${required}`);
+            for (const required of ["PCB ÇALIŞMA ALANI", "KAYNAK", "KiCadBoardPreview", "VaultSourceBrowser"]) {
+              if (!vaultPcbWorkspace.includes(required)) throw new Error(`PCB workspace contract missing: ${required}`);
             }
             console.log("VA-03 large KiCad streaming viewer and ranged source browser validated.");
             console.log("GV-01 role-driven authorization, team CRUD, entity cards and V9 engineering controls validated.");
