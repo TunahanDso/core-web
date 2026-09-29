@@ -193,8 +193,13 @@ export async function addMeetingNote(input: {
   body: string;
 }) {
   await ensurePortalCollaborationFinanceSchema();
+  const database=db();
+  const allowed=Boolean(await database.prepare(
+    "SELECT 1 AS ok FROM portal_meetings m WHERE m.id=? AND (m.created_by=? OR EXISTS (SELECT 1 FROM portal_meeting_participants mp WHERE mp.meeting_id=m.id AND mp.member_id=?)) LIMIT 1"
+  ).bind(input.meetingId,input.authorId,input.authorId).first<{ok:number}>());
+  if(!allowed) throw new Error("Bu toplantıya not ekleme yetkiniz yok.");
   const id=crypto.randomUUID();
-  await db().prepare(
+  await database.prepare(
     "INSERT INTO portal_meeting_notes (id,meeting_id,author_id,kind,body) VALUES (?,?,?,?,?)"
   ).bind(id,input.meetingId,input.authorId,input.kind,input.body.trim()).run();
   return id;
@@ -212,6 +217,12 @@ export async function createPoll(input: {
 }) {
   await ensurePortalCollaborationFinanceSchema();
   const database=db();
+  if(input.scope==="meeting" && input.meetingId){
+    const allowed=Boolean(await database.prepare(
+      "SELECT 1 AS ok FROM portal_meetings m WHERE m.id=? AND (m.created_by=? OR EXISTS (SELECT 1 FROM portal_meeting_participants mp WHERE mp.meeting_id=m.id AND mp.member_id=?)) LIMIT 1"
+    ).bind(input.meetingId,input.createdBy,input.createdBy).first<{ok:number}>());
+    if(!allowed) throw new Error("Bu toplantıda oylama açma yetkiniz yok.");
+  }
   const id=crypto.randomUUID();
   const options=input.options.map((x)=>x.trim()).filter(Boolean).slice(0,12);
   if(options.length<2) throw new Error("Oylama için en az iki seçenek gerekli.");
@@ -294,12 +305,30 @@ export async function listPollsForMeeting(meetingId: string, memberId: string) {
 
 export async function votePoll(pollId: string, optionId: string, memberId: string) {
   await ensurePortalCollaborationFinanceSchema();
-  const poll=await db().prepare("SELECT status,closes_at FROM portal_polls WHERE id=? LIMIT 1").bind(pollId).first<Record<string,unknown>>();
+  const database=db();
+  const poll=await database.prepare(
+    "SELECT status,closes_at,scope,team_code,meeting_id,created_by FROM portal_polls WHERE id=? LIMIT 1"
+  ).bind(pollId).first<Record<string,unknown>>();
   if(!poll || String(poll.status)!=="open") throw new Error("Oylama kapalı.");
   if(poll.closes_at && new Date(String(poll.closes_at)).getTime()<Date.now()) throw new Error("Oylama süresi doldu.");
-  const option=await db().prepare("SELECT 1 AS ok FROM portal_poll_options WHERE id=? AND poll_id=? LIMIT 1").bind(optionId,pollId).first<{ok:number}>();
+
+  const scope=String(poll.scope);
+  let allowed=scope==="global" || String(poll.created_by)===memberId;
+  if(!allowed && scope==="team" && poll.team_code){
+    allowed=Boolean(await database.prepare(
+      "SELECT 1 AS ok FROM portal_team_memberships WHERE team_code=? AND member_id=? AND status='active' LIMIT 1"
+    ).bind(String(poll.team_code),memberId).first<{ok:number}>());
+  }
+  if(!allowed && scope==="meeting" && poll.meeting_id){
+    allowed=Boolean(await database.prepare(
+      "SELECT 1 AS ok FROM portal_meeting_participants WHERE meeting_id=? AND member_id=? LIMIT 1"
+    ).bind(String(poll.meeting_id),memberId).first<{ok:number}>());
+  }
+  if(!allowed) throw new Error("Bu oylamaya erişim yetkiniz yok.");
+
+  const option=await database.prepare("SELECT 1 AS ok FROM portal_poll_options WHERE id=? AND poll_id=? LIMIT 1").bind(optionId,pollId).first<{ok:number}>();
   if(!option) throw new Error("Geçersiz oylama seçeneği.");
-  await db().prepare(
+  await database.prepare(
     "INSERT INTO portal_poll_votes (poll_id,option_id,member_id) VALUES (?,?,?) ON CONFLICT(poll_id,member_id) DO UPDATE SET option_id=excluded.option_id,created_at=CURRENT_TIMESTAMP"
   ).bind(pollId,optionId,memberId).run();
 }
