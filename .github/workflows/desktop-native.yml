@@ -104,8 +104,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  publish-windows-latest:
-    name: Publish desktop-latest
+  publish-windows-internal:
+    name: Publish desktop-internal
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build-windows-portable
     runs-on: ubuntu-latest
@@ -128,12 +128,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="desktop-latest"
+          TAG="desktop-internal"
           EXE="release/YTU-CORE-Desktop-Windows-x64.exe"
           SHA="release/YTU-CORE-Desktop-Windows-x64.exe.sha256"
 
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --target "$GITHUB_SHA" --title "YTÜ CORE Desktop — Latest" --notes "Rolling Windows x64 desktop channel. Build: $GITHUB_SHA" --latest=false
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "YTÜ CORE Desktop — Internal" --notes "Rolling signed internal Windows x64 desktop channel. Build: $GITHUB_SHA" --latest=false
           fi
 
           git tag -f "$TAG" "$GITHUB_SHA"
