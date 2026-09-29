@@ -9,7 +9,7 @@ export default function PortalBanner() {
 
   useEffect(() => {
     let cancelled = false;
-    let timer: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     let idleId: number | null = null;
 
     const load = async () => {
