@@ -15462,3 +15462,224 @@ html[data-density="comfortable"] .portalDataTable thead th{
     justify-content:center;
   }
 }
+
+
+/* =========================================================
+   CORE V12 WAVE 2 — PROJECT / TEAM / VAULT / CONTROL REGISTRIES
+   ========================================================= */
+
+.portalCellStack{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+.portalCellStack b,
+.portalCellStack small{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.portalInlineProgress{
+  display:grid;
+  gap:4px;
+}
+.portalInlineProgress>span{
+  display:flex;
+  justify-content:flex-end;
+}
+.portalInlineProgress>span b{
+  font-variant-numeric:tabular-nums;
+  font-size:8px;
+}
+.portalInlineProgress>i{
+  height:4px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#e5e7e2;
+}
+.portalInlineProgress>i>b{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:var(--core-accent);
+}
+.portalProjectDataTable th:nth-child(1){width:23%}
+.portalProjectDataTable th:nth-child(2){width:9%}
+.portalProjectDataTable th:nth-child(3){width:10%}
+.portalProjectDataTable th:nth-child(4){width:16%}
+.portalProjectDataTable th:nth-child(5){width:11%}
+.portalProjectDataTable th:nth-child(6){width:8%}
+.portalProjectDataTable th:nth-child(7){width:9%}
+.portalProjectDataTable th:nth-child(8){width:7%}
+.portalProjectDataTable th:nth-child(9){width:7%}
+
+.portalTeamTableIdentity{
+  display:grid!important;
+  grid-template-columns:34px minmax(0,1fr);
+  align-items:center;
+  gap:8px!important;
+}
+.portalTeamTableIdentity>span{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-radius:7px;
+  background:#202328;
+  color:#fff;
+  font:850 7px ui-monospace,monospace;
+}
+.portalTeamTableIdentity>div{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+.portalTeamDataTable th:nth-child(1){width:24%}
+.portalTeamDataTable th:nth-child(2){width:20%}
+.portalTeamDataTable th:nth-child(3){width:13%}
+.portalTeamDataTable th:nth-child(4),
+.portalTeamDataTable th:nth-child(5),
+.portalTeamDataTable th:nth-child(6){width:8%}
+.portalTeamDataTable th:nth-child(7){width:10%}
+.portalTeamDataTable th:nth-child(8){width:9%}
+
+.portalFileTypeCell{
+  display:grid;
+  gap:2px;
+}
+.portalFileTypeCell>span{
+  color:var(--core-text);
+  font:850 8px ui-monospace,monospace;
+}
+.portalFileTypeCell>small{
+  color:var(--core-text-muted);
+}
+.portalVaultDataTable th:nth-child(1),
+.portalDocumentDataTable th:nth-child(1){width:30%}
+.portalVaultDataTable th:nth-child(2),
+.portalDocumentDataTable th:nth-child(2){width:11%}
+.portalVaultDataTable th:nth-child(3),
+.portalDocumentDataTable th:nth-child(3){width:8%}
+.portalVaultDataTable th:nth-child(4),
+.portalDocumentDataTable th:nth-child(4){width:14%}
+.portalVaultDataTable th:nth-child(5),
+.portalDocumentDataTable th:nth-child(5){width:9%}
+.portalVaultDataTable th:nth-child(6),
+.portalDocumentDataTable th:nth-child(6){width:10%}
+.portalVaultDataTable th:nth-child(7),
+.portalDocumentDataTable th:nth-child(7){width:10%}
+.portalVaultDataTable th:nth-child(8),
+.portalDocumentDataTable th:nth-child(8){width:8%}
+.portalLegacyRegistry{
+  margin-top:var(--core-page-gap);
+}
+.portalLegacyDocumentTable th:nth-child(1){width:40%}
+.portalLegacyDocumentTable th:nth-child(2){width:15%}
+.portalLegacyDocumentTable th:nth-child(3){width:15%}
+.portalLegacyDocumentTable th:nth-child(4){width:15%}
+.portalLegacyDocumentTable th:nth-child(5){width:15%}
+
+.portalControlSummaryStrip{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.portalControlBoundaryCompact{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:4px 14px;
+  margin-bottom:var(--core-page-gap);
+  padding:10px 12px;
+}
+.portalControlBoundaryCompact>span{
+  grid-row:1/3;
+}
+.portalControlBoundaryCompact>b{
+  font-size:9px;
+}
+.portalControlBoundaryCompact>p{
+  margin:0;
+  color:var(--core-text-muted);
+  font-size:8px;
+}
+.portalControlModeBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:var(--core-page-gap);
+  padding-bottom:var(--core-sp-2);
+  border-bottom:1px solid var(--core-border);
+}
+.portalControlModeBar>span{
+  color:var(--core-text-muted);
+  font-size:8px;
+}
+.portalFormSectionLabel{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:4px;
+  padding:8px 0 5px;
+  border-bottom:1px solid var(--core-border);
+}
+.portalFormSectionLabel span{
+  color:var(--core-text);
+  font:850 7px ui-monospace,monospace;
+}
+.portalFormSectionLabel small{
+  color:var(--core-text-muted);
+  font:750 6px ui-monospace,monospace;
+}
+.portalDangerTool{
+  margin-top:var(--core-page-gap);
+  border-color:#e3b7a8;
+  background:#fff8f5;
+}
+.portalControlProjectTable th:nth-child(1){width:29%}
+.portalControlProjectTable th:nth-child(2){width:11%}
+.portalControlProjectTable th:nth-child(3){width:13%}
+.portalControlProjectTable th:nth-child(4){width:13%}
+.portalControlProjectTable th:nth-child(5){width:10%}
+.portalControlProjectTable th:nth-child(6){width:10%}
+.portalControlProjectTable th:nth-child(7){width:14%}
+.portalVehicleDataTable th:nth-child(1){width:24%}
+.portalVehicleDataTable th:nth-child(2){width:13%}
+.portalVehicleDataTable th:nth-child(3){width:10%}
+.portalVehicleDataTable th:nth-child(4){width:11%}
+.portalVehicleDataTable th:nth-child(5){width:11%}
+.portalVehicleDataTable th:nth-child(6){width:10%}
+.portalVehicleDataTable th:nth-child(7){width:11%}
+.portalVehicleDataTable th:nth-child(8){width:10%}
+.portalTeamMembershipTable th:nth-child(1){width:16%}
+.portalTeamMembershipTable th:nth-child(2){width:26%}
+.portalTeamMembershipTable th:nth-child(3){width:16%}
+.portalTeamMembershipTable th:nth-child(4){width:30%}
+.portalTeamMembershipTable th:nth-child(5){width:12%}
+.portalRoleProfileTable th:nth-child(1){width:18%}
+.portalRoleProfileTable th:nth-child(2){width:10%}
+.portalRoleProfileTable th:nth-child(3){width:48%}
+.portalRoleProfileTable th:nth-child(4){width:10%}
+.portalRoleProfileTable th:nth-child(5){width:14%}
+.portalControlSecondaryTable{
+  margin-top:var(--core-page-gap);
+}
+.portalCapabilityGrantTable th:nth-child(1){width:30%}
+.portalCapabilityGrantTable th:nth-child(2){width:40%}
+.portalCapabilityGrantTable th:nth-child(3){width:18%}
+.portalCapabilityGrantTable th:nth-child(4){width:12%}
+
+@media(max-width:980px){
+  .portalControlSummaryStrip{
+    grid-template-columns:1fr 1fr;
+  }
+  .portalControlModeBar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
+@media(max-width:620px){
+  .portalControlSummaryStrip{
+    grid-template-columns:1fr;
+  }
+}

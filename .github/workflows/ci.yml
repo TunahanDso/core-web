@@ -463,10 +463,23 @@ jobs:
             const teamDirectory = fs.readFileSync("app/portal/(member)/teams/page.tsx", "utf8");
             const memberDirectory = fs.readFileSync("app/portal/(member)/members/page.tsx", "utf8");
             const repositoryDirectory = fs.readFileSync("app/portal/(member)/repositories/page.tsx", "utf8");
+            const projectDirectory = fs.readFileSync("app/portal/(member)/projects/page.tsx", "utf8");
+            const documentDirectory = fs.readFileSync("app/portal/(member)/documents/page.tsx", "utf8");
+            for (const required of ["portalProjectDataTable", "portalRegistryToolbar", "portalInlineProgress"]) {
+              if (!projectDirectory.includes(required)) throw new Error(`Project V12 registry missing: ${required}`);
+            }
+            for (const required of ["portalDocumentDataTable", "portalRegistryToolbar", "portalLegacyDocumentTable"]) {
+              if (!documentDirectory.includes(required)) throw new Error(`Document V12 registry missing: ${required}`);
+            }
+            for (const required of ["portalVaultDataTable", "portalRegistryToolbar", "VaultUploadForm"]) {
+              if (!vaultLibrary.includes(required)) throw new Error(`Vault V12 registry missing: ${required}`);
+            }
+            console.log("CORE V12 wave two registry contract validated.");
+
             const teamDetail = fs.readFileSync("app/portal/(member)/teams/[code]/page.tsx", "utf8");
             const memberDetail = fs.readFileSync("app/portal/(member)/members/[id]/page.tsx", "utf8");
-            for (const required of ["createPortalTeamAction", "portalEntityCard"]) {
-              if (!teamDirectory.includes(required)) throw new Error(`GV-01 team directory missing: ${required}`);
+            for (const required of ["createPortalTeamAction", "portalDataTable", "portalTeamDataTable", "createOpen"]) {
+              if (!teamDirectory.includes(required)) throw new Error(`Team V12 registry missing: ${required}`);
             }
             for (const required of ["updatePortalRoleProfileAction", "portalRoleStudio", "portalDataTable", "portalMemberTableIdentity"]) {
               if (!memberDirectory.includes(required)) throw new Error(`Member registry contract missing: ${required}`);
@@ -507,8 +520,8 @@ jobs:
               throw new Error("Engineering project map must retain interactive pan/zoom/topology behavior.");
             }
             const controlPage = fs.readFileSync("app/portal/(member)/control/page.tsx", "utf8");
-            if (!controlPage.includes("CONTROL PLANE") || !controlPage.includes("ARAÇ KOMUTU")) {
-              throw new Error("Heavy control page must preserve the metadata-vs-command authority boundary.");
+            for (const required of ["CONTROL PLANE","ARAÇ KOMUTU","portalControlModeBar","portalControlProjectTable","portalVehicleDataTable","portalTeamMembershipTable","portalRoleProfileTable"]) {
+              if (!controlPage.includes(required)) throw new Error(`Heavy Control V12 mode missing: ${required}`);
             }
             const codeReader = fs.readFileSync("components/portal/VaultCodeReader.tsx", "utf8");
             for (const required of ["data-line", "matchLines", "gotoLine", "navigator.clipboard"]) {
