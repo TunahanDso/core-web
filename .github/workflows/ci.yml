@@ -69,6 +69,9 @@ jobs:
               "portal_mail_state",
               "portal_mail_drafts",
               "portal_mail_attachments",
+              "portal_mail_groups",
+              "portal_mail_group_members",
+              "portal_mail_thread_groups",
               "portal_native_repositories",
               "portal_repo_gateways",
               "portal_code_runs",
@@ -95,7 +98,7 @@ jobs:
                 throw new Error(`Portal V4 schema missing required table: ${table}`);
               }
             }
-            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL") || !portalBootstrap.includes("PORTAL_V9_SQL") || !portalBootstrap.includes("PORTAL_V10_SQL")) {
+            if (!portalBootstrap.includes("PORTAL_V4_SQL") || !portalBootstrap.includes("PORTAL_V5_SQL") || !portalBootstrap.includes("PORTAL_V6_SQL") || !portalBootstrap.includes("PORTAL_V7_SQL") || !portalBootstrap.includes("PORTAL_V8_SQL") || !portalBootstrap.includes("PORTAL_V9_SQL") || !portalBootstrap.includes("PORTAL_V10_SQL") || !portalBootstrap.includes("PORTAL_V11_SQL")) {
               throw new Error("Portal engineering/mobile/control-plane/review/code-lab migrations must be part of the idempotent bootstrap path.");
             }
             const nativeRepoEngine = fs.readFileSync("lib/portal/native-repo-engine.ts", "utf8");
@@ -352,6 +355,20 @@ jobs:
               throw new Error("Native 0.3 experience must expose Share Sheet and explicit push opt-in.");
             }
             console.log("Native-first 0.3 search, badges, camera, push, share and route layouts validated.");
+
+            const mailWorkspace = fs.readFileSync("app/portal/(member)/mail/page.tsx", "utf8");
+            const mailboxService = fs.readFileSync("lib/portal/mailbox.ts", "utf8");
+            const mailActions = fs.readFileSync("app/portal/mailbox-actions.ts", "utf8");
+            for (const required of ["mailAppShell","mailReaderPane","mailComposeSurface","mailGroupsWorkspace"]) {
+              if (!mailWorkspace.includes(required)) throw new Error(`Mail Workspace V2 missing: ${required}`);
+            }
+            for (const required of ["createPortalMailGroup","joinPortalMailGroup","resolvePortalMailGroupRecipients","ensurePortalMailWorkspaceSchema"]) {
+              if (!mailboxService.includes(required)) throw new Error(`Mail group service missing: ${required}`);
+            }
+            if (!mailActions.includes("createMailboxGroupAction") || !mailActions.includes("groupId")) {
+              throw new Error("Mail group actions are not wired into compose.");
+            }
+            console.log("Mail Workspace V2 must preserve the integrated reader contract.");
 
             const mailHealth = fs.readFileSync("lib/portal/mail-health.ts", "utf8");
             for (const required of [
