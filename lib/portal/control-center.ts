@@ -38,61 +38,59 @@ export type ControlCenterEntityType =
   | "vault"
   | "inventory";
 
-export async function listControlCenterRegistry() {
+export async function getControlCenterView(entityType: ControlCenterEntityType) {
   const database = db();
-  const [
-    members,
-    roles,
-    teams,
-    projects,
-    tasks,
-    vehicles,
-    repositories,
-    vault,
-    inventory,
-  ] = await Promise.all([
+  const queryByType: Record<ControlCenterEntityType,string> = {
+    members:"SELECT id,email,full_name,role,status,teams_json,last_login_at,created_at FROM portal_members ORDER BY full_name,email LIMIT 200",
+    roles:"SELECT role_key,label,scope,description,capabilities_json,updated_at FROM portal_role_profiles ORDER BY scope,role_key LIMIT 200",
+    teams:"SELECT code,name,domain,description,visibility,status,updated_at FROM portal_teams ORDER BY name LIMIT 200",
+    projects:"SELECT slug,title,summary,domain,team_code,status,visibility,owner_member_id,risk_level,readiness,updated_at FROM portal_project_registry ORDER BY updated_at DESC LIMIT 200",
+    tasks:"SELECT t.id,t.title,t.description,t.project_slug,t.team_code,t.assignee_id,t.status,t.priority,t.due_at,t.updated_at,m.full_name AS assignee_name FROM portal_tasks t LEFT JOIN portal_members m ON m.id=t.assignee_id ORDER BY t.updated_at DESC LIMIT 150",
+    vehicles:"SELECT v.id,v.code,v.name,v.domain,v.status,v.last_seen_at,vp.team_code,vp.project_slug,vp.platform_type,vp.lifecycle,vp.serial_number,vp.criticality,vp.description,vp.owner_member_id FROM portal_vehicle_units v LEFT JOIN portal_vehicle_profiles vp ON vp.vehicle_id=v.id ORDER BY v.name LIMIT 200",
+    repositories:"SELECT id,name,slug,project_slug,team_code,visibility,default_branch,status,created_by,updated_at FROM portal_native_repositories ORDER BY updated_at DESC LIMIT 150",
+    vault:"SELECT id,title,kind,original_name,extension,size_bytes,team_code,project_slug,visibility,revision,approval_state,lifecycle_state,created_by,updated_at FROM portal_vault_files ORDER BY updated_at DESC LIMIT 150",
+    inventory:"SELECT id,sku,name,category,location,unit,quantity,minimum_quantity,reserved_quantity,updated_at FROM portal_inventory_items ORDER BY category,name LIMIT 200",
+  };
+
+  const lookupNeeds = {
+    teams:["projects","tasks","vehicles","repositories","vault"].includes(entityType),
+    projects:["tasks","vehicles","repositories","vault"].includes(entityType),
+    members:entityType === "tasks",
+  };
+
+  const [rows, counts, teams, projects, members] = await Promise.all([
+    database.prepare(queryByType[entityType]).all<Record<string,unknown>>(),
     database.prepare(
-      "SELECT id,email,full_name,role,status,teams_json,last_login_at,created_at FROM portal_members ORDER BY full_name,email"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT role_key,label,scope,description,capabilities_json,updated_at FROM portal_role_profiles ORDER BY scope,role_key"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT code,name,domain,description,visibility,status,updated_at FROM portal_teams ORDER BY name"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT slug,title,summary,domain,team_code,status,visibility,owner_member_id,risk_level,readiness,updated_at FROM portal_project_registry ORDER BY updated_at DESC"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT t.id,t.title,t.description,t.project_slug,t.team_code,t.assignee_id,t.status,t.priority,t.due_at,t.updated_at,m.full_name AS assignee_name " +
-      "FROM portal_tasks t LEFT JOIN portal_members m ON m.id=t.assignee_id ORDER BY t.updated_at DESC LIMIT 500"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT v.id,v.code,v.name,v.domain,v.status,v.last_seen_at,vp.team_code,vp.project_slug,vp.platform_type,vp.lifecycle,vp.serial_number,vp.criticality,vp.description,vp.owner_member_id " +
-      "FROM portal_vehicle_units v LEFT JOIN portal_vehicle_profiles vp ON vp.vehicle_id=v.id ORDER BY v.name"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT id,name,slug,project_slug,team_code,visibility,default_branch,status,created_by,updated_at FROM portal_native_repositories ORDER BY updated_at DESC LIMIT 300"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT id,title,kind,original_name,extension,size_bytes,team_code,project_slug,visibility,revision,approval_state,lifecycle_state,created_by,updated_at " +
-      "FROM portal_vault_files ORDER BY updated_at DESC LIMIT 500"
-    ).all<Record<string,unknown>>(),
-    database.prepare(
-      "SELECT id,sku,name,category,location,unit,quantity,minimum_quantity,reserved_quantity,updated_at FROM portal_inventory_items ORDER BY category,name"
-    ).all<Record<string,unknown>>(),
+      "SELECT " +
+      "(SELECT COUNT(*) FROM portal_members) AS members," +
+      "(SELECT COUNT(*) FROM portal_project_registry) AS projects," +
+      "(SELECT COUNT(*) FROM portal_tasks) AS tasks," +
+      "(SELECT COUNT(*) FROM portal_vault_files) AS vault," +
+      "(SELECT COUNT(*) FROM portal_native_repositories) AS repositories"
+    ).first<Record<string,number>>(),
+    lookupNeeds.teams
+      ? database.prepare("SELECT code,name FROM portal_teams WHERE status!='archived' ORDER BY name LIMIT 200").all<Record<string,unknown>>()
+      : Promise.resolve({ results: [] as Record<string,unknown>[] }),
+    lookupNeeds.projects
+      ? database.prepare("SELECT slug,title FROM portal_project_registry WHERE status!='archived' ORDER BY updated_at DESC LIMIT 250").all<Record<string,unknown>>()
+      : Promise.resolve({ results: [] as Record<string,unknown>[] }),
+    lookupNeeds.members
+      ? database.prepare("SELECT id,full_name,email,status FROM portal_members WHERE status!='archived' ORDER BY full_name,email LIMIT 250").all<Record<string,unknown>>()
+      : Promise.resolve({ results: [] as Record<string,unknown>[] }),
   ]);
 
   return {
-    members: members.results ?? [],
-    roles: roles.results ?? [],
+    rows: rows.results ?? [],
+    counts: {
+      members:Number(counts?.members || 0),
+      projects:Number(counts?.projects || 0),
+      tasks:Number(counts?.tasks || 0),
+      vault:Number(counts?.vault || 0),
+      repositories:Number(counts?.repositories || 0),
+    },
     teams: teams.results ?? [],
     projects: projects.results ?? [],
-    tasks: tasks.results ?? [],
-    vehicles: vehicles.results ?? [],
-    repositories: repositories.results ?? [],
-    vault: vault.results ?? [],
-    inventory: inventory.results ?? [],
+    members: members.results ?? [],
   };
 }
 
