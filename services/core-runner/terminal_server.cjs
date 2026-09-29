@@ -1,12 +1,15 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
-const { spawn } = require("node:child_process");
+const pty = require("node-pty");
 const { WebSocketServer, WebSocket } = require("ws");
 
 const PORT = 8081;
 const ROOT = "/tmp/core-terminal";
 const SESSION_RE = /^[a-f0-9-]{36}$/i;
+const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
+const MAX_SESSION_MS = 30 * 60 * 1000;
+const activeSessions = new Set();
 
 function clamp(value, min, max, fallback) {
   const number = Number(value);
@@ -25,7 +28,12 @@ function json(res, status, value) {
 
 const server = http.createServer((req, res) => {
   if (req.url === "/health") {
-    json(res, 200, { ok: true, service: "core-terminal", transport: "container-websocket" });
+    json(res, 200, {
+      ok: true,
+      service: "core-terminal",
+      transport: "container-websocket",
+      activeSessions: activeSessions.size,
+    });
     return;
   }
   json(res, 404, { error: "not_found" });
@@ -35,12 +43,21 @@ const wss = new WebSocketServer({
   noServer: true,
   perMessageDeflate: false,
   maxPayload: 64 * 1024,
+  handleProtocols(protocols) {
+    return protocols.has("core-terminal") ? "core-terminal" : false;
+  },
 });
 
 server.on("upgrade", (request, socket, head) => {
   try {
     const url = new URL(request.url || "/", "http://container");
     if (url.pathname !== "/internal/terminal") {
+      socket.destroy();
+      return;
+    }
+
+    const protocolHeader = String(request.headers["sec-websocket-protocol"] || "");
+    if (!protocolHeader.split(",").map((value) => value.trim()).includes("core-terminal")) {
       socket.destroy();
       return;
     }
@@ -57,11 +74,18 @@ server.on("upgrade", (request, socket, head) => {
       return;
     }
 
+    const expiresHeader = String(request.headers["x-core-terminal-expires-at"] || "");
+    const expiresAt = Date.parse(expiresHeader);
+    const hardLifetime = Number.isFinite(expiresAt)
+      ? Math.max(1_000, Math.min(MAX_SESSION_MS, expiresAt - Date.now()))
+      : MAX_SESSION_MS;
+
     request.coreTerminal = {
       sessionId,
       workspace,
       cols: clamp(url.searchParams.get("cols"), 40, 240, 120),
       rows: clamp(url.searchParams.get("rows"), 12, 100, 32),
+      hardLifetime,
     };
 
     wss.handleUpgrade(request, socket, head, (ws) => {
@@ -78,55 +102,86 @@ wss.on("connection", (ws, request) => {
     ws.close(1008, "invalid session");
     return;
   }
+  if (activeSessions.has(terminal.sessionId)) {
+    ws.close(1013, "session already connected");
+    return;
+  }
+  activeSessions.add(terminal.sessionId);
 
-  const shell =
-    "stty cols " + terminal.cols + " rows " + terminal.rows +
-    "; printf '\\033[38;5;208mCORE LIVE TERMINAL\\033[0m  snapshot workspace hazır\\r\\n'" +
-    "; exec bash --noprofile --norc -i";
+  const env = {
+    ...process.env,
+    HOME: terminal.workspace,
+    TERM: "xterm-256color",
+    COLORTERM: "truecolor",
+    CORE_RUNNER_NETWORK: "deny",
+    PS1: "\\[\\033[38;5;208m\\]core\\[\\033[0m\\]:\\[\\033[36m\\]\\w\\[\\033[0m\\]$ ",
+  };
 
-  const child = spawn("script", ["-qefc", shell, "/dev/null"], {
-    cwd: terminal.workspace,
-    env: {
-      ...process.env,
-      HOME: terminal.workspace,
-      TERM: "xterm-256color",
-      COLORTERM: "truecolor",
-      CORE_RUNNER_NETWORK: "deny",
-      PS1: "\\[\\033[38;5;208m\\]core\\[\\033[0m\\]:\\[\\033[36m\\]\\w\\[\\033[0m\\]$ ",
-    },
-    stdio: ["pipe", "pipe", "pipe"],
-  });
+  let shell;
+  try {
+    shell = pty.spawn("/bin/bash", ["--noprofile", "--norc", "-i"], {
+      name: "xterm-256color",
+      cols: terminal.cols,
+      rows: terminal.rows,
+      cwd: terminal.workspace,
+      env,
+    });
+  } catch (error) {
+    activeSessions.delete(terminal.sessionId);
+    try { ws.close(1011, "terminal process failed"); } catch {}
+    return;
+  }
 
   let closed = false;
+  let idleTimer = null;
+  let hardTimer = null;
+
   const safeSend = (value) => {
     if (ws.readyState !== WebSocket.OPEN) return;
     try { ws.send(JSON.stringify(value)); } catch {}
   };
-  const stopChild = () => {
+
+  const stopShell = () => {
     if (closed) return;
     closed = true;
-    try { child.kill("SIGTERM"); } catch {}
-    const timer = setTimeout(() => {
-      try { child.kill("SIGKILL"); } catch {}
-    }, 1500);
-    timer.unref?.();
+    if (idleTimer) clearTimeout(idleTimer);
+    if (hardTimer) clearTimeout(hardTimer);
+    activeSessions.delete(terminal.sessionId);
+    try { shell.kill(); } catch {}
   };
 
-  child.stdout.on("data", (chunk) => safeSend({ type: "output", data: chunk.toString("utf8") }));
-  child.stderr.on("data", (chunk) => safeSend({ type: "output", data: chunk.toString("utf8") }));
+  const armIdleTimer = () => {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      safeSend({ type:"runner-error", message:"Terminal idle timeout nedeniyle kapatıldı." });
+      try { ws.close(4001, "idle timeout"); } catch {}
+      stopShell();
+    }, IDLE_TIMEOUT_MS);
+    idleTimer.unref?.();
+  };
 
-  child.on("error", (error) => {
-    safeSend({ type: "runner-error", message: String(error?.message || error || "terminal process error") });
-    try { ws.close(1011, "terminal process failed"); } catch {}
+  hardTimer = setTimeout(() => {
+    safeSend({ type:"runner-error", message:"Terminal oturum süresi doldu." });
+    try { ws.close(4002, "session expired"); } catch {}
+    stopShell();
+  }, terminal.hardLifetime);
+  hardTimer.unref?.();
+  armIdleTimer();
+
+  safeSend({ type:"output", data:"\x1b[38;5;208mCORE LIVE TERMINAL\x1b[0m  snapshot workspace hazır\r\n" });
+
+  const dataDisposable = shell.onData((data) => {
+    armIdleTimer();
+    safeSend({ type:"output", data });
   });
-
-  child.on("exit", (code, signal) => {
+  const exitDisposable = shell.onExit(({ exitCode, signal }) => {
     safeSend({
-      type: "exit",
-      exitCode: Number.isInteger(code) ? code : null,
-      signal: signal || null,
+      type:"exit",
+      exitCode:Number.isInteger(exitCode) ? exitCode : null,
+      signal:signal || null,
     });
     try { ws.close(1000, "terminal process ended"); } catch {}
+    stopShell();
   });
 
   ws.on("message", (raw) => {
@@ -136,20 +191,35 @@ wss.on("connection", (ws, request) => {
 
     if (message.type === "input") {
       const data = String(message.data || "").slice(0, 32 * 1024);
-      if (!child.stdin.destroyed) child.stdin.write(data);
+      if (data) {
+        armIdleTimer();
+        shell.write(data);
+      }
+      return;
+    }
+    if (message.type === "resize") {
+      const cols = clamp(message.cols,40,240,terminal.cols);
+      const rows = clamp(message.rows,12,100,terminal.rows);
+      armIdleTimer();
+      try { shell.resize(cols,rows); } catch {}
       return;
     }
     if (message.type === "signal" && String(message.signal) === "SIGINT") {
-      if (!child.stdin.destroyed) child.stdin.write("\u0003");
+      armIdleTimer();
+      shell.write("\u0003");
       return;
     }
     if (message.type === "ping") {
-      safeSend({ type: "pong", at: Date.now() });
+      safeSend({ type:"pong", at:Date.now() });
     }
   });
 
-  ws.on("close", stopChild);
-  ws.on("error", stopChild);
+  ws.on("close", () => {
+    try { dataDisposable.dispose(); } catch {}
+    try { exitDisposable.dispose(); } catch {}
+    stopShell();
+  });
+  ws.on("error", stopShell);
 });
 
 server.listen(PORT, "0.0.0.0", () => {
