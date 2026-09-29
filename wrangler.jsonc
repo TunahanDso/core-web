@@ -53,6 +53,7 @@
     "PORTAL_IOS_BUNDLE_ID": "com.ytucore.portal",
     "PORTAL_MAIL_REPLY_TO": "portal@ytucore.com",
     "CORE_RUNNER_URL": "https://runner.ytucore.com",
+    "CORE_TELEMETRY_URL": "",
     "PORTAL_MEETING_PROVIDER": "",
     "PORTAL_MEETING_PROVIDER_URL": ""
   },

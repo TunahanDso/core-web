@@ -13257,3 +13257,33 @@ html.coreDesktopRuntime .portalIdentity{
   justify-items:start;
   gap:10px;
 }
+
+/* IA R3 — compact contextual portal navigation */
+.portalNavCompact{display:grid;gap:12px}
+.portalNavCompact section{margin-bottom:0}
+.portalNavGroupTabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:4px;
+  margin:0 0 10px;
+}
+.portalNavGroupTabs button{
+  min-width:0;
+  min-height:28px;
+  border:1px solid var(--portal-line);
+  border-radius:6px;
+  background:#fff;
+  color:#8b9197;
+  font:850 7px ui-monospace,monospace;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.portalNavGroupTabs button.active{
+  border-color:rgba(255,101,0,.45);
+  background:#fff4eb;
+  color:#c44f00;
+}
+.portalNavContext{
+  padding-top:12px;
+  border-top:1px solid var(--portal-line);
+}
