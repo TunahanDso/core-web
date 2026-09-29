@@ -51,7 +51,6 @@
     "PORTAL_MOBILE_HANDOFF_ENABLED": "true",
     "PORTAL_ANDROID_PACKAGE": "com.ytucore.portal",
     "PORTAL_IOS_BUNDLE_ID": "com.ytucore.portal",
-    "PORTAL_DESKTOP_WINDOWS_RELEASE_ENABLED": "false",
     "PORTAL_MAIL_REPLY_TO": "portal@ytucore.com",
     "CORE_RUNNER_URL": "https://runner.ytucore.com",
     "PORTAL_MEETING_PROVIDER": "",
