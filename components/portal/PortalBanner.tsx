@@ -29,13 +29,13 @@ export default function PortalBanner() {
     if ("requestIdleCallback" in window) {
       idleId = window.requestIdleCallback(() => { void load(); }, { timeout: 1500 });
     } else {
-      timer = window.setTimeout(() => { void load(); }, 400);
+      timer = globalThis.setTimeout(() => { void load(); }, 400);
     }
 
     return () => {
       cancelled = true;
       if (idleId !== null && "cancelIdleCallback" in window) window.cancelIdleCallback(idleId);
-      if (timer !== null) window.clearTimeout(timer);
+      if (timer !== null) globalThis.clearTimeout(timer);
     };
   }, []);
 
