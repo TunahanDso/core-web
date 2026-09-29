@@ -1,14 +1,14 @@
 import type { PortalMember } from "@/lib/portal/auth";
 import PortalNav from "@/components/portal/PortalNav";
 import { logoutPortalAction } from "@/app/portal/actions";
-import { getSiteSetting } from "@/lib/cms/extensions";
 import { portalRoleLabel } from "@/lib/portal/labels";
 import PortalCommandCenter from "@/components/portal/PortalCommandCenter";
 import PortalSidebarToggle from "@/components/portal/PortalSidebarToggle";
 import PortalContent from "@/components/portal/PortalContent";
 import PortalDensityToggle from "@/components/portal/PortalDensityToggle";
+import PortalBanner from "@/components/portal/PortalBanner";
 
-export default async function PortalShell({
+export default function PortalShell({
   member,
   canControl,
   children,
@@ -17,7 +17,6 @@ export default async function PortalShell({
   canControl: boolean;
   children: React.ReactNode;
 }) {
-  const banner = await getSiteSetting("portal_banner");
   const initials = member.fullName
     ? member.fullName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()
     : "CR";
@@ -70,9 +69,7 @@ export default async function PortalShell({
             </a>
           </div>
         </header>
-        {banner?.enabled && banner.text ? (
-          <div className="portalSystemBanner"><span>CORE DUYURU</span><b>{String(banner.text)}</b></div>
-        ) : null}
+        <PortalBanner />
         <PortalContent>{children}</PortalContent>
       </section>
     </main>
