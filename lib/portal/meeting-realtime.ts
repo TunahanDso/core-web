@@ -19,6 +19,12 @@ type RealtimeKitMeeting = {
   title?: string;
 };
 
+type RealtimeKitActiveSession = {
+  status?:"LIVE"|"ENDED"|string;
+  live_participants?:number;
+  ended_at?:string;
+};
+
 type CloudflareEnvelope<T> = {
   success?: boolean;
   data?: T;
@@ -236,6 +242,45 @@ export async function provisionRealtimeKitJoin(input:{
     providerMeetingId,
     authToken,
   };
+}
+
+export async function syncEndedRealtimeKitSession(portalMeetingId:string,actorEmail:string) {
+  if(!getRealtimeKitRuntimeStatus().configured) return {synced:false,status:"unconfigured" as const};
+  await ensurePortalCollaborationFinanceSchema();
+  const database=collaborationDb();
+  const row=await database.prepare(
+    "SELECT provider_meeting_id FROM portal_meeting_transports WHERE meeting_id=? AND provider='cloudflare-realtimekit' LIMIT 1"
+  ).bind(portalMeetingId).first<{provider_meeting_id:string}>();
+  const providerMeetingId=String(row?.provider_meeting_id || "").trim();
+  if(!providerMeetingId) return {synced:false,status:"missing" as const};
+
+  let session:RealtimeKitActiveSession;
+  try {
+    session=await realtimeRequest<RealtimeKitActiveSession>(
+      `/meetings/${encodeURIComponent(providerMeetingId)}/active-session`
+    );
+  } catch {
+    return {synced:false,status:"unknown" as const};
+  }
+
+  if(String(session.status || "").toUpperCase()!=="ENDED"){
+    return {synced:false,status:"live" as const};
+  }
+
+  const meeting=await database.prepare(
+    "SELECT status FROM portal_meetings WHERE id=? LIMIT 1"
+  ).bind(portalMeetingId).first<{status:string}>();
+  if(meeting && !["completed","cancelled"].includes(String(meeting.status))){
+    await database.batch([
+      database.prepare(
+        "UPDATE portal_meetings SET status='completed',updated_at=CURRENT_TIMESTAMP WHERE id=?"
+      ).bind(portalMeetingId),
+      database.prepare(
+        "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'meeting.status','meeting',?,?)"
+      ).bind(actorEmail,portalMeetingId,JSON.stringify({status:"completed",source:"cloudflare-realtimekit",endedAt:session.ended_at||null})),
+    ]);
+  }
+  return {synced:true,status:"ended" as const};
 }
 
 export async function endRealtimeKitSession(portalMeetingId:string) {
