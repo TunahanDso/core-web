@@ -1,0 +1,5 @@
+/* One CSS entry keeps legacy rules before portal overrides in production chunks. */
+@import "./workspace.css";
+@import "./portal-design.css";
+@import "./portal-mobile.css";
+@import "./portal-surfaces.css";

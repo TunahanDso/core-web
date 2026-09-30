@@ -6,7 +6,9 @@ export default defineConfig({root:path.join(repo,'tests/ui'),publicDir:path.join
  {find:'next/link',replacement:path.join(repo,'tests/ui/navigation.tsx')},
  {find:'next/navigation',replacement:path.join(repo,'tests/ui/navigation.tsx')},
  {find:/^@capacitor\//,replacement:path.join(repo,'tests/ui/native.ts')+'?plugin='},
- {find:'@/app/portal/actions',replacement:path.join(repo,'tests/ui/actions.ts')},
+ {find:/^@\/app\/portal\/(actions|mailbox-actions|mobile-actions)$/,replacement:path.join(repo,'tests/ui/actions.ts')},
+ {find:/^@\/lib\/portal\/(auth|db|mailbox|vault|mobile)$/,replacement:path.join(repo,'tests/ui/data.ts')},
+ {find:'cloudflare:workers',replacement:path.join(repo,'tests/ui/data.ts')},
  {find:'@/components/portal/PortalBanner',replacement:path.join(repo,'tests/ui/banner.tsx')},
  {find:'@',replacement:repo}
 ]},server:{host:'0.0.0.0',port:4173,fs:{allow:[repo]}}});
