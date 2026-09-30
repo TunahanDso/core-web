@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#ff6500",
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 export default async function PortalMemberLayout({
