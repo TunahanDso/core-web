@@ -328,7 +328,12 @@ export default function PortalNativeExperience({
     setNative(true);
     document.documentElement.dataset.coreNative = "native-v2";
 
-    void StatusBar.setStyle({ style: Style.Dark }).catch(() => undefined);
+    const syncStatusBar=()=>{
+      const dark=document.documentElement.dataset.portalTheme!=="light";
+      void StatusBar.setStyle({style:dark?Style.Light:Style.Dark}).catch(()=>undefined);
+    };
+    syncStatusBar();
+    window.addEventListener("core:appearance",syncStatusBar);
     void Preferences.set({ key: "core_last_portal_route", value: pathname }).catch(() => undefined);
     void Promise.all([
       Preferences.get({ key: "core_recent_routes" }),
@@ -424,12 +429,16 @@ export default function PortalNativeExperience({
     window.addEventListener("touchstart", touchStart, { passive: true });
     window.addEventListener("touchmove", touchMove, { passive: true });
     window.addEventListener("touchend", touchEnd, { passive: true });
+    const touchCancel = () => {pullStart.current=null;pullArmed.current=false;setPullDistance(0);};
+    window.addEventListener("touchcancel", touchCancel, { passive: true });
 
     return () => {
+      window.removeEventListener("core:appearance",syncStatusBar);
       delete document.documentElement.dataset.coreNative;
       window.removeEventListener("touchstart", touchStart);
       window.removeEventListener("touchmove", touchMove);
       window.removeEventListener("touchend", touchEnd);
+      window.removeEventListener("touchcancel", touchCancel);
       for (const handle of handles) void handle.remove();
     };
   // The listener set is intentionally rebound per route so Android back behavior
@@ -463,14 +472,14 @@ export default function PortalNativeExperience({
 
   return (
     <>
-      <div
+      {pullDistance > 0 || refreshing ? <div
         className={"nativePullIndicator " + (refreshing ? "refreshing" : "")}
         style={{ transform: `translate(-50%, ${Math.max(-42, pullDistance - 42)}px)` }}
         aria-hidden="true"
       >
         <Icon name="refresh" />
         <span>{refreshing ? "YENİLENİYOR" : pullDistance > 72 ? "BIRAK VE YENİLE" : "ÇEK"}</span>
-      </div>
+      </div> : null}
 
       {!connected ? (
         <div className="nativeOfflineBanner">

@@ -26,7 +26,7 @@ export default async function PortalSecurityPage() {
       <section className="portalSecurityGrid">
         <article><span>HESAP</span><h3>{member.email}</h3><p>Rol: {portalRoleLabel(member.role)}</p><b>AKTİF OTURUM</b></article>
         <article><span>OTURUM MODELİ</span><h3>Sunucu taraflı iptal edilebilir token</h3><p>HttpOnly cookie + D1 token hash; portal API'leri aynı oturum sınırını kullanır.</p><b>EN FAZLA 7 GÜN</b></article>
-        <article><span>MOBİL APP</span><h3>Capacitor shell · v{mobileConfig.appVersion}</h3><p>{mobileConfig.androidPackage} / {mobileConfig.iosBundleId}</p><b>{mobileConfig.handoffEnabled ? "HANDOFF AÇIK" : "HANDOFF KONTROLLÜ"}</b></article>
+        <article><span>MOBİL UYGULAMA</span><h3>CORE · v{mobileConfig.appVersion}</h3><p>Portal tarayıcıda kalır; uygulama kendiliğinden açılmaz. Yalnızca cihazında CORE kuruluysa aşağıdaki bağlantıyı kullan.</p><a className="portalPrimaryButton" href={mobileConfig.appScheme+"://portal/open?path=%2Fportal"}>Yüklü uygulamayı aç</a><small>Uygulama açılamazsa tarayıcıda kullanmaya devam edebilirsin.</small></article>
         <article><span>GÜVEN MODELİ</span><h3>Device registry + trust state</h3><p>APNs / FCM token registry aktif. Trusted işareti cihaz tercihidir; parola, oturum veya rol kontrolünü asla atlamaz.</p><b>PUSH + TRUST + REVOKE</b></article>
       </section>
 

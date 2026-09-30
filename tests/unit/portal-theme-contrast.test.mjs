@@ -12,7 +12,6 @@ for(const theme of ['light','dark','aurora'])test(`${theme}: normal text and sta
  for(const state of ['success','danger','warning'])assert.ok(ratio(p['--core-'+state],p['--core-status-'+state+'-bg'])>=4.5,`${theme} ${state}`);
  assert.ok(ratio(p['--core-on-accent'],p['--core-accent-fill'])>=4.5,`${theme} accent button`);
 });
-test('Aurora decorative gradient endpoints preserve readable text',()=>{
- for(const surface of ['#26213f','#192638','#211939','#11182d'])assert.ok(ratio('#bfc4e5',surface)>=4.5);
- for(const fill of ['#c4a7ff','#91edff'])assert.ok(ratio('#141a31',fill)>=4.5);
+test('Aurora brand gradient endpoints preserve readable text',()=>{
+ for(const fill of ['#cfb3ff','#9be4df'])assert.ok(ratio('#20182f',fill)>=4.5);
 });

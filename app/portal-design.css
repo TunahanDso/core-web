@@ -34,26 +34,26 @@
 }
 html:is([data-portal-theme="dark"],[data-portal-theme="aurora"]) {
   color-scheme:dark;
-  --core-surface-canvas:#10151d;
-  --core-surface-rgb:25 33 44;
-  --core-surface-base:#19212c;
-  --core-surface-subtle:#151c26;
-  --core-surface-hover:#232e3d;
-  --core-surface-selected:#39281f;
-  --core-border:#354256;
-  --core-border-soft:#2a3545;
+  --core-surface-canvas:#11151b;
+  --core-surface-rgb:28 34 43;
+  --core-surface-base:#1c222b;
+  --core-surface-subtle:#171c24;
+  --core-surface-hover:#2a3340;
+  --core-surface-selected:#34291f;
+  --core-border:#465263;
+  --core-border-soft:#323d4d;
   --core-text:#f5f7fc;
-  --core-text-secondary:#d5deec;
-  --core-text-muted:#b6c4d8;
-  --core-text-quiet:#b6c4d8;
-  --core-accent:#ffad75;
-  --core-focus:#ffad75;
+  --core-text-secondary:#cdd5e0;
+  --core-text-muted:#b6c0ce;
+  --core-text-quiet:#b6c0ce;
+  --core-accent:#ffc49b;
+  --core-focus:#ffc49b;
   --core-danger:#ffab98;
   --core-success:#a2e2b8;
   --core-warning:#f9d582;
   --core-info:#a2d0ff;
-  --core-accent-fill:#ffad75;
-  --core-on-accent:#17202c;
+  --core-accent-fill:#ffc49b;
+  --core-on-accent:#251b14;
   --core-status-danger-bg:#392523;
   --core-status-success-bg:#183126;
   --core-status-warning-bg:#352c18;
@@ -313,35 +313,21 @@ html.coreDesktopRuntime .portalSidebar { padding-bottom:40px; }
 }
 .portalApp :is(.portalMessageContent p,.mailMessageCard p,.meetingNotes p,.meetingAgendaPane p) { line-height:1.65; overflow-wrap:anywhere; }
 
-/* Aurora: static nebula light, luminous edges, opaque readable work surfaces. */
+/* Aurora shares the same calm typography and surfaces; color lives in accents. */
 html[data-portal-theme="aurora"] {
-  --core-surface-canvas:#090c20; --core-surface-rgb:23 27 54;
-  --core-surface-base:#171b36; --core-surface-subtle:#12162d;
-  --core-surface-hover:#262b4a; --core-surface-selected:#203747;
-  --core-border:#565786; --core-border-soft:#383d64;
-  --core-text:#f7f6ff; --core-text-secondary:#dfe0fc; --core-text-muted:#bfc4e5; --core-text-quiet:#bfc4e5;
-  --core-accent:#8aeeff; --core-focus:#adf5ff;
-  --core-accent-fill:#91edff; --core-on-accent:#131b31;
-  --core-danger:#ffb7cd; --core-success:#a5f3ce; --core-warning:#ffe19b; --core-info:#b9ccff;
+  --core-surface-canvas:#131020; --core-surface-rgb:33 29 51;
+  --core-surface-base:#211d33; --core-surface-subtle:#191629;
+  --core-surface-hover:#302b46; --core-surface-selected:#353045;
+  --core-border:#655b78; --core-border-soft:#41394f;
+  --core-text:#f7f3ff; --core-text-secondary:#e0d8ef; --core-text-muted:#c1b6d6; --core-text-quiet:#c1b6d6;
+  --core-accent:#d2baff; --core-focus:#e8d8ff;
+  --core-accent-fill:#cfb3ff; --core-on-accent:#20182f;
+  --core-danger:#ffb7cd; --core-success:#a5f3ce; --core-warning:#ffe19b; --core-info:#b9d5ff;
   --core-status-danger-bg:#3c243c; --core-status-success-bg:#17372f; --core-status-warning-bg:#352c25;
 }
-html[data-portal-theme="aurora"] .portalApp {
-  background:radial-gradient(ellipse at 90% 0%,#672bd92b,transparent 48%),radial-gradient(ellipse at 12% 75%,#24d5e51a,transparent 45%),var(--core-surface-canvas);
-}
-html[data-portal-theme="aurora"] .portalSidebar {
-  background:linear-gradient(170deg,#211939,#11182d 65%); border-right-color:#555382;
-}
-html[data-portal-theme="aurora"] .portalTopbar { background:#15172f; border-bottom-color:#52557f; }
-html[data-portal-theme="aurora"] .portalBrandMark { color:#15112d; background:linear-gradient(135deg,#97f4ff,#c6a2ff); box-shadow:0 0 24px #8e66ed55; }
-html[data-portal-theme="aurora"] .portalNav a.active { background:#243449; color:#c6f6ff; box-shadow:inset 3px 0 #91edff,0 0 20px #55dcef14; }
-html[data-portal-theme="aurora"] :is(.portalDashboardPane,.portalPanel,.portalDataTableShell,.portalToolSurface) { border-color:#55517e; box-shadow:0 8px 30px #05081938; }
-html[data-portal-theme="aurora"] .portalDashboardMetricStrip { gap:12px; overflow:visible; background:transparent; border:0; }
-html[data-portal-theme="aurora"] .portalDashboardMetricStrip a { background:linear-gradient(130deg,#26213f,#192638); border:1px solid #655b91; border-radius:12px; box-shadow:0 8px 28px #05081940; }
-html[data-portal-theme="aurora"] .portalDashboardMetricStrip b { color:#b8f6ff; text-shadow:0 0 24px #80eaff30; }
-html[data-portal-theme="aurora"] :is(.portalPageHeader,.portalDashboardHeader) { border-image:linear-gradient(90deg,#b8a0ff,#7de3f0,transparent) 1; }
-html[data-portal-theme="aurora"] .portalApp .portalPrimaryButton { background:linear-gradient(120deg,#c4a7ff,#91edff); color:#141a31; box-shadow:0 4px 20px #8f78ff30; }
-html[data-portal-theme="aurora"] .portalCommandTrigger { border-color:#74709d; background:#1b203d; }
-@media (prefers-reduced-motion:reduce) { html[data-portal-theme="aurora"] * { text-shadow:none; } }
+html[data-portal-theme="aurora"] .portalBrandMark { background:linear-gradient(135deg,#cfb3ff,#9be4df); color:#20182f; }
+html[data-portal-theme="aurora"] .portalTopbar { border-bottom-color:#655b78; }
+html[data-portal-theme="aurora"] .coreHomeWelcome { border-top:3px solid #bfa0f1; }
 .portalApp :is(.repoWorkspaceHero,.repoServiceNotice,.repoWorkspaceToolbar,.repoCodePanel,.repoWorkspaceSide,.repoManifestGrid,.repoReviewSnapshot,.repoReviewToolbar,.repoReviewLayout,.repoResizableReview .workbenchSplit,.repoComparePanel,.liveTerminalShell) {
   --core-text:#f0f4fc; --core-text-secondary:#d1dbea; --core-text-muted:#b5c3d6; --core-text-quiet:#b5c3d6;
   --core-surface-base:#171e2b; --core-surface-subtle:#121923; --core-surface-hover:#263044;
@@ -413,4 +399,4 @@ html[data-portal-theme="aurora"] .portalCommandTrigger { border-color:#74709d; b
 .vaultResizableDetail :is(.vaultModelViewer>header,.pcbPreview>header,.vaultCodeReader>header,.vaultSourceBrowser>header) { display:flex; flex-wrap:wrap; gap:10px; }
 .vaultResizableDetail :is(.vaultCodeTools,.vaultSourceWindowActions) { display:flex; flex-wrap:wrap; }
 .vaultResizableDetail :is(.vaultModelStats,.pcbInspectorBar) { display:grid; grid-template-columns:repeat(auto-fit,minmax(72px,1fr)); }
-.portalApp .vaultCodeReader { --core-surface-base:#171e2b; --core-surface-subtle:#121923; --core-surface-selected:#39281f; --core-border:#45516a; --core-focus:#ffbd8c; }
+.portalApp .vaultCodeReader { --core-surface-base:#171e2b; --core-surface-subtle:#121923; --core-surface-selected:#34291f; --core-border:#45516a; --core-focus:#ffbd8c; }
