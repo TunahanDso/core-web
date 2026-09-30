@@ -38,7 +38,7 @@ test('meeting UI uses pinned RealtimeKit Web Components and secure join endpoint
 
   assert.match(panel,/@cloudflare\/realtimekit@2\.0\.2\/dist\/browser\.js/);
   assert.match(loader,/@cloudflare\/realtimekit-ui@2\.0\.2\/loader\/index\.es2017\.js/);
-  assert.match(panel,/fetch\("\/api\/portal\/meetings\/"+encodeURIComponent\(meetingId\)+"\/realtime"/);
+  assert.match(panel,/fetch\("\/api\/portal\/meetings\/"\+encodeURIComponent\(meetingId\)\+"\/realtime"/);
   assert.match(panel,/document\.createElement\("rtk-meeting"\)/);
   assert.match(panel,/showSetupScreen=true/);
   assert.match(nextConfig,/script-src 'self' 'unsafe-inline' https:\/\/cdn\.jsdelivr\.net/);
