@@ -256,11 +256,11 @@ export async function applyPortalFoundation(actor: string) {
   `).bind(
     actor,
     JSON.stringify({
-      version: "2026.09-v13-authority-cleanup",
+      version: "2026.09-v14-meeting-realtime",
       statementCount: statements.length,
       modules: [
         "members","auth","tasks","resources","repositories","inventory",
-        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal","vault-raw-upload","mail-groups","mail-locked-groups","mail-integrated-reader","meeting-spaces","meeting-calendar","meeting-decisions","meeting-reports","polls","poll-notifications","budget-ledger","budget-allocations","budget-approvals"
+        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal","vault-raw-upload","mail-groups","mail-locked-groups","mail-integrated-reader","meeting-spaces","meeting-calendar","meeting-realtime","meeting-decisions","meeting-reports","polls","poll-notifications","budget-ledger","budget-allocations","budget-approvals"
       ],
     })
   ).run();
