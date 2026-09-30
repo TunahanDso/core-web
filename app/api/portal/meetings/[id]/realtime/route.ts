@@ -31,7 +31,6 @@ export async function POST(
   const memberName=String(member.fullName || member.email || "CORE Member");
 
   try {
-    await markMeetingParticipantAttended(meetingId,member.id);
     const join=await provisionRealtimeKitJoin({
       portalMeetingId:meetingId,
       title:String(meeting.title || "CORE Meeting"),
@@ -40,6 +39,7 @@ export async function POST(
       role:elevated?"host":"participant",
       mode,
     });
+    await markMeetingParticipantAttended(meetingId,member.id);
     return Response.json(join,{
       headers:{
         "Cache-Control":"private, no-store, max-age=0",
