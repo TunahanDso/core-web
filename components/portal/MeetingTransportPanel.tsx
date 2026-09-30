@@ -1,14 +1,38 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+
+type RealtimeEventSource = {
+  on?:(event:string,handler:(payload?:unknown)=>void)=>void;
+  off?:(event:string,handler:(payload?:unknown)=>void)=>void;
+  removeListener?:(event:string,handler:(payload?:unknown)=>void)=>void;
+};
+
+type RealtimeSelf = RealtimeEventSource & {
+  roomState?:string;
+  roomJoined?:boolean;
+  videoEnabled?:boolean;
+  show?:()=>Promise<unknown>|unknown;
+  registerVideoElement?:(element:HTMLVideoElement,isPreview?:boolean)=>void;
+  deregisterVideoElement?:(element:HTMLVideoElement)=>void;
+};
+
+type RealtimeParticipantMap = RealtimeEventSource & {
+  size?:number;
+  toArray?:()=>unknown[];
+};
 
 type RealtimeMeeting = {
   leave?:()=>Promise<void>|void;
+  self?:RealtimeSelf;
+  participants?:{joined?:RealtimeParticipantMap};
 };
 
 type RealtimeMeetingElement = HTMLElement & {
   meeting?:RealtimeMeeting;
   showSetupScreen?:boolean;
+  mode?:"fill";
 };
 
 declare global {
@@ -89,14 +113,19 @@ export default function MeetingTransportPanel({
   meetingId:string;
   ended?:boolean;
 }) {
+  const router=useRouter();
   const videoRef=useRef<HTMLVideoElement|null>(null);
+  const selfVideoRef=useRef<HTMLVideoElement|null>(null);
   const realtimeContainerRef=useRef<HTMLDivElement|null>(null);
   const streamRef=useRef<MediaStream|null>(null);
   const meetingRef=useRef<RealtimeMeeting|null>(null);
+  const realtimeCleanupRef=useRef<()=>void>(()=>{});
   const requestId=useRef(0);
   const mounted=useRef(true);
   const [active,setActive]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState("");
   const [micOn,setMicOn]=useState(true),[cameraOn,setCameraOn]=useState(true),[joined,setJoined]=useState(false);
+  const [roomJoined,setRoomJoined]=useState(false),[remoteCount,setRemoteCount]=useState(0),[selfVideoOn,setSelfVideoOn]=useState(false);
+  const [exitState,setExitState]=useState<""|"left"|"ended"|"kicked"|"disconnected">("");
 
   const stopTracks=()=>{
     streamRef.current?.getTracks().forEach(track=>track.stop());
@@ -104,16 +133,52 @@ export default function MeetingTransportPanel({
     if(videoRef.current)videoRef.current.srcObject=null;
   };
 
-  const leaveRealtime=async()=>{
-    requestId.current++;
+  const clearRealtimeBindings=()=>{
+    realtimeCleanupRef.current();
+    realtimeCleanupRef.current=()=>{};
+    const selfVideo=selfVideoRef.current;
     const meeting=meetingRef.current;
-    meetingRef.current=null;
-    try { await meeting?.leave?.(); } catch {}
-    if(realtimeContainerRef.current) realtimeContainerRef.current.replaceChildren();
-    if(mounted.current){
-      setJoined(false);
-      setBusy(false);
+    if(selfVideo && meeting?.self?.deregisterVideoElement){
+      try { meeting.self.deregisterVideoElement(selfVideo); } catch {}
     }
+  };
+
+  const finishRealtime=async(state:string)=>{
+    const normalized=(["ended","kicked","disconnected"].includes(state)?state:"left") as "left"|"ended"|"kicked"|"disconnected";
+    requestId.current++;
+    clearRealtimeBindings();
+    meetingRef.current=null;
+    if(realtimeContainerRef.current)realtimeContainerRef.current.replaceChildren();
+    if(!mounted.current)return;
+    setJoined(false);
+    setRoomJoined(false);
+    setRemoteCount(0);
+    setSelfVideoOn(false);
+    setBusy(false);
+    setExitState(normalized);
+
+    if(normalized==="ended"){
+      try {
+        await fetch("/api/portal/meetings/"+encodeURIComponent(meetingId)+"/realtime/lifecycle",{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Accept":"application/json"},
+          credentials:"same-origin",
+          body:JSON.stringify({state:"ended"}),
+        });
+      } catch {}
+      if(mounted.current){
+        router.replace("/portal/meetings/"+encodeURIComponent(meetingId)+"?status=completed");
+        router.refresh();
+      }
+    }
+  };
+
+  const leaveRealtime=async()=>{
+    const meeting=meetingRef.current;
+    if(!meeting)return;
+    setBusy(true);
+    try { await meeting.leave?.(); } catch {}
+    if(meetingRef.current===meeting) await finishRealtime("left");
   };
 
   useEffect(()=>{
@@ -122,6 +187,7 @@ export default function MeetingTransportPanel({
       mounted.current=false;
       requestId.current++;
       stopTracks();
+      clearRealtimeBindings();
       const meeting=meetingRef.current;
       meetingRef.current=null;
       void meeting?.leave?.();
@@ -192,15 +258,60 @@ export default function MeetingTransportPanel({
       }
 
       meetingRef.current=meeting;
+      setExitState("");
+
+      const self=meeting.self;
+      const joinedMap=meeting.participants?.joined;
+      const listeners:Array<()=>void>=[];
+      const listen=(source:RealtimeEventSource|undefined,event:string,handler:(payload?:unknown)=>void)=>{
+        source?.on?.(event,handler);
+        listeners.push(()=>{
+          try {
+            if(source?.off)source.off(event,handler);
+            else source?.removeListener?.(event,handler);
+          } catch {}
+        });
+      };
+      const syncRemoteCount=()=>{
+        const count=joinedMap?.toArray?.().length ?? joinedMap?.size ?? 0;
+        if(mounted.current)setRemoteCount(Number(count)||0);
+      };
+      const onRoomJoined=()=>{
+        try { void self?.show?.(); } catch {}
+        if(mounted.current){
+          setRoomJoined(true);
+          setSelfVideoOn(Boolean(self?.videoEnabled));
+        }
+        syncRemoteCount();
+      };
+      const onRoomLeft=(payload?:unknown)=>{
+        const state=String((payload as {state?:unknown}|undefined)?.state || self?.roomState || "left").toLowerCase();
+        void finishRealtime(state);
+      };
+      const onVideoUpdate=(payload?:unknown)=>{
+        const enabled=Boolean((payload as {videoEnabled?:unknown}|undefined)?.videoEnabled ?? self?.videoEnabled);
+        if(mounted.current)setSelfVideoOn(enabled);
+      };
+      listen(self,"roomJoined",onRoomJoined);
+      listen(self,"roomLeft",onRoomLeft);
+      listen(self,"videoUpdate",onVideoUpdate);
+      listen(joinedMap,"participantJoined",syncRemoteCount);
+      listen(joinedMap,"participantLeft",syncRemoteCount);
+      realtimeCleanupRef.current=()=>{for(const dispose of listeners)dispose();};
+
       const container=realtimeContainerRef.current;
       if(!container) throw new Error("Toplantı görünümü hazırlanamadı.");
       container.replaceChildren();
       const element=document.createElement("rtk-meeting") as RealtimeMeetingElement;
       element.setAttribute("show-setup-screen","true");
+      element.setAttribute("mode","fill");
       element.showSetupScreen=true;
+      element.mode="fill";
       element.meeting=meeting;
       container.appendChild(element);
       setJoined(true);
+
+      if(self?.roomJoined || self?.roomState==="joined")onRoomJoined();
     } catch(err) {
       if(mounted.current && id===requestId.current){
         setError(err instanceof Error ? err.message : "Toplantıya bağlanılamadı.");
@@ -209,6 +320,20 @@ export default function MeetingTransportPanel({
       if(mounted.current && id===requestId.current)setBusy(false);
     }
   };
+
+  useEffect(()=>{
+    const meeting=meetingRef.current;
+    const element=selfVideoRef.current;
+    if(!roomJoined || !selfVideoOn || remoteCount>0 || !meeting?.self || !element)return;
+    try {
+      meeting.self.registerVideoElement?.(element);
+      void element.play().catch(()=>undefined);
+    } catch {}
+    return()=>{
+      try { meeting.self?.deregisterVideoElement?.(element); } catch {}
+      element.srcObject=null;
+    };
+  },[roomJoined,selfVideoOn,remoteCount]);
 
   const toggleMic=()=>{
     const next=!micOn;
@@ -236,11 +361,18 @@ export default function MeetingTransportPanel({
       </header>
       <div className="meetingRealtimeStage">
         <div ref={realtimeContainerRef} className={joined?"meetingRealtimeMount active":"meetingRealtimeMount"} />
+        {joined && roomJoined && selfVideoOn && remoteCount===0?(
+          <div className="meetingSelfView" aria-label="Kendi kamera görüntün">
+            <video ref={selfVideoRef} autoPlay playsInline muted/>
+            <span>SEN · TEK KATILIMCI</span>
+          </div>
+        ):null}
         {!joined?(
           <div className="meetingJoinPrompt">
             <span>SES · GÖRÜNTÜ · EKRAN PAYLAŞIMI</span>
             <h2>CORE toplantı odasına katıl</h2>
             <p>Katılım anahtarın yalnız bu oturum için backend tarafından oluşturulur. Kamera ve mikrofon iznini toplantı öncesi ekranda seçebilirsin.</p>
+            {exitState?<p className="meetingTransportNotice" role="status">{exitState==="left"?"Odadan ayrıldın. İstersen yeniden katılabilirsin.":exitState==="kicked"?"Toplantı yöneticisi seni odadan çıkardı.":exitState==="disconnected"?"Toplantı bağlantısı kesildi. Yeniden katılmayı deneyebilirsin.":"Toplantı sona erdi."}</p>:null}
             <button className="portalPrimaryButton" type="button" onClick={()=>void joinRealtime()} disabled={busy}>
               {busy?"Güvenli oda hazırlanıyor…":"Toplantıya katıl"}
             </button>
