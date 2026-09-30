@@ -176,8 +176,19 @@ html.coreDesktopRuntime[data-portal-sidebar="collapsed"] .portalApp .portalNav a
 .portalRegistryToolbar :is(input,select) { min-width:0; }
 .portalDataTable thead th { height:44px; font-size:12px; letter-spacing:0; white-space:normal; line-height:1.4; }
 .portalDataTable td { overflow-wrap:anywhere; }
-.portalDataTable .rowActions { white-space:normal; }
-.portalDataTable .rowActions :is(a,button) { min-height:36px; font-size:12px; }
+.portalDataTable .rowActions {
+  min-width:88px;
+  white-space:nowrap;
+  overflow-wrap:normal;
+  word-break:normal;
+}
+.portalDataTable .rowActions :is(a,button,summary) {
+  min-height:36px;
+  font-size:12px;
+  white-space:nowrap;
+  overflow-wrap:normal;
+  word-break:normal;
+}
 .portalDataTableShell { isolation:isolate; }
 .portalDashboardMetricStrip { grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:20px; }
 .portalDashboardMetricStrip a { padding:20px; gap:6px; }
