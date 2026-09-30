@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { updatePortalRoleProfileAction } from "@/app/portal/control-actions";
@@ -130,18 +131,7 @@ export default async function PortalMembersPage({
 
           {filtered.length ? (
             <div className="portalDataTableShell">
-              <table className="portalDataTable portalMemberDataTable">
-                <thead>
-                  <tr>
-                    <th scope="col">Üye</th>
-                    <th scope="col">Durum</th>
-                    <th scope="col">Rol</th>
-                    <th scope="col">Takımlar</th>
-                    <th scope="col">Son erişim</th>
-                    <th scope="col">İşlem</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <PortalDataTable className="portalMemberDataTable" columns={["Üye","Durum","Rol","Takımlar","Son erişim","İşlem"]}>
                   {filtered.map((item)=>{
                     const teams=safeArray(item.teams_json);
                     const name=String(item.full_name || "Davetli üye");
@@ -168,8 +158,7 @@ export default async function PortalMembersPage({
                       </tr>
                     );
                   })}
-                </tbody>
-              </table>
+                </PortalDataTable>
             </div>
           ) : (
             <PortalEmpty

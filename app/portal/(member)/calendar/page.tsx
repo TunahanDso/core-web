@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createCalendarEventAction } from "@/app/portal/actions";
@@ -65,9 +66,7 @@ export default async function PortalCalendarPage({
 
       {visible.length?(
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalCalendarDataTable">
-            <thead><tr><th scope="col">Etkinlik</th><th scope="col">Başlangıç</th><th scope="col">Bitiş</th><th scope="col">Kapsam</th><th scope="col">Konum / Kaynak</th></tr></thead>
-            <tbody>{visible.map(event=>(
+          <PortalDataTable className="portalCalendarDataTable" columns={["Etkinlik","Başlangıç","Bitiş","Kapsam","Konum / Kaynak"]}>{visible.map(event=>(
               <tr key={String(event.id)}>
                 <td className="primaryCell"><div><b>{String(event.title)}</b><small>{String(event.description||"")}</small></div></td>
                 <td className="mono">{String(event.starts_at)}</td>
@@ -75,8 +74,7 @@ export default async function PortalCalendarPage({
                 <td className="mono">{String(event.team_code||event.project_slug||"CORE")}</td>
                 <td><span className={"portalStatusText "+(String(event.location)==="CORE Meeting"?"active":"")}>{String(event.location||"CORE")}</span></td>
               </tr>
-            ))}</tbody>
-          </table>
+            ))}</PortalDataTable>
         </div>
       ):<PortalEmpty title="Takvim boş." text="Yeni etkinlik ekle veya Toplantılar modülünden toplantı planla."/>}
     </>

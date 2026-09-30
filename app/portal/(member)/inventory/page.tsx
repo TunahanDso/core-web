@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createInventoryMovementAction, upsertInventoryAction } from "@/app/portal/actions";
@@ -180,19 +181,7 @@ export default async function PortalInventoryPage({
       {view === "stock" ? (
         displayItems.length ? (
           <div className="portalDataTableShell">
-            <table className="portalDataTable portalInventoryDataTable">
-              <thead>
-                <tr>
-                  <th scope="col">SKU</th>
-                  <th scope="col">Ürün</th>
-                  <th scope="col">Kategori</th>
-                  <th scope="col">Konum</th>
-                  <th scope="col">Kullanılabilir</th>
-                  <th scope="col">Minimum</th>
-                  <th scope="col">Durum</th>
-                </tr>
-              </thead>
-              <tbody>
+            <PortalDataTable className="portalInventoryDataTable" columns={["SKU","Ürün","Kategori","Konum","Kullanılabilir","Minimum","Durum"]}>
                 {displayItems.map((item)=>{
                   const low=Number(item.available_quantity) <= Number(item.minimum_quantity);
                   const scanned=matchedItem && String(item.id) === String(matchedItem.id);
@@ -208,8 +197,7 @@ export default async function PortalInventoryPage({
                     </tr>
                   );
                 })}
-              </tbody>
-            </table>
+              </PortalDataTable>
           </div>
         ) : (
           <PortalEmpty
@@ -220,18 +208,7 @@ export default async function PortalInventoryPage({
       ) : (
         movements.length ? (
           <div className="portalDataTableShell">
-            <table className="portalDataTable portalMovementDataTable">
-              <thead>
-                <tr>
-                  <th scope="col">Zaman</th>
-                  <th scope="col">Ürün</th>
-                  <th scope="col">Değişim</th>
-                  <th scope="col">Proje</th>
-                  <th scope="col">Neden</th>
-                  <th scope="col">İşleyen</th>
-                </tr>
-              </thead>
-              <tbody>
+            <PortalDataTable className="portalMovementDataTable" columns={["Zaman","Ürün","Değişim","Proje","Neden","İşleyen"]}>
                 {movements.map((movement)=>(
                   <tr key={String(movement.id)}>
                     <td className="mono">{String(movement.created_at)}</td>
@@ -242,8 +219,7 @@ export default async function PortalInventoryPage({
                     <td>{String(movement.member_name || movement.member_email || "Sistem")}</td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+              </PortalDataTable>
           </div>
         ) : <PortalEmpty title="Henüz stok hareketi yok." text="İlk giriş veya çıkış işlemi burada zaman, kişi ve gerekçesiyle görünecek." />
       )}

@@ -1,0 +1,55 @@
+/* Shared registry markup keeps every field and action in both layouts. */
+.portalTableCellLabel { display:none; }
+.portalTableCellValue { min-width:0; max-width:100%; }
+.portalResponsiveTable .primaryCell .portalTableCellValue>:is(a,div) { display:grid; gap:4px; min-width:0; }
+.portalResponsiveTable .rowActions .portalTableCellValue { display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; }
+.portalApp .portalInlineStatusForm { display:flex; flex-wrap:wrap; gap:8px; min-width:0; max-width:100%; }
+.portalApp .portalInlineStatusForm select { flex:1 1 140px; min-width:0; max-width:100%; width:100%; }
+.portalApp .portalInlineStatusForm button { flex:none; white-space:nowrap; word-break:normal; overflow-wrap:normal; }
+.portalDateTime { display:inline-flex; align-items:baseline; flex-wrap:wrap; gap:0 6px; font-family:var(--core-font-ui); font-variant-numeric:tabular-nums; }
+.portalDateTime>span { white-space:nowrap; }
+.portalApp .portalRegistrySummary { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 8px; min-width:0; padding-inline:0; }
+
+/* An unbroken hash must never become the minimum width of an entire grid. */
+.portalApp .portalDesktopDownloadGrid { grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr); min-width:0; }
+.portalApp .portalDesktopDownloadGrid>:is(article,aside) { min-width:0; max-width:100%; border-radius:12px; }
+.portalApp .portalDesktopDownloadGrid :is(div,p,h3,small,code) { min-width:0; max-width:100%; overflow-wrap:anywhere; white-space:normal; }
+.portalApp .portalDesktopDownloadGrid .portalPrimaryButton { min-width:0; max-width:100%; white-space:normal; overflow-wrap:anywhere; font-family:var(--core-font-ui); letter-spacing:normal; }
+.portalApp .portalDesktopDownloadGrid code { color:var(--core-accent); }
+.portalApp .portalCertificateFingerprint { display:grid; gap:8px; }
+.portalApp .portalCertificateFingerprint>span { color:var(--core-text-muted); font:600 12px/1.5 var(--core-font-ui); }
+.portalApp .portalCertificateFingerprint>code { display:block; padding:10px; background:var(--core-surface-subtle); color:var(--core-text-secondary); font:400 12px/1.7 ui-monospace,monospace; }
+
+@media(max-width:900px) {
+  /* Do not merely clip a wide table: reflow its actual cells into cards. */
+  .portalApp .portalDataTableShell:has(>.portalResponsiveTable) { height:auto; max-height:none; overflow:visible; scrollbar-gutter:auto; border:0; border-radius:0; background:transparent; }
+  .portalApp .portalDataTable.portalResponsiveTable { display:block; width:100%; min-width:0; max-width:100%; }
+  .portalApp .portalDataTable.portalResponsiveTable>thead { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); }
+  .portalApp .portalDataTable.portalResponsiveTable>tbody { display:grid; gap:16px; width:100%; min-width:0; }
+  .portalApp .portalDataTable.portalResponsiveTable>tbody>tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:16px; min-width:0; height:auto; padding:16px; border:1px solid var(--core-border); border-radius:14px; content-visibility:visible; contain-intrinsic-size:none; }
+  .portalApp .portalDataTable.portalResponsiveTable td { display:flex; flex-direction:column; align-items:flex-start; gap:6px; width:auto; min-width:0; max-width:100%; height:auto; padding:10px 0; border:0; text-align:left; white-space:normal; font-family:var(--core-font-ui); font-size:14px; line-height:1.6; }
+  .portalApp .portalDataTable.portalResponsiveTable td:first-child,
+  .portalApp .portalDataTable.portalResponsiveTable .primaryCell { grid-column:1/-1; padding-top:0; padding-bottom:16px; margin-bottom:4px; border-bottom:1px solid var(--core-border-soft); }
+  .portalApp .portalDataTable.portalResponsiveTable .primaryCell :is(b,small) { display:block; white-space:normal; overflow:visible; overflow-wrap:anywhere; text-overflow:clip; }
+  .portalApp .portalDataTable.portalResponsiveTable .primaryCell b { font-size:16px; line-height:1.5; }
+  .portalApp .portalDataTable.portalResponsiveTable .primaryCell small { font-size:13px; line-height:1.6; }
+  .portalApp .portalResponsiveTable .portalTableCellLabel { display:block; color:var(--core-text-muted); font:600 12px/1.5 var(--core-font-ui); }
+  .portalApp .portalResponsiveTable .primaryCell .portalTableCellLabel { display:none; }
+  .portalApp .portalResponsiveTable .portalTableCellValue { width:100%; overflow-wrap:anywhere; }
+  .portalApp .portalResponsiveTable :is(.portalStatusText,.portalPriority) { max-width:100%; white-space:normal; font:600 13px/1.5 var(--core-font-ui); }
+  .portalApp .portalResponsiveTable .portalStatusText::before { flex:none; }
+  .portalApp .portalDataTable.portalResponsiveTable .rowActions { grid-column:1/-1; align-items:stretch; padding-top:16px; margin-top:8px; border-top:1px solid var(--core-border-soft); }
+  .portalApp .portalResponsiveTable .rowActions .portalTableCellValue { justify-content:flex-start; }
+  .portalApp .portalResponsiveTable .rowActions :is(a,button) { min-height:44px; padding:10px 14px; border:1px solid var(--core-border); background:var(--core-surface-subtle); color:var(--core-text); font:600 14px/1.5 var(--core-font-ui); white-space:normal; overflow-wrap:normal; }
+  .portalApp .portalResponsiveTable .rowActions form { min-width:0; max-width:100%; }
+  .portalApp .portalResponsiveTable .portalInlineStatusForm { width:100%; }
+  .portalApp .portalResponsiveTable .portalInlineStatusForm select { min-height:44px; height:auto; padding:8px; font-size:16px; }
+  .portalApp .portalResponsiveTable .portalInlineStatusForm button { min-width:80px; white-space:nowrap; }
+  .portalApp .portalRegistryToolbar :is(label,label.grow,input,select) { min-width:0; max-width:100%; }
+  .portalApp .portalDesktopDownloadGrid { grid-template-columns:minmax(0,1fr); }
+  .portalApp .portalDesktopDownloadGrid>:is(article,aside) { padding:16px; gap:18px; }
+  .portalApp .portalDesktopDownloadGrid h3 { font-size:20px; line-height:1.4; }
+  .portalApp .portalDesktopDownloadGrid :is(p,aside small) { font-size:15px; line-height:1.7; }
+  .portalApp .portalDesktopDownloadGrid .portalDeviceActions { width:100%; justify-content:flex-start; }
+  .portalApp .portalDesktopDownloadGrid .portalPrimaryButton { width:100%; align-self:stretch; font-size:14px; line-height:1.6; }
+}

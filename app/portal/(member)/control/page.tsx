@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
@@ -285,14 +286,7 @@ export default async function PortalControlPlanePage({
 
           {projectCatalog.length ? (
             <div className="portalDataTableShell">
-              <table className="portalDataTable portalControlProjectTable">
-                <thead>
-                  <tr>
-                    <th scope="col">Proje</th><th scope="col">Kaynak</th><th scope="col">Takım</th><th scope="col">Durum</th>
-                    <th scope="col">Readiness</th><th scope="col">Risk</th><th scope="col">İşlem</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <PortalDataTable className="portalControlProjectTable" columns={["Proje","Kaynak","Takım","Durum","Readiness","Risk","İşlem"]}>
                   {projectCatalog.map((project)=>(
                     <tr key={project.slug}>
                       <td className="primaryCell"><Link prefetch={false} href={"/portal/projects/"+encodeURIComponent(project.slug)}><b>{project.title}</b><small>{project.slug}</small></Link></td>
@@ -307,8 +301,7 @@ export default async function PortalControlPlanePage({
                       </td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </PortalDataTable>
             </div>
           ) : <PortalEmpty title="Proje kataloğu boş." text="Yeni proje oluşturduğunda burada registry satırı olarak görünür." />}
 
@@ -380,14 +373,7 @@ export default async function PortalControlPlanePage({
 
           {vehicles.length ? (
             <div className="portalDataTableShell">
-              <table className="portalDataTable portalVehicleDataTable">
-                <thead>
-                  <tr>
-                    <th scope="col">Araç</th><th scope="col">Platform</th><th scope="col">Takım</th><th scope="col">Proje</th>
-                    <th scope="col">Lifecycle</th><th scope="col">Kritiklik</th><th scope="col">Sorumlu</th><th scope="col">Telemetri</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <PortalDataTable className="portalVehicleDataTable" columns={["Araç","Platform","Takım","Proje","Lifecycle","Kritiklik","Sorumlu","Telemetri"]}>
                   {vehicles.map((vehicle)=>(
                     <tr key={String(vehicle.id)}>
                       <td className="primaryCell"><div><b>{String(vehicle.name)}</b><small>{String(vehicle.code)} · {String(vehicle.serial_number || "seri yok")}</small></div></td>
@@ -400,8 +386,7 @@ export default async function PortalControlPlanePage({
                       <td><div className="portalCellStack"><b>{vehicle.battery == null ? "—" : String(vehicle.battery)+"%"}</b><small>{String(vehicle.telemetry_mode || vehicle.last_seen_at || "telemetri yok")}</small></div></td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </PortalDataTable>
             </div>
           ) : <PortalEmpty title="Araç registry boş." text="İlk araç kaydı oluşturulduğunda lifecycle ve sahiplik bilgisiyle burada görünür." />}
         </>
@@ -435,11 +420,7 @@ export default async function PortalControlPlanePage({
 
           {teamMemberships.length ? (
             <div className="portalDataTableShell">
-              <table className="portalDataTable portalTeamMembershipTable">
-                <thead>
-                  <tr><th scope="col">Takım</th><th scope="col">Üye</th><th scope="col">Takım rolü</th><th scope="col">Ek capability</th><th scope="col">Durum</th></tr>
-                </thead>
-                <tbody>
+              <PortalDataTable className="portalTeamMembershipTable" columns={["Takım","Üye","Takım rolü","Ek capability","Durum"]}>
                   {teamMemberships.map((assignment)=>(
                     <tr key={String(assignment.team_code)+":"+String(assignment.member_id)}>
                       <td className="mono"><b>{String(assignment.team_code)}</b><br/><small>{String(assignment.team_name)}</small></td>
@@ -449,8 +430,7 @@ export default async function PortalControlPlanePage({
                       <td><span className={"portalStatusText "+String(assignment.status || "active")}>{String(assignment.status || "active")}</span></td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </PortalDataTable>
             </div>
           ) : <PortalEmpty title="Takım rol ataması yok." text="İlk üyelik ataması burada takım, üye ve rol bilgisiyle görünür." />}
         </>
@@ -465,9 +445,7 @@ export default async function PortalControlPlanePage({
           </section>
 
           <div className="portalDataTableShell">
-            <table className="portalDataTable portalRoleProfileTable">
-              <thead><tr><th scope="col">Rol</th><th scope="col">Kapsam</th><th scope="col">Açıklama</th><th scope="col">Capability</th><th scope="col">İşlem</th></tr></thead>
-              <tbody>
+            <PortalDataTable className="portalRoleProfileTable" columns={["Rol","Kapsam","Açıklama","Capability","İşlem"]}>
                 {roleProfiles.map((profile)=>{
                   const capabilities=parseCapabilities(profile.capabilities_json);
                   return (
@@ -480,8 +458,7 @@ export default async function PortalControlPlanePage({
                     </tr>
                   );
                 })}
-              </tbody>
-            </table>
+              </PortalDataTable>
           </div>
 
           {String(query.tool || "") === "grant" ? (
@@ -503,9 +480,7 @@ export default async function PortalControlPlanePage({
 
           {capabilityGrants.length ? (
             <div className="portalDataTableShell portalControlSecondaryTable">
-              <table className="portalDataTable portalCapabilityGrantTable">
-                <thead><tr><th scope="col">Üye</th><th scope="col">Capability</th><th scope="col">Veren</th><th scope="col">İşlem</th></tr></thead>
-                <tbody>
+              <PortalDataTable className="portalCapabilityGrantTable" columns={["Üye","Capability","Veren","İşlem"]}>
                   {capabilityGrants.map((grant)=>(
                     <tr key={String(grant.member_id)+":"+String(grant.capability)}>
                       <td className="primaryCell"><div><b>{String(grant.full_name || grant.email)}</b><small>{String(grant.email)}</small></div></td>
@@ -520,8 +495,7 @@ export default async function PortalControlPlanePage({
                       </td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </PortalDataTable>
             </div>
           ) : <PortalEmpty title="Explicit capability grant yok." text="Rol dışı özel bir yetki gerektiğinde buradan eklenir." />}
         </>

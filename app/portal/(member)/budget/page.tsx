@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -85,9 +86,7 @@ export default async function PortalBudgetPage({
 
       {accounts.length?(
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalBudgetAccountTable">
-            <thead><tr><th scope="col">Hesap</th><th scope="col">Kapsam</th><th scope="col">Bakiye</th><th scope="col">Tahsis</th><th scope="col">Taahhüt</th><th scope="col">Sorumlu</th><th scope="col">İşlem</th></tr></thead>
-            <tbody>
+          <PortalDataTable className="portalBudgetAccountTable" columns={["Hesap","Kapsam","Bakiye","Tahsis","Taahhüt","Sorumlu","İşlem"]}>
               {accounts.map((account)=>(
                 <tr className={String(account.id)===accountId?"selected":""} key={String(account.id)}>
                   <td className="primaryCell"><a href={href({account:String(account.id)})}><b>{String(account.name)}</b><small>{String(account.currency)}</small></a></td>
@@ -99,8 +98,7 @@ export default async function PortalBudgetPage({
                   <td className="rowActions"><a href={href({account:String(account.id)})}>Ledger</a></td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </PortalDataTable>
         </div>
       ):<PortalEmpty title="Bütçe hesabı yok." text="İlk takım/proje bütçe hesabını oluşturduğunda burada bakiye ve hareketleri izlenir."/>}
 
@@ -148,9 +146,7 @@ export default async function PortalBudgetPage({
           {view==="ledger"?(
             entries.length?(
               <div className="portalDataTableShell">
-                <table className="portalDataTable portalBudgetLedgerTable">
-                  <thead><tr><th scope="col">Tarih</th><th scope="col">Tür</th><th scope="col">Kategori / Açıklama</th><th scope="col">Tutar</th><th scope="col">Durum</th><th scope="col">Kayıt / Onay</th><th scope="col">İşlem</th></tr></thead>
-                  <tbody>
+                <PortalDataTable className="portalBudgetLedgerTable" columns={["Tarih","Tür","Kategori / Açıklama","Tutar","Durum","Kayıt / Onay","İşlem"]}>
                     {entries.map((e)=>(
                       <tr key={String(e.id)}>
                         <td className="mono">{String(e.occurred_at)}</td>
@@ -171,19 +167,15 @@ export default async function PortalBudgetPage({
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
+                  </PortalDataTable>
               </div>
             ):<PortalEmpty title="Ledger boş." text="İlk gelir, gider veya taahhüt kaydı burada görünür."/>
           ):(
             allocations.length?(
               <div className="portalDataTableShell">
-                <table className="portalDataTable portalBudgetAllocationTable">
-                  <thead><tr><th scope="col">Kategori</th><th scope="col">Tahsis</th><th scope="col">Dönem</th><th scope="col">Not</th></tr></thead>
-                  <tbody>{allocations.map(a=>(
+                <PortalDataTable className="portalBudgetAllocationTable" columns={["Kategori","Tahsis","Dönem","Not"]}>{allocations.map(a=>(
                     <tr key={String(a.id)}><td><b>{String(a.category)}</b></td><td className="numeric">{money(a.amount_minor,a.currency)}</td><td className="mono">{String(a.period_start||"—")} → {String(a.period_end||"—")}</td><td>{String(a.notes||"")}</td></tr>
-                  ))}</tbody>
-                </table>
+                  ))}</PortalDataTable>
               </div>
             ):<PortalEmpty title="Tahsis kaydı yok." text="Kategori bazlı bütçe limitlerini burada tanımlayabilirsin."/>
           )}

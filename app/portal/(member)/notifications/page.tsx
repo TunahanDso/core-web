@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createNotificationAction, markAllNotificationsReadAction, markNotificationReadAction } from "@/app/portal/actions";
@@ -56,9 +57,7 @@ export default async function PortalNotificationsPage({
 
       {visible.length?(
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalNotificationDataTable">
-            <thead><tr><th scope="col">Bildirim</th><th scope="col">Tür</th><th scope="col">Zaman</th><th scope="col">Durum</th><th scope="col">İşlem</th></tr></thead>
-            <tbody>{visible.map((item)=>(
+          <PortalDataTable className="portalNotificationDataTable" columns={["Bildirim","Tür","Zaman","Durum","İşlem"]}>{visible.map((item)=>(
               <tr key={String(item.id)}>
                 <td className="primaryCell"><div><b>{String(item.title)}</b><small>{String(item.body||"")}</small></div></td>
                 <td>{portalNotificationKindLabel(String(item.kind))}</td>
@@ -69,8 +68,7 @@ export default async function PortalNotificationsPage({
                   {!item.read_at?<form action={markNotificationReadAction}><input type="hidden" name="id" value={String(item.id)}/><button type="submit">Okundu</button></form>:null}
                 </td>
               </tr>
-            ))}</tbody>
-          </table>
+            ))}</PortalDataTable>
         </div>
       ):<PortalEmpty title={filter==="unread"?"Okunmamış bildirim yok.":"Bildirim yok."} text="Güncelsin."/>}
     </>
