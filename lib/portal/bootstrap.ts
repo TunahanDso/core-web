@@ -12,6 +12,7 @@ import {
   PORTAL_V10_SQL,
   PORTAL_V11_SQL,
   PORTAL_V12_SQL,
+  PORTAL_V14_SQL,
   PORTAL_MIGRATION_SQL,
 } from "@/lib/generated/portal-migrations";
 
