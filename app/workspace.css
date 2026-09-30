@@ -2423,8 +2423,8 @@ html[data-core-native="native-v2"] .nativeSheetBackdrop{display:flex}
   animation:nativeSheetUp .2s ease-out;
 }
 @keyframes nativeSheetUp{
-  from{transform:translateY(18px);opacity:.6}
-  to{transform:translateY(0);opacity:1}
+  from{transform:translateY(18px)}
+  to{transform:translateY(0)}
 }
 .nativeSheetHandle{
   width:42px;height:4px;

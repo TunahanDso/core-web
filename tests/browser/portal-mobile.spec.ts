@@ -65,12 +65,12 @@ for(const theme of ['light','dark','aurora']){
     await page.locator('.nativeBottomTabs button').last().click();
     await expect(page.locator('.nativeMoreSheet')).toBeVisible();
     await readable(page,'.nativeMoreSheet h2,.nativeMemberCard b,.nativeMemberCard small,.nativeModuleOpen>b');
-    await noPageOverflow(page);await page.screenshot({path:info.outputPath(`${theme}-native-menu.png`)});
+    await noPageOverflow(page);await page.screenshot({path:info.outputPath(`${theme}-native-menu.png`),animations:'disabled'});
     await page.locator('.nativeMoreSheet>header>button').click();
     await page.getByRole('button',{name:'Hızlı işlem',exact:true}).click();
     await expect(page.locator('.nativeQuickSheet')).toBeVisible();
     await readable(page,'.nativeQuickSheet h2,.nativeQuickGrid b,.nativeQuickGrid small');
-    await page.screenshot({path:info.outputPath(`${theme}-native-actions.png`)});
+    await page.screenshot({path:info.outputPath(`${theme}-native-actions.png`),animations:'disabled'});
   });
 }
 test('ordinary mobile browsing never auto-launches an app or displays a handoff wall',async({page})=>{
