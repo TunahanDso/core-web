@@ -109,8 +109,14 @@ for(const theme of ['light','dark','aurora']){
       await withinViewport(page,'.chatFixedComposer');await noPageOverflow(page);
       await page.goto('/portal/chat?nativeFixture=1');
       await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
-      await expect(page.locator('.chatFixedComposer')).toBeVisible();
+      const nativeComposer=page.locator('.chatFixedComposer');
+      await expect(nativeComposer).toBeVisible();
       await withinViewport(page,'.chatFixedComposer');
+      expect(await nativeComposer.evaluate(el=>getComputedStyle(el).position)).toBe('relative');
+      const nativeComposerBox=await nativeComposer.boundingBox();
+      const nativeTabsBox=await page.locator('.nativeBottomTabs').boundingBox();
+      expect(nativeComposerBox).not.toBeNull();expect(nativeTabsBox).not.toBeNull();
+      expect(nativeComposerBox!.y+nativeComposerBox!.height).toBeLessThanOrEqual(nativeTabsBox!.y+1);
     }
   });
   test(`${theme}: real mail reader and composer fit the workspace`,async({page},info)=>{

@@ -3305,12 +3305,19 @@ html[data-core-native="native-v2"] .portalMessages article{
   padding:11px 12px;
 }
 html[data-core-native="native-v2"] .portalChatComposer{
-  position:sticky;
-  bottom:calc(84px + env(safe-area-inset-bottom));
+  /* The viewport workbench already reserves the native bottom-tab inset.
+     Keep the composer in the conversation grid instead of applying a second
+     sticky bottom offset; iOS WebKit can otherwise paint it behind the tabs
+     until visualViewport changes (for example when the keyboard opens). */
+  position:relative;
+  bottom:auto;
+  inset:auto;
   z-index:35;
+  align-self:stretch;
   grid-template-columns:minmax(0,1fr) auto;
   align-items:end;
   gap:7px;
+  margin:0;
   padding:8px;
   background:rgb(var(--core-surface-rgb,255 255 255) / .96);
   backdrop-filter:blur(16px);
