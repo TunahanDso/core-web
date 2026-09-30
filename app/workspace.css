@@ -11934,6 +11934,80 @@ html[data-density="comfortable"] .portalDataTable thead th{
   border:0;
   background:#15171a;
 }
+.meetingTransportLive>header>button{
+  min-height:30px;
+  border:1px solid var(--core-border);
+  border-radius:7px;
+  background:var(--core-surface-base,#fff);
+  padding:0 9px;
+  color:var(--core-text-secondary);
+  font-size:var(--core-font-meta);
+  font-weight:800;
+  cursor:pointer;
+}
+.meetingRealtimeStage{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  background:#0b0d10;
+}
+.meetingRealtimeMount{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+}
+.meetingRealtimeMount:not(.active){
+  display:none;
+}
+.meetingRealtimeMount rtk-meeting{
+  display:block;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+}
+.meetingJoinPrompt{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-content:center;
+  justify-items:center;
+  gap:10px;
+  padding:clamp(20px,4vw,52px);
+  color:#f7f8fa;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 34%,rgba(255,101,0,.16),transparent 32%),
+    linear-gradient(180deg,#111419,#090b0e);
+}
+.meetingJoinPrompt>span{
+  color:#ff8a32;
+  font:800 var(--core-font-meta) ui-monospace,monospace;
+  letter-spacing:.09em;
+}
+.meetingJoinPrompt h2{
+  max-width:620px;
+  margin:0;
+  color:#fff;
+  font-size:clamp(24px,3vw,38px);
+  line-height:1.08;
+}
+.meetingJoinPrompt p{
+  max-width:620px;
+  margin:0;
+  color:#a9b0b8;
+  font-size:var(--core-font-body);
+  line-height:1.65;
+}
+.meetingJoinPrompt .portalPrimaryButton{
+  margin-top:8px;
+}
+.meetingTransportError{
+  max-width:620px;
+  color:#ffb9aa!important;
+}
 .meetingTransportOffline{
   min-height:0;
   display:grid;
@@ -12585,6 +12659,15 @@ html[data-density="comfortable"] .portalDataTable thead th{
     align-items:flex-start;
     flex-direction:column;
     height:auto;
+  }
+  .meetingRealtimeKit,
+  .meetingRealtimeStage,
+  .meetingRealtimeMount{
+    min-height:520px;
+  }
+  .meetingJoinPrompt{
+    position:absolute;
+    min-height:520px;
   }
   .meetingParticipantPicker>div{grid-template-columns:1fr}
   .budgetSummaryStrip{grid-template-columns:1fr}
