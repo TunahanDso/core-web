@@ -31,7 +31,8 @@ const expectedColumns={
 
 function tableWidths(css){
   const groups=new Map();
-  for(const match of css.matchAll(/([^{}]+)\{\s*width:([0-9.]+)%\s*\}/g)){
+  const source=css.replace(/\/\*[\s\S]*?\*\//g,'');
+  for(const match of source.matchAll(/([^{}]+)\{\s*width:([0-9.]+)%\s*\}/g)){
     const width=Number(match[2]);
     for(const selector of match[1].split(',')){
       const m=selector.trim().match(/^\.([A-Za-z0-9_-]+)\s+th:nth-child\((\d+)\)$/);
