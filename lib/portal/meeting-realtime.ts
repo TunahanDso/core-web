@@ -254,15 +254,20 @@ export async function syncEndedRealtimeKitSession(portalMeetingId:string,actorEm
   const providerMeetingId=String(row?.provider_meeting_id || "").trim();
   if(!providerMeetingId) return {synced:false,status:"missing" as const};
 
-  let session:RealtimeKitActiveSession;
-  try {
-    session=await realtimeRequest<RealtimeKitActiveSession>(
-      `/meetings/${encodeURIComponent(providerMeetingId)}/active-session`
-    );
-  } catch {
-    return {synced:false,status:"unknown" as const};
+  let session:RealtimeKitActiveSession|null=null;
+  for(let attempt=0;attempt<3;attempt++){
+    try {
+      session=await realtimeRequest<RealtimeKitActiveSession>(
+        `/meetings/${encodeURIComponent(providerMeetingId)}/active-session`
+      );
+    } catch {
+      session=null;
+    }
+    if(String(session?.status || "").toUpperCase()==="ENDED") break;
+    if(attempt<2) await new Promise((resolve)=>setTimeout(resolve,180));
   }
 
+  if(!session) return {synced:false,status:"unknown" as const};
   if(String(session.status || "").toUpperCase()!=="ENDED"){
     return {synced:false,status:"live" as const};
   }
@@ -279,6 +284,14 @@ export async function syncEndedRealtimeKitSession(portalMeetingId:string,actorEm
         "INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'meeting.status','meeting',?,?)"
       ).bind(actorEmail,portalMeetingId,JSON.stringify({status:"completed",source:"cloudflare-realtimekit",endedAt:session.ended_at||null})),
     ]);
+  }
+  try {
+    await realtimeRequest<RealtimeKitMeeting>(
+      `/meetings/${encodeURIComponent(providerMeetingId)}`,
+      {method:"PATCH",body:JSON.stringify({status:"INACTIVE"})}
+    );
+  } catch {
+    // CORE state is already completed; provider deactivation can be retried later.
   }
   return {synced:true,status:"ended" as const};
 }
