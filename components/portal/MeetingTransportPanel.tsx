@@ -32,6 +32,7 @@ type RealtimeMeeting = {
 type RealtimeMeetingElement = HTMLElement & {
   meeting?:RealtimeMeeting;
   showSetupScreen?:boolean;
+  loadConfigFromPreset?:boolean;
   mode?:"fill";
 };
 
@@ -305,7 +306,9 @@ export default function MeetingTransportPanel({
       const element=document.createElement("rtk-meeting") as RealtimeMeetingElement;
       element.setAttribute("show-setup-screen","true");
       element.setAttribute("mode","fill");
+      element.setAttribute("load-config-from-preset","true");
       element.showSetupScreen=true;
+      element.loadConfigFromPreset=true;
       element.mode="fill";
       element.meeting=meeting;
       container.appendChild(element);
