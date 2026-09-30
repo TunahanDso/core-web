@@ -1,7 +1,7 @@
 import {test,expect,type Page} from '@playwright/test';
 
 async function prepare(page:Page,theme:string){
-  await page.addInitScript(theme=>{localStorage.setItem('core.portal.theme',theme);localStorage.setItem('core.portal.sidebar','collapsed');},theme);
+  await page.addInitScript(theme=>{localStorage.setItem('core.portal.theme',theme);localStorage.setItem('core.portal.sidebar.collapsed','1');},theme);
   await page.route('**/portal/session-upgrade',route=>route.fulfill({status:200,body:'{}'}));
   await page.route('**/api/portal/mobile/register',route=>route.fulfill({status:200,body:'{}'}));
 }
@@ -38,9 +38,13 @@ for(const theme of ['light','dark','aurora']){
     test.skip(info.project.name.startsWith('desktop'));
     await prepare(page,theme);await page.goto('/portal');
     const trigger=page.getByRole('button',{name:'Portal menüsünü aç'});await expect(trigger).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-portal-sidebar','collapsed');
     const box=await trigger.boundingBox();expect(box?.width).toBeGreaterThanOrEqual(44);expect(box?.height).toBeGreaterThanOrEqual(44);
+    const avatar=await page.locator('.portalIdentity').boundingBox();expect(Math.abs((box?.y||0)-(avatar?.y||0))).toBeLessThanOrEqual(1);
+    expect((await page.locator('.portalTopbar').boundingBox())?.height).toBeLessThanOrEqual(90);
     await trigger.click();const dialog=page.getByRole('dialog',{name:'Çalışma alanın'});await expect(dialog).toBeVisible();
     await readable(page,'.portalMobileDialog h2,.portalMobileDialog .portalNav b,.portalMobileDialog select');
+    expect(await dialog.locator('footer').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
     await dialog.getByRole('link',{name:'PCB / Elektronik',exact:true}).scrollIntoViewIfNeeded();
     await expect(dialog.getByRole('link',{name:'PCB / Elektronik',exact:true})).toBeVisible();
     await page.screenshot({path:info.outputPath(`${theme}-menu.png`)});
@@ -54,9 +58,19 @@ for(const theme of ['light','dark','aurora']){
     await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
     await expect(page.getByRole('heading',{name:'Merhaba, Tunahan.'})).toBeVisible();
     await expect(page.locator('.portalTopbar')).toBeHidden();await noPageOverflow(page);
+    await expect(page.locator('.nativePullIndicator')).toHaveCount(0);
     for(const button of await page.locator('.nativeAppBar button').all()){const rect=await button.boundingBox();expect(rect?.width).toBeGreaterThanOrEqual(44);expect(rect?.height).toBeGreaterThanOrEqual(44);}
     await readable(page,'.nativeAppIdentity b,.nativeBottomTabs button span');
     await page.screenshot({path:info.outputPath(`${theme}-native.png`)});
+    await page.locator('.nativeBottomTabs button').last().click();
+    await expect(page.locator('.nativeMoreSheet')).toBeVisible();
+    await readable(page,'.nativeMoreSheet h2,.nativeMemberCard b,.nativeMemberCard small,.nativeModuleOpen>b');
+    await noPageOverflow(page);await page.screenshot({path:info.outputPath(`${theme}-native-menu.png`)});
+    await page.locator('.nativeMoreSheet>header>button').click();
+    await page.getByRole('button',{name:'Hızlı işlem',exact:true}).click();
+    await expect(page.locator('.nativeQuickSheet')).toBeVisible();
+    await readable(page,'.nativeQuickSheet h2,.nativeQuickGrid b,.nativeQuickGrid small');
+    await page.screenshot({path:info.outputPath(`${theme}-native-actions.png`)});
   });
 }
 test('ordinary mobile browsing never auto-launches an app or displays a handoff wall',async({page})=>{

@@ -429,6 +429,8 @@ export default function PortalNativeExperience({
     window.addEventListener("touchstart", touchStart, { passive: true });
     window.addEventListener("touchmove", touchMove, { passive: true });
     window.addEventListener("touchend", touchEnd, { passive: true });
+    const touchCancel = () => {pullStart.current=null;pullArmed.current=false;setPullDistance(0);};
+    window.addEventListener("touchcancel", touchCancel, { passive: true });
 
     return () => {
       window.removeEventListener("core:appearance",syncStatusBar);
@@ -436,6 +438,7 @@ export default function PortalNativeExperience({
       window.removeEventListener("touchstart", touchStart);
       window.removeEventListener("touchmove", touchMove);
       window.removeEventListener("touchend", touchEnd);
+      window.removeEventListener("touchcancel", touchCancel);
       for (const handle of handles) void handle.remove();
     };
   // The listener set is intentionally rebound per route so Android back behavior
@@ -469,14 +472,14 @@ export default function PortalNativeExperience({
 
   return (
     <>
-      <div
+      {pullDistance > 0 || refreshing ? <div
         className={"nativePullIndicator " + (refreshing ? "refreshing" : "")}
         style={{ transform: `translate(-50%, ${Math.max(-42, pullDistance - 42)}px)` }}
         aria-hidden="true"
       >
         <Icon name="refresh" />
         <span>{refreshing ? "YENİLENİYOR" : pullDistance > 72 ? "BIRAK VE YENİLE" : "ÇEK"}</span>
-      </div>
+      </div> : null}
 
       {!connected ? (
         <div className="nativeOfflineBanner">

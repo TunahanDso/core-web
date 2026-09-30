@@ -87,7 +87,7 @@ html[data-portal-theme] {
 .portalMobileDialog .portalNav a span { display:grid; place-items:center; color:var(--core-text-muted); font:600 12px var(--core-font-ui); }
 .portalMobileDialog .portalNav a b { display:block; color:inherit; font:550 15px/1.5 var(--core-font-ui); }
 .portalMobileDialog .portalNav a.active { color:var(--core-accent); }
-.portalMobileSheet>footer { display:flex; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--core-border-soft); }
+.portalMobileSheet>footer { display:flex; flex-direction:row; align-items:center; justify-content:flex-start; flex-wrap:wrap; flex:none; min-height:0; gap:8px; padding:12px 0 0; background:transparent; border-top:1px solid var(--core-border-soft); }
 .portalMobileSheet>footer>a { display:flex; align-items:center; min-height:44px; padding:8px; color:var(--core-text-secondary); font-size:13px; }
 .portalMobileDialog :focus-visible { outline:2px solid var(--core-focus); outline-offset:2px; }
 
@@ -112,6 +112,13 @@ html[data-core-native="native-v2"] :is(.nativeIconButton,.nativeAvatarButton) { 
 .nativeModuleGroups button, .nativeQuickGrid button { color:var(--core-text); }
 .nativeModuleGroups :is(b,span,small), .nativeQuickGrid :is(b,span,small) { font-family:var(--core-font-ui); letter-spacing:normal; }
 .nativeSheet .portalAppearancePanel { color:var(--core-text); }
+.nativeSheet .nativeMemberCard, .nativeQuickGrid button:first-child { background:var(--core-surface-subtle); color:var(--core-text); border:1px solid var(--core-border-soft); }
+.nativeMemberAvatar { background:var(--core-accent-fill); color:var(--core-on-accent); }
+.nativeMemberCard>button, .nativeQuickGrid button>span { color:var(--core-accent); }
+.nativeOfflineBanner { background:var(--core-status-warning-bg); color:var(--core-warning); border:1px solid var(--core-warning); }
+.nativeOfflineBanner span { color:inherit; }
+.nativeCameraQuick>span { background:var(--core-accent-fill); color:var(--core-on-accent)!important; }
+.nativeModuleGroups .nativeModuleOpen>b { font-size:15px; line-height:1.5; }
 
 @media(max-width:900px) {
   html[data-portal-theme] { --core-control-h:44px; --core-font-body:15px; --core-font-meta:13px; --portal-chrome-h:calc(68px + env(safe-area-inset-top)); }
@@ -168,3 +175,4 @@ html[data-core-native="native-v2"] :is(.nativeIconButton,.nativeAvatarButton) { 
   .coreHomeItemCopy { flex-basis:100%; }
   .nativeAppBarActions { gap:4px; }
 }
+@media(max-width:620px) { .nativeModuleGroups>section>div { grid-template-columns:minmax(0,1fr); } }
