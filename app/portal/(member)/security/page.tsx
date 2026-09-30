@@ -53,7 +53,7 @@ export default async function PortalSecurityPage() {
                 OTOMATİK KURULUM PS1 ↓
               </a>
             </div>
-            <small>ROOT SHA-256 · 72:26:F0:5A:90:67:F3:19:05:27:7A:93:21:5C:2B:CE:62:3E:2D:EF:B3:82:E9:8C:BE:65:A7:4E:69:A9:A2:95</small>
+            <small className="portalCertificateFingerprint"><span>ROOT SHA-256</span><code>72:26:F0:5A:90:67:F3:19:05:27:7A:93:21:5C:2B:CE:62:3E:2D:EF:B3:82:E9:8C:BE:65:A7:4E:69:A9:A2:95</code></small>
           </article>
 
           <article>

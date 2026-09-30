@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { searchPortal } from "@/lib/portal/db";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -99,17 +100,14 @@ export default async function PortalSearchPage({
 
       {!q?<PortalEmpty title="Aramaya başla." text="İsim, proje, parça kodu veya teknik terim yaz."/>:q.length<2?<PortalEmpty title="Arama çok kısa." text="En az 2 karakter yaz; tek karakterlik sorgular registry fan-out çalıştırmaz."/>:visible.length?(
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalSearchDataTable">
-            <thead><tr><th scope="col">Nesne</th><th scope="col">Tür</th><th scope="col">Bağlam</th><th scope="col">İşlem</th></tr></thead>
-            <tbody>{visible.map(row=>(
+          <PortalDataTable className="portalSearchDataTable" columns={["Nesne","Tür","Bağlam","İşlem"]}>{visible.map(row=>(
               <tr key={row.id}>
                 <td className="primaryCell"><a href={row.href} target={row.external?"_blank":undefined} rel={row.external?"noreferrer":undefined}><b>{row.title}</b><small>{row.subtitle}</small></a></td>
                 <td><span className="portalStatusText">{row.type}</span></td>
                 <td>{row.meta}</td>
                 <td className="rowActions"><a href={row.href} target={row.external?"_blank":undefined} rel={row.external?"noreferrer":undefined}>Aç{row.external?" ↗":""}</a></td>
               </tr>
-            ))}</tbody>
-          </table>
+            ))}</PortalDataTable>
         </div>
       ):<PortalEmpty title="Sonuç yok." text="Filtreyi temizle veya farklı bir terim dene."/>}
     </>

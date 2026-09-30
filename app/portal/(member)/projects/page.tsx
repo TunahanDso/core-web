@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { listProjects } from "@/lib/cms/db";
@@ -148,21 +149,7 @@ export default async function PortalProjectsPage({
 
       {filtered.length ? (
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalProjectDataTable">
-            <thead>
-              <tr>
-                <th scope="col">Proje</th>
-                <th scope="col">Kaynak</th>
-                <th scope="col">Durum</th>
-                <th scope="col">Sahiplik</th>
-                <th scope="col">Readiness</th>
-                <th scope="col">Açık görev</th>
-                <th scope="col">Kaynak / Repo</th>
-                <th scope="col">Risk</th>
-                <th scope="col">İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
+          <PortalDataTable className="portalProjectDataTable" columns={["Proje","Kaynak","Durum","Sahiplik","Readiness","Açık görev","Kaynak / Repo","Risk","İşlem"]}>
               {filtered.map((project)=>(
                 <tr key={project.id}>
                   <td className="primaryCell">
@@ -186,8 +173,7 @@ export default async function PortalProjectsPage({
                   <td className="rowActions"><Link prefetch={false} href={"/portal/projects/" + encodeURIComponent(project.slug)}>Workspace</Link></td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </PortalDataTable>
         </div>
       ) : (
         <PortalEmpty

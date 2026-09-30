@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createPortalTeamAction } from "@/app/portal/control-actions";
@@ -91,20 +92,7 @@ export default async function PortalTeamsPage({
 
       {filtered.length ? (
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalTeamDataTable">
-            <thead>
-              <tr>
-                <th scope="col">Takım</th>
-                <th scope="col">Domain</th>
-                <th scope="col">Görünürlük</th>
-                <th scope="col">Üye</th>
-                <th scope="col">Proje</th>
-                <th scope="col">Araç</th>
-                <th scope="col">Durum</th>
-                <th scope="col">İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
+          <PortalDataTable className="portalTeamDataTable" columns={["Takım","Domain","Görünürlük","Üye","Proje","Araç","Durum","İşlem"]}>
               {filtered.map((team)=>{
                 const teamCode=String(team.code);
                 return (
@@ -125,8 +113,7 @@ export default async function PortalTeamsPage({
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
+            </PortalDataTable>
         </div>
       ) : (
         <PortalEmpty

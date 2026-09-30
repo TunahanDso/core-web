@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -74,20 +75,7 @@ export default async function PortalKütüphanePage({
 
       {vaultFiles.length ? (
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalVaultDataTable">
-            <thead>
-              <tr>
-                <th scope="col">Dosya</th>
-                <th scope="col">Tür</th>
-                <th scope="col">Revizyon</th>
-                <th scope="col">Kapsam</th>
-                <th scope="col">Boyut</th>
-                <th scope="col">Onay</th>
-                <th scope="col">Preview</th>
-                <th scope="col">İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
+          <PortalDataTable className="portalVaultDataTable" columns={["Dosya","Tür","Revizyon","Kapsam","Boyut","Onay","Preview","İşlem"]}>
               {vaultFiles.map((item)=>(
                 <tr key={String(item.id)}>
                   <td className="primaryCell">
@@ -105,8 +93,7 @@ export default async function PortalKütüphanePage({
                   <td className="rowActions"><Link prefetch={false} href={"/portal/library/" + encodeURIComponent(String(item.id))}>İncele</Link></td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </PortalDataTable>
         </div>
       ) : (
         <PortalEmpty
@@ -133,17 +120,7 @@ export default async function PortalKütüphanePage({
           </summary>
           <div className="portalToolBody">
             <div className="portalDataTableShell">
-              <table className="portalDataTable portalLegacyDocumentTable">
-                <thead>
-                  <tr>
-                    <th scope="col">Kayıt</th>
-                    <th scope="col">Tür</th>
-                    <th scope="col">Takım</th>
-                    <th scope="col">Proje</th>
-                    <th scope="col">Kaynak</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <PortalDataTable className="portalLegacyDocumentTable" columns={["Kayıt","Tür","Takım","Proje","Kaynak"]}>
                   {legacyResources.slice(0,80).map((item)=>(
                     <tr key={String(item.id)}>
                       <td className="primaryCell"><div><b>{String(item.title)}</b><small>{String(item.description || "")}</small></div></td>
@@ -153,8 +130,7 @@ export default async function PortalKütüphanePage({
                       <td className="rowActions">{item.external_url ? <a href={String(item.external_url)} target="_blank" rel="noreferrer">Harici aç ↗</a> : <span>Legacy</span>}</td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </PortalDataTable>
             </div>
           </div>
         </details>

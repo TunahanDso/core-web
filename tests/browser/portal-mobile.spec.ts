@@ -8,6 +8,20 @@ async function prepare(page:Page,theme:string,collapsed=true){
 async function noPageOverflow(page:Page){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth)).toBeLessThanOrEqual(1);
 }
+// Root overflow alone misses content clipped by an ancestor, as in the device screenshots.
+async function noClippedContent(page:Page,selector:string){
+  const failures=await page.locator(selector).evaluateAll(roots=>roots.flatMap(root=>{
+    const boundary=root.getBoundingClientRect();
+    return [root,...root.querySelectorAll('*')].flatMap(el=>{
+      const rect=el.getBoundingClientRect();
+      if(!rect.width||!rect.height)return [];
+      const outside=rect.left<boundary.left-1||rect.right>boundary.right+1;
+      const overflowing=el.clientWidth>0&&el.scrollWidth>el.clientWidth+1;
+      return outside||overflowing?[{tag:el.tagName,class:el.className,text:el.textContent?.slice(0,60),outside,overflow:el.scrollWidth-el.clientWidth}]:[];
+    });
+  }));
+  expect(failures).toEqual([]);
+}
 async function readable(page:Page,selector:string){
   const failures=await page.locator(selector).evaluateAll(elements=>{
     const rgb=(color:string)=>color.match(/[\d.]+/g)?.map(Number)||[0,0,0];
@@ -134,5 +148,78 @@ for(const theme of ['light','dark','aurora']){
       expect(await page.locator('.portalNavScroll').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
     }
     await noPageOverflow(page);await page.screenshot({path:info.outputPath(`${theme}-security.png`),animations:'disabled'});
+    await noClippedContent(page,'.portalDesktopDownloadGrid');
+    await readable(page,'.portalDesktopDownloadGrid p,.portalDesktopDownloadGrid h3,.portalDesktopDownloadGrid small,.portalDesktopDownloadGrid code,.portalDesktopDownloadGrid .portalPrimaryButton');
+    await page.locator('.portalDesktopDownloadPanel').screenshot({path:info.outputPath(`${theme}-downloads.png`),animations:'disabled'});
   });
 }
+
+for(const theme of ['light','dark','aurora']){
+  test(`${theme}: task rows keep all fields and a working status action on narrow screens`,async({page},info)=>{
+    await prepare(page,theme);await page.goto('/portal/tasks');
+    const table=page.locator('.portalTaskDataTable');
+    await expect(table.getByRole('columnheader')).toHaveCount(7);
+    await expect(table.locator('tbody>tr')).toHaveCount(2);
+    await expect(table.getByText('Mobil kontrol: tamamlanmış görev',{exact:true})).toBeVisible();
+    await expect(table.locator('time').first()).toHaveText('01.10.2026 21:36');
+    if(!info.project.name.startsWith('desktop')){
+      await noClippedContent(page,'.portalTaskDataTable tbody');
+      await expect(table.locator('tbody>tr').first().locator('.portalTableCellLabel:visible')).toHaveText(['Durum','Öncelik','Sorumlu','Proje / Takım','Son tarih','İşlem']);
+      expect(await table.evaluate(el=>getComputedStyle(el).display)).toBe('block');
+    }else expect(await table.evaluate(el=>getComputedStyle(el).display)).toBe('table');
+    await noPageOverflow(page);
+    await readable(page,'.portalTaskDataTable .portalTableCellValue,.portalTaskDataTable b,.portalTaskDataTable small,.portalTaskDataTable .portalTableCellLabel,.portalTaskDataTable .portalPriority,.portalTaskDataTable select,.portalTaskDataTable button');
+    await table.locator('tbody>tr').first().screenshot({path:info.outputPath(`${theme}-task-card.png`),animations:'disabled'});
+    await table.getByRole('combobox',{name:'Görev durumunu değiştir'}).first().selectOption('review');
+    const save=table.getByRole('button',{name:'Kaydet',exact:true}).first();
+    await save.click();
+    await expect(page.locator('html')).toHaveAttribute('data-fixture-task-status','task-done:review');
+    if(!info.project.name.startsWith('desktop')){
+      expect((await save.boundingBox())?.width).toBeGreaterThanOrEqual(80);
+      expect((await save.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    }
+    const gaps=await page.locator('.portalRegistrySummary').evaluate(el=>{
+      const nodes=Array.from(el.children).map(child=>child.getBoundingClientRect());
+      return nodes.slice(1).map((rect,index)=>rect.left-nodes[index].right);
+    });
+    expect(Math.min(...gaps)).toBeGreaterThanOrEqual(6);
+  });
+  test(`${theme}: meetings and spaces expose every field without sideways scrolling`,async({page},info)=>{
+    await prepare(page,theme);await page.goto('/portal/meetings');
+    const table=page.locator('.portalMeetingDataTable');
+    await expect(table.getByRole('columnheader')).toHaveCount(9);
+    await expect(table.locator('tbody').getByRole('cell')).toHaveCount(9);
+    await expect(table.getByText('Tamamlandı',{exact:true})).toBeVisible();
+    await expect(table.locator('time')).toHaveText('29.09.2026 16:49');
+    if(!info.project.name.startsWith('desktop')){
+      await noClippedContent(page,'.portalMeetingDataTable tbody');
+      await expect(table.locator('.portalTableCellLabel:visible')).toHaveText(['Zaman','Alan','Katılımcı','Karar','Oylama','Rapor','Durum','İşlem']);
+    }
+    await noPageOverflow(page);
+    await table.locator('tbody>tr').screenshot({path:info.outputPath(`${theme}-meeting-card.png`),animations:'disabled'});
+    await table.getByRole('link',{name:'Odayı aç',exact:true}).click();
+    await expect(page).toHaveURL(/\/portal\/meetings\/meeting$/);
+    await page.goto('/portal/meetings?section=spaces');
+    await expect(page.locator('.portalMeetingSpaceTable').getByRole('columnheader')).toHaveCount(5);
+    if(!info.project.name.startsWith('desktop'))await noClippedContent(page,'.portalMeetingSpaceTable tbody');
+    await noPageOverflow(page);
+  });
+}
+
+test('native registry cards and download instructions also reflow with enlarged text',async({page},info)=>{
+  test.skip(info.project.name.startsWith('desktop'));
+  await prepare(page,'aurora');
+  for(const route of ['tasks','meetings','security']){
+    await page.goto(`/portal/${route}?nativeFixture=1`);
+    await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
+    const selector=route==='security'?'.portalDesktopDownloadGrid':'.portalResponsiveTable tbody';
+    await expect(page.locator(selector)).toBeVisible();
+    await page.addStyleTag({content:'.portalResponsiveTable :is(b,small,span,button,select),.portalDesktopDownloadGrid :is(p,small,span,code,a) {font-size:20px!important}'});
+    await noClippedContent(page,selector);await noPageOverflow(page);
+    if(route==='tasks'){
+      await expect(page.locator('.portalNativeTaskList')).toHaveCount(0);
+      await expect(page.locator('.portalTaskDataTable tbody>tr')).toHaveCount(2);
+    }
+    await page.locator(selector).screenshot({path:info.outputPath(`native-large-${route}.png`),animations:'disabled'});
+  }
+});

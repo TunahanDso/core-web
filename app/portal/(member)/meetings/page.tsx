@@ -1,3 +1,5 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
+import PortalDateTime from "@/components/portal/PortalDateTime";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -7,6 +9,8 @@ import { createMeetingAction, createMeetingSpaceAction } from "@/app/portal/coll
 import { listMeetingSpaces, listMeetings } from "@/lib/portal/collaboration";
 
 export const dynamic="force-dynamic";
+
+const meetingStatusLabels: Record<string, string> = { scheduled:"Planlandı", live:"Canlı", completed:"Tamamlandı", cancelled:"İptal" };
 
 function href(input:Record<string,string|undefined>){
   const params=new URLSearchParams();
@@ -192,37 +196,27 @@ export default async function PortalMeetingsPage({
       {section==="meetings"?(
         filtered.length?(
           <div className="portalDataTableShell">
-            <table className="portalDataTable portalMeetingDataTable">
-              <thead>
-                <tr>
-                  <th scope="col">Toplantı</th><th scope="col">Zaman</th><th scope="col">Alan</th><th scope="col">Katılımcı</th>
-                  <th scope="col">Karar</th><th scope="col">Oylama</th><th scope="col">Rapor</th><th scope="col">Durum</th><th scope="col">İşlem</th>
-                </tr>
-              </thead>
-              <tbody>
+            <PortalDataTable className="portalMeetingDataTable" columns={["Toplantı","Zaman","Alan","Katılımcı","Karar","Oylama","Rapor","Durum","İşlem"]}>
                 {filtered.map((item)=>(
                   <tr key={String(item.id)}>
                     <td className="primaryCell"><Link prefetch={false} href={"/portal/meetings/"+encodeURIComponent(String(item.id))}><b>{String(item.title)}</b><small>{String(item.team_code||item.project_slug||item.creator_name||"CORE")}</small></Link></td>
-                    <td className="mono">{String(item.starts_at).replace("T"," ").slice(0,16)}</td>
+                    <td><PortalDateTime value={item.starts_at} /></td>
                     <td>{String(item.space_name||"Genel")}</td>
                     <td className="numeric">{String(item.participant_count||0)}</td>
                     <td className="numeric">{String(item.decision_count||0)}</td>
                     <td className="numeric">{String(item.poll_count||0)}</td>
                     <td><span className={"portalStatusText "+(Number(item.report_count)>0?"done":"")}>{Number(item.report_count)>0?"Hazır":"Bekliyor"}</span></td>
-                    <td><span className={"portalStatusText "+String(item.status)}>{String(item.status)}</span></td>
+                    <td><span className={"portalStatusText "+String(item.status)}>{meetingStatusLabels[String(item.status)] || String(item.status)}</span></td>
                     <td className="rowActions"><Link prefetch={false} href={"/portal/meetings/"+encodeURIComponent(String(item.id))}>Odayı aç</Link></td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+              </PortalDataTable>
           </div>
         ):<PortalEmpty title="Toplantı bulunamadı." text="Filtreleri temizle veya yeni bir toplantı planla." />
       ):(
         spaces.length?(
           <div className="portalDataTableShell">
-            <table className="portalDataTable portalMeetingSpaceTable">
-              <thead><tr><th scope="col">Alan</th><th scope="col">Görünürlük</th><th scope="col">Takım</th><th scope="col">Proje</th><th scope="col">Toplantı</th></tr></thead>
-              <tbody>
+            <PortalDataTable className="portalMeetingSpaceTable" columns={["Alan","Görünürlük","Takım","Proje","Toplantı"]}>
                 {spaces.map((space)=>(
                   <tr key={String(space.id)}>
                     <td className="primaryCell"><div><b>{String(space.name)}</b><small>{String(space.description||"")}</small></div></td>
@@ -232,8 +226,7 @@ export default async function PortalMeetingsPage({
                     <td className="numeric">{String(space.meeting_count||0)}</td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+              </PortalDataTable>
           </div>
         ):<PortalEmpty title="Toplantı alanı yok." text="Kalıcı ekip veya çalışma grubu için ilk meeting space'i oluştur." />
       )}

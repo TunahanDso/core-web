@@ -1,3 +1,5 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
+import PortalDateTime from "@/components/portal/PortalDateTime";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createTaskAction, updateTaskStatusAction } from "@/app/portal/actions";
@@ -180,46 +182,10 @@ export default async function PortalTasksPage({
         </section>
       ) : null}
 
-      <section className="portalNativeTaskList" aria-label="Mobil görev listesi">
-        {filteredTasks
-          .filter((task) => String(task.status) !== "done")
-          .sort((a,b) => {
-            const rank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-            return (rank[String(a.priority)] ?? 4) - (rank[String(b.priority)] ?? 4);
-          })
-          .slice(0,40)
-          .map((task) => (
-            <Link prefetch={false} href={"/portal/tasks/" + encodeURIComponent(String(task.id))} key={String(task.id)}>
-              <div className="portalNativeTaskTop">
-                <span className={"portalPriority " + String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span>
-                <em>{portalTaskStatusLabel(String(task.status))}</em>
-              </div>
-              <h3>{String(task.title)}</h3>
-              <p>{String(task.description || "Açıklama yok.")}</p>
-              <footer>
-                <span>{String(task.assignee_name || "Atanmamış")}</span>
-                <small>{String(task.project_slug || task.team_code || "CORE")}</small>
-              </footer>
-            </Link>
-          ))}
-      </section>
-
       {view === "table" ? (
         filteredTasks.length ? (
           <div className="portalDataTableShell">
-            <table className="portalDataTable portalTaskDataTable">
-              <thead>
-                <tr>
-                  <th scope="col">Görev</th>
-                  <th scope="col">Durum</th>
-                  <th scope="col">Öncelik</th>
-                  <th scope="col">Sorumlu</th>
-                  <th scope="col">Proje / Takım</th>
-                  <th scope="col">Son tarih</th>
-                  <th scope="col">İşlem</th>
-                </tr>
-              </thead>
-              <tbody>
+            <PortalDataTable className="portalTaskDataTable" columns={["Görev","Durum","Öncelik","Sorumlu","Proje / Takım","Son tarih","İşlem"]}>
                 {filteredTasks.map((task) => (
                   <tr key={String(task.id)}>
                     <td className="primaryCell">
@@ -232,7 +198,7 @@ export default async function PortalTasksPage({
                     <td><span className={"portalPriority "+String(task.priority)}>{portalPriorityLabel(String(task.priority))}</span></td>
                     <td>{String(task.assignee_name || "Atanmamış")}</td>
                     <td className="mono">{String(task.project_slug || task.team_code || "CORE")}</td>
-                    <td className="mono">{task.due_at ? String(task.due_at) : "—"}</td>
+                    <td><PortalDateTime value={task.due_at} /></td>
                     <td className="rowActions">
                       <form action={updateTaskStatusAction} className="portalInlineStatusForm">
                         <input type="hidden" name="id" value={String(task.id)} />
@@ -244,8 +210,7 @@ export default async function PortalTasksPage({
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+              </PortalDataTable>
           </div>
         ) : (
           <PortalEmpty
@@ -272,7 +237,7 @@ export default async function PortalTasksPage({
                     </Link>
                     <div className="portalTaskCardFacts">
                       <small>{String(task.assignee_name || "Atanmamış")}</small>
-                      <small>{task.due_at ? String(task.due_at) : "Son tarih yok"}</small>
+                      <small><PortalDateTime value={task.due_at} fallback="Son tarih yok" /></small>
                     </div>
                   </article>
                 ))}

@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -43,9 +44,7 @@ export default async function PortalArchivePage({
 
       {(fileRows.length||resourceRows.length)?(
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalArchiveDataTable">
-            <thead><tr><th scope="col">Arşiv kaydı</th><th scope="col">Kaynak</th><th scope="col">Revizyon</th><th scope="col">Kapsam</th><th scope="col">Boyut</th><th scope="col">İşlem</th></tr></thead>
-            <tbody>
+          <PortalDataTable className="portalArchiveDataTable" columns={["Arşiv kaydı","Kaynak","Revizyon","Kapsam","Boyut","İşlem"]}>
               {fileRows.map(item=>(
                 <tr key={"vault:"+String(item.id)}>
                   <td className="primaryCell"><Link prefetch={false} href={"/portal/library/"+encodeURIComponent(String(item.id))}><b>{String(item.title)}</b><small>{String(item.description||item.original_name)}</small></Link></td>
@@ -58,8 +57,7 @@ export default async function PortalArchivePage({
                   <td>{String(item.tags_json||"").includes("meeting")?"Toplantı raporu":"Legacy / Resource"}</td><td className="mono">—</td><td className="mono">{String(item.project_slug||item.team_code||"CORE")}</td><td className="numeric">—</td><td className="rowActions">{item.external_url?<a href={String(item.external_url)}>Aç</a>:null}</td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </PortalDataTable>
         </div>
       ):<PortalEmpty title="Arşiv boş." text="Dosya yaşam döngüsü Arşiv olduğunda veya toplantı raporu üretildiğinde burada görünür."/>}
     </>

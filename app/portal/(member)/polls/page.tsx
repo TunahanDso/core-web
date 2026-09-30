@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { requirePortalMember } from "@/lib/portal/auth";
@@ -82,9 +83,7 @@ export default async function PortalPollsPage({
         <section className="pollRegistryPane">
           {visible.length?(
             <div className="portalDataTableShell">
-              <table className="portalDataTable portalPollDataTable">
-                <thead><tr><th scope="col">Oylama</th><th scope="col">Kapsam</th><th scope="col">Oy</th><th scope="col">Durum</th><th scope="col">İşlem</th></tr></thead>
-                <tbody>
+              <PortalDataTable className="portalPollDataTable" columns={["Oylama","Kapsam","Oy","Durum","İşlem"]}>
                   {visible.map((poll)=>(
                     <tr className={String(poll.id)===selectedId?"selected":""} key={String(poll.id)}>
                       <td className="primaryCell"><a href={href({poll:String(poll.id),filter})}><b>{String(poll.title)}</b><small>{String(poll.description||poll.creator_name||"")}</small></a></td>
@@ -94,8 +93,7 @@ export default async function PortalPollsPage({
                       <td className="rowActions"><a href={href({poll:String(poll.id),filter})}>Aç</a></td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </PortalDataTable>
             </div>
           ):<PortalEmpty title="Görünür oylama yok." text="Yeni bir genel/takım oylaması açıldığında veya toplantıda oylama oluşturulduğunda burada görünür."/>}
         </section>

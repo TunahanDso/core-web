@@ -1,3 +1,4 @@
+import PortalDataTable from "@/components/portal/PortalDataTable";
 import Link from "next/link";
 import { PortalEmpty, PortalPageHeader } from "@/components/portal/PortalPage";
 import { createRepositoryAction } from "@/app/portal/actions";
@@ -148,20 +149,7 @@ export default async function PortalRepositoriesPage({
 
       {visibleCatalog.length ? (
         <div className="portalDataTableShell">
-          <table className="portalDataTable portalRepositoryDataTable">
-            <thead>
-              <tr>
-                <th scope="col">Repository</th>
-                <th scope="col">Tür</th>
-                <th scope="col">Kapsam</th>
-                <th scope="col">Görünürlük</th>
-                <th scope="col">Durum</th>
-                <th scope="col">Branch</th>
-                <th scope="col">Git transport</th>
-                <th scope="col">İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
+          <PortalDataTable className="portalRepositoryDataTable" columns={["Repository","Tür","Kapsam","Görünürlük","Durum","Branch","Git transport","İşlem"]}>
               {visibleCatalog.map((item)=>(
                 <tr key={item.id}>
                   <td className="primaryCell">
@@ -192,8 +180,7 @@ export default async function PortalRepositoriesPage({
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </PortalDataTable>
         </div>
       ) : (
         <PortalEmpty title="Repository kataloğu boş." text="CORE workspace veya harici Git kaydı eklediğinde tek katalogda görünür." />

@@ -20,3 +20,14 @@ export async function listPortalVaultFiles(){return [];}
 export function formatVaultBytes(){return '0 B';}
 export async function listPortalMobileDevices(){return [];}
 export function portalMobilePublicConfig(){return {appVersion:'test',appScheme:'ytucore',appStoreUrl:'',playStoreUrl:''};}
+
+const longToken='kesintisizProjeKodu'.repeat(8);
+export async function listProjects(){return [{id:'project',slug:longToken,titleTr:'Otonom platform doğrulama'}];}
+export async function listPortalTasks(){return [
+  {id:'task-done',title:'Mobil kontrol: tamamlanmış görev',description:'Uzun bir açıklama: '+longToken,status:'done',priority:'critical',assignee_id:'fixture',assignee_name:'Örnek Uzun Soyadlı Takım Mühendisi',project_slug:longToken,team_code:'CORE',due_at:'2026-10-01T21:36'},
+  {id:'task-open',title:'Tasarım revizyonu ve test planı',description:'Açık görevin ayrıntıları.',status:'doing',priority:'medium',assignee_id:'other',assignee_name:'Takım Arkadaşı',project_slug:'hydronom',team_code:'CORE',due_at:null},
+];}
+export async function listAccessiblePortalTeams(){return [{code:'CORE',name:'CORE Systems'}];}
+export async function listPortalProjectRegistry(){return [{slug:'hydronom',title:'Hydronom'}];}
+export async function listMeetingSpaces(){return [{id:'space',name:'Tasarım ve doğrulama çalışma grubu',description:longToken,visibility:'members',team_code:'CORE',project_slug:longToken,meeting_count:1}];}
+export async function listMeetings(){return [{id:'meeting',title:'Mobil toplantı kontrolü ve uzun gündem başlığı',agenda:longToken,space_name:'Tasarım ve doğrulama çalışma grubu',team_code:'CORE',project_slug:'hydronom',creator_name:'Örnek Mühendis',status:'completed',starts_at:'2026-09-29T16:49',participant_count:12,decision_count:1,poll_count:2,report_count:1}];}
