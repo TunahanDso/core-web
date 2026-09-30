@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const mapping=[["PORTAL_SCHEMA_SQL","migrations/0002_internal_portal.sql"],["PORTAL_V2_SQL","migrations/0003_portal_professional.sql"],["PORTAL_V4_SQL","migrations/0004_engineering_os.sql"],["PORTAL_V5_SQL","migrations/0005_mobile_native.sql"],["PORTAL_V6_SQL","migrations/0006_control_plane.sql"],["PORTAL_V7_SQL","migrations/0007_repo_review.sql"],["PORTAL_V8_SQL","migrations/0008_code_lab.sql"],["PORTAL_V9_SQL","migrations/0009_code_terminal.sql"],["PORTAL_V10_SQL","migrations/0010_vault_upload_sessions.sql"],["PORTAL_V11_SQL","migrations/0011_mail_workspace.sql"],["PORTAL_V12_SQL","migrations/0012_collaboration_finance.sql"],["PORTAL_V13_SQL","migrations/0013_authority_cleanup.sql"]];
+const mapping=[["PORTAL_SCHEMA_SQL","migrations/0002_internal_portal.sql"],["PORTAL_V2_SQL","migrations/0003_portal_professional.sql"],["PORTAL_V4_SQL","migrations/0004_engineering_os.sql"],["PORTAL_V5_SQL","migrations/0005_mobile_native.sql"],["PORTAL_V6_SQL","migrations/0006_control_plane.sql"],["PORTAL_V7_SQL","migrations/0007_repo_review.sql"],["PORTAL_V8_SQL","migrations/0008_code_lab.sql"],["PORTAL_V9_SQL","migrations/0009_code_terminal.sql"],["PORTAL_V10_SQL","migrations/0010_vault_upload_sessions.sql"],["PORTAL_V11_SQL","migrations/0011_mail_workspace.sql"],["PORTAL_V12_SQL","migrations/0012_collaboration_finance.sql"],["PORTAL_V13_SQL","migrations/0013_authority_cleanup.sql"],["PORTAL_V14_SQL","migrations/0014_meeting_realtime.sql"]];
 const root=process.cwd();
 const rows=mapping.map(([name,file])=>[
   name,

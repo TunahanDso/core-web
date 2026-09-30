@@ -30,7 +30,7 @@ export default async function PortalMeetingRoomPage({
   if(!data) notFound();
 
   const meeting=data.meeting;
-  const transport=getMeetingTransportStatus(String(meeting.transport_room));
+  const transport=getMeetingTransportStatus(String(meeting.transport_room),String(meeting.transport_mode));
   const canManage=String(meeting.created_by)===member.id || data.participants.some(
     (item)=>String(item.member_id)===member.id && ["host","moderator"].includes(String(item.participant_role))
   );
@@ -70,10 +70,12 @@ export default async function PortalMeetingRoomPage({
           <MeetingTransportPanel
             ended={["completed","cancelled"].includes(meetingStatus)}
             configured={transport.configured}
+            realtime={transport.provider==="cloudflare-realtimekit"}
             joinUrl={transport.joinUrl}
             provider={transport.provider}
             room={String(meeting.transport_room)}
             mode={String(meeting.transport_mode)}
+            meetingId={id}
           />
 
           <section className="meetingAgendaPane">

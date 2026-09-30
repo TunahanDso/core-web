@@ -28,6 +28,21 @@ function configureAndroid() {
   write(variables, gradle);
 
   let source = read(manifest);
+  const mediaPermissions = [
+    '<uses-permission android:name="android.permission.CAMERA" />',
+    '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+    '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
+  ];
+  const missingMediaPermissions = mediaPermissions.filter((permission) => !source.includes(permission));
+  if (missingMediaPermissions.length) {
+    if (!source.includes("<application")) throw new Error("Android application block was not found.");
+    source = source.replace(
+      /\s*<application/,
+      "\n    " + missingMediaPermissions.join("\n    ") + "\n\n    <application"
+    );
+    write(manifest, source);
+  }
+
   if (!source.includes("CORE_NATIVE_LINKS")) {
     const marker = "        <!-- CORE_NATIVE_LINKS -->";
     const filters = `
@@ -54,7 +69,7 @@ ${marker}
     write(manifest, source);
   }
 
-  console.log("Android minSdk 26, custom scheme and App Links configured.");
+  console.log("Android minSdk 26, camera/microphone permissions, custom scheme and App Links configured.");
 }
 
 function configureIos() {
@@ -97,6 +112,16 @@ function configureIos() {
     info = read(plist);
     if (!info.includes("</dict>")) throw new Error("Info.plist root dictionary was not found.");
     info = info.replace(/\s*<\/dict>\s*<\/plist>\s*$/, privacy + "\n</dict>\n</plist>\n");
+    write(plist, info);
+  }
+
+  info = read(plist);
+  if (!info.includes("NSMicrophoneUsageDescription")) {
+    const microphonePrivacy = `
+\t<key>NSMicrophoneUsageDescription</key>
+\t<string>CORE toplantılarında sesli görüşme yapabilmek için mikrofona erişim gerekir.</string>`;
+    if (!info.includes("</dict>")) throw new Error("Info.plist root dictionary was not found.");
+    info = info.replace(/\s*<\/dict>\s*<\/plist>\s*$/, microphonePrivacy + "\n</dict>\n</plist>\n");
     write(plist, info);
   }
 
@@ -149,7 +174,7 @@ function configureIos() {
     write(appDelegate,appDelegateSource);
   }
 
-  console.log("iOS custom URL scheme, Universal Links and APNs bridge configured for " + apsEnvironment + ".");
+  console.log("iOS camera/microphone privacy, custom URL scheme, Universal Links and APNs bridge configured for " + apsEnvironment + ".");
 }
 
 if (platform === "android") configureAndroid();
