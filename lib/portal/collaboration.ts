@@ -231,6 +231,15 @@ export async function setMeetingStatus(meetingId: string, status: "scheduled"|"l
     database.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'meeting.status','meeting',?,?)")
       .bind(actorEmail,meetingId,JSON.stringify({status})),
   ]);
+
+  if(status==="completed" || status==="cancelled"){
+    try {
+      const {endRealtimeKitSession}=await import("@/lib/portal/meeting-realtime");
+      await endRealtimeKitSession(meetingId);
+    } catch {
+      // Portal state remains authoritative even if provider cleanup is temporarily unavailable.
+    }
+  }
 }
 
 export async function addMeetingNote(input: {
