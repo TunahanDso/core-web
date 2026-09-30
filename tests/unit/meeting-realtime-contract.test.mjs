@@ -27,6 +27,8 @@ test('RealtimeKit backend provisions meetings and per-member participant tokens'
   assert.match(backend,/custom_participant_id:input\.memberId/);
   assert.match(backend,/\/token`/);
   assert.match(backend,/portal_meeting_transports/);
+  assert.match(backend,/active-session\/kick-all/);
+  assert.match(backend,/status:"INACTIVE"/);
 });
 
 test('meeting UI uses pinned RealtimeKit Web Components and secure join endpoint',()=>{
