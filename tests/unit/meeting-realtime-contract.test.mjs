@@ -45,6 +45,7 @@ test('meeting UI uses pinned RealtimeKit Web Components and secure join endpoint
   assert.match(panel,/document\.createElement\("rtk-meeting"\)/);
   assert.match(panel,/showSetupScreen=true/);
   assert.match(panel,/element\.mode="fill"/);
+  assert.match(panel,/element\.loadConfigFromPreset=true/);
   assert.match(panel,/self\?\.show\?\.\(\)/);
   assert.match(panel,/registerVideoElement\?\.\(element\)/);
   assert.match(panel,/listen\(self,"roomLeft",onRoomLeft\)/);
@@ -85,4 +86,5 @@ test('RealtimeKit lifecycle returns control to CORE and verifies provider-ended 
   assert.match(backend,/\/active-session\`/);
   assert.match(backend,/status \|\| ""\)\.toUpperCase\(\)!=="ENDED"/);
   assert.match(backend,/UPDATE portal_meetings SET status='completed'/);
+  assert.match(backend,/JSON\.stringify\(\{status:"INACTIVE"\}\)/);
 });
