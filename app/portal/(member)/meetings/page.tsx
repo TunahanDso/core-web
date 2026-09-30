@@ -7,6 +7,7 @@ import { listPortalMembers } from "@/lib/portal/db";
 import { listAccessiblePortalTeams, listPortalProjectRegistry } from "@/lib/portal/control";
 import { createMeetingAction, createMeetingSpaceAction } from "@/app/portal/collaboration-actions";
 import { listMeetingSpaces, listMeetings } from "@/lib/portal/collaboration";
+import { getRealtimeKitRuntimeStatus } from "@/lib/portal/meeting-realtime";
 
 export const dynamic="force-dynamic";
 
@@ -46,6 +47,7 @@ export default async function PortalMeetingsPage({
     return true;
   });
   const activeMembers=members.filter((item)=>String(item.status)==="active" && String(item.id)!==member.id);
+  const realtime=getRealtimeKitRuntimeStatus();
 
   return (
     <>
@@ -57,6 +59,24 @@ export default async function PortalMeetingsPage({
       />
 
       {query.created ? <div className="portalSuccess">Toplantı kaydı oluşturuldu ve takvime eklendi.</div> : null}
+
+      <section className="portalCompactServiceStrip" aria-label="Toplantı servis durumu">
+        <article>
+          <span>CORE REALTIME</span>
+          <b>{realtime.configured?"READY · CLOUDFLARE REALTIMEKIT":"SETUP REQUIRED"}</b>
+          <small>{realtime.configured?"Managed WebRTC / SFU aktif":"Account ID + App ID + Worker secret bekleniyor"}</small>
+        </article>
+        <article>
+          <span>MEDYA</span>
+          <b>Ses · görüntü · ekran paylaşımı</b>
+          <small>Toplantı setup ekranı ve cihaz izinleri</small>
+        </article>
+        <article>
+          <span>ERİŞİM</span>
+          <b>CORE oturumu · kişi bazlı token</b>
+          <small>Provider API tokenı tarayıcıya gönderilmez</small>
+        </article>
+      </section>
 
       <section className="portalRegistryToolbar">
         <nav className="portalSegmentedControl">

@@ -22,6 +22,13 @@ async function noClippedContent(page:Page,selector:string){
   }));
   expect(failures).toEqual([]);
 }
+async function cardContainsAllFields(page:Page,selector:string){
+  const failures=await page.locator(selector+' tbody>tr').evaluateAll(rows=>rows.flatMap(row=>{
+    const rect=row.getBoundingClientRect();
+    return Array.from(row.querySelectorAll('td')).filter(cell=>cell.getBoundingClientRect().bottom>rect.bottom+1).map(cell=>cell.textContent);
+  }));
+  expect(failures).toEqual([]);
+}
 async function readable(page:Page,selector:string){
   const failures=await page.locator(selector).evaluateAll(elements=>{
     const rgb=(color:string)=>color.match(/[\d.]+/g)?.map(Number)||[0,0,0];
@@ -108,6 +115,28 @@ async function withinViewport(page:Page,selector:string){
   expect(box!.y+box!.height).toBeLessThanOrEqual((await page.evaluate(()=>visualViewport?.height||innerHeight))+1);
   expect(await page.evaluate(()=>document.documentElement.scrollHeight-innerHeight)).toBeLessThanOrEqual(1);
 }
+async function aboveFixedNavigation(page:Page,contentSelector:string,navSelector:string){
+  const content=await page.locator(contentSelector).first().boundingBox();
+  const nav=await page.locator(navSelector).first().boundingBox();
+  expect(content).not.toBeNull();expect(nav).not.toBeNull();
+  expect(content!.y+content!.height).toBeLessThanOrEqual(nav!.y+1);
+}
+async function mountFixtureMobileNav(page:Page){
+  await page.evaluate(()=>{
+    if(document.querySelector('.portalMobileNav'))return;
+    const nav=document.createElement('nav');
+    nav.className='portalMobileNav';
+    nav.setAttribute('aria-label','Fixture mobile navigation');
+    for(const [code,label] of [['OV','Genel'],['PM','Görev'],['CH','Sohbet'],['ML','Mail'],['VA','Vault']]){
+      const link=document.createElement('a');
+      link.href='#';
+      const short=document.createElement('span');short.textContent=code;
+      const text=document.createElement('b');text.textContent=label;
+      link.append(short,text);nav.appendChild(link);
+    }
+    document.body.appendChild(nav);
+  });
+}
 for(const theme of ['light','dark','aurora']){
   test(`${theme}: real chat keeps composer visible and scrolls messages internally`,async({page},info)=>{
     await prepare(page,theme);await page.goto('/portal/chat');
@@ -120,11 +149,36 @@ for(const theme of ['light','dark','aurora']){
     await page.screenshot({path:info.outputPath(`${theme}-chat.png`),animations:'disabled'});
     if(!info.project.name.startsWith('desktop')){
       await page.setViewportSize({width:390,height:440});
-      await withinViewport(page,'.chatFixedComposer');await noPageOverflow(page);
-      await page.goto('/portal/chat?nativeFixture=1');
-      await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
+      await mountFixtureMobileNav(page);
+      await expect(page.locator('.portalMobileNav')).toBeVisible();
+      await withinViewport(page,'.chatFixedComposer');
+      await aboveFixedNavigation(page,'.chatFixedComposer','.portalMobileNav');
+      await noPageOverflow(page);
+
+      const textarea=page.getByRole('textbox',{name:'Kanal mesajı'});
+      await textarea.focus();
+      await expect(page.locator('html')).toHaveAttribute('data-core-keyboard','open');
+      await expect(page.locator('.portalMobileNav')).toBeHidden();
+      await expect(page.locator('.portalTopbar')).toBeHidden();
       await expect(page.locator('.chatFixedComposer')).toBeVisible();
       await withinViewport(page,'.chatFixedComposer');
+      expect(await page.locator('.portalApp').evaluate(el=>getComputedStyle(el).position)).toBe('fixed');
+      expect(await page.locator('.portalContentViewport').evaluate(el=>parseFloat(getComputedStyle(el).paddingBottom))).toBe(0);
+
+      await textarea.evaluate((el:HTMLTextAreaElement)=>el.blur());
+      await expect(page.locator('html')).not.toHaveAttribute('data-core-keyboard','open');
+      await expect(page.locator('.portalMobileNav')).toBeVisible();
+
+      await page.goto('/portal/chat?nativeFixture=1');
+      await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
+      const nativeComposer=page.locator('.chatFixedComposer');
+      await expect(nativeComposer).toBeVisible();
+      await withinViewport(page,'.chatFixedComposer');
+      expect(await nativeComposer.evaluate(el=>getComputedStyle(el).position)).toBe('relative');
+      const nativeComposerBox=await nativeComposer.boundingBox();
+      const nativeTabsBox=await page.locator('.nativeBottomTabs').boundingBox();
+      expect(nativeComposerBox).not.toBeNull();expect(nativeTabsBox).not.toBeNull();
+      expect(nativeComposerBox!.y+nativeComposerBox!.height).toBeLessThanOrEqual(nativeTabsBox!.y+1);
     }
   });
   test(`${theme}: real mail reader and composer fit the workspace`,async({page},info)=>{
@@ -164,6 +218,7 @@ for(const theme of ['light','dark','aurora']){
     await expect(table.locator('time').first()).toHaveText('01.10.2026 21:36');
     if(!info.project.name.startsWith('desktop')){
       await noClippedContent(page,'.portalTaskDataTable tbody');
+      await cardContainsAllFields(page,'.portalTaskDataTable');
       await expect(table.locator('tbody>tr').first().locator('.portalTableCellLabel:visible')).toHaveText(['Durum','Öncelik','Sorumlu','Proje / Takım','Son tarih','İşlem']);
       expect(await table.evaluate(el=>getComputedStyle(el).display)).toBe('block');
     }else expect(await table.evaluate(el=>getComputedStyle(el).display)).toBe('table');
@@ -193,6 +248,7 @@ for(const theme of ['light','dark','aurora']){
     await expect(table.locator('time')).toHaveText('29.09.2026 16:49');
     if(!info.project.name.startsWith('desktop')){
       await noClippedContent(page,'.portalMeetingDataTable tbody');
+      await cardContainsAllFields(page,'.portalMeetingDataTable');
       await expect(table.locator('.portalTableCellLabel:visible')).toHaveText(['Zaman','Alan','Katılımcı','Karar','Oylama','Rapor','Durum','İşlem']);
     }
     await noPageOverflow(page);

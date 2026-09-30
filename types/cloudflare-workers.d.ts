@@ -89,6 +89,11 @@ declare module "cloudflare:workers" {
     PORTAL_IOS_BUNDLE_ID?: string;
     PORTAL_IOS_APP_STORE_URL?: string;
     PORTAL_IOS_TEAM_ID?: string;
+    PORTAL_REALTIMEKIT_ACCOUNT_ID?: string;
+    PORTAL_REALTIMEKIT_APP_ID?: string;
+    PORTAL_REALTIMEKIT_API_TOKEN?: string;
+    PORTAL_REALTIMEKIT_HOST_PRESET?: string;
+    PORTAL_REALTIMEKIT_PARTICIPANT_PRESET?: string;
     EMAIL?: EmailBinding;
     [key: string]: unknown;
   };

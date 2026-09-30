@@ -15,25 +15,53 @@ function runtimeVar(name: string) {
   return String(values[name] || "").trim();
 }
 
-export function getMeetingTransportStatus(room: string) {
+export function getMeetingTransportStatus(room: string, mode = "audio_video") {
+  if (mode === "none") {
+    return {
+      configured: false,
+      provider: "none",
+      joinUrl: null as string | null,
+      note: "Bu toplantıda gerçek zamanlı medya kapalı.",
+    };
+  }
+
+  const realtimeKitConfigured = Boolean(
+    runtimeVar("PORTAL_REALTIMEKIT_ACCOUNT_ID") &&
+    runtimeVar("PORTAL_REALTIMEKIT_APP_ID") &&
+    runtimeVar("PORTAL_REALTIMEKIT_API_TOKEN")
+  );
+
+  if (mode !== "external" && realtimeKitConfigured) {
+    return {
+      configured: true,
+      provider: "cloudflare-realtimekit",
+      joinUrl: null as string | null,
+      note: "CORE managed WebRTC/SFU transport",
+    };
+  }
+
   const base = runtimeVar("PORTAL_MEETING_PROVIDER_URL");
   if (!base) {
     return {
       configured: false,
-      provider: "not-configured",
+      provider: realtimeKitConfigured ? "cloudflare-realtimekit" : "not-configured",
       joinUrl: null as string | null,
-      note: "Ses/görüntü SFU sağlayıcısı henüz bağlanmadı.",
+      note: realtimeKitConfigured
+        ? "Bu toplantı harici sağlayıcı modunda; harici toplantı URL şablonu tanımlı değil."
+        : "Ses/görüntü SFU sağlayıcısı henüz bağlanmadı.",
     };
   }
+
   const encoded = encodeURIComponent(room);
   const joinUrl = base.includes("{room}")
     ? base.replaceAll("{room}",encoded)
     : base.replace(/\/$/,"") + "/" + encoded;
+
   return {
     configured: true,
     provider: runtimeVar("PORTAL_MEETING_PROVIDER") || "external-webrtc",
     joinUrl,
-    note: "CORE meeting transport adapter",
+    note: "CORE external meeting transport adapter",
   };
 }
 
@@ -177,6 +205,19 @@ export async function createMeeting(input: {
   return id;
 }
 
+export async function markMeetingParticipantAttended(meetingId: string, memberId: string) {
+  await ensurePortalCollaborationFinanceSchema();
+  const database=db();
+  await database.batch([
+    database.prepare(
+      "INSERT OR IGNORE INTO portal_meeting_participants (meeting_id,member_id,participant_role,invite_state) VALUES (?,?,'participant','attended')"
+    ).bind(meetingId,memberId),
+    database.prepare(
+      "UPDATE portal_meeting_participants SET invite_state='attended' WHERE meeting_id=? AND member_id=?"
+    ).bind(meetingId,memberId),
+  ]);
+}
+
 export async function setMeetingStatus(meetingId: string, status: "scheduled"|"live"|"completed"|"cancelled", memberId: string, actorEmail: string) {
   await ensurePortalCollaborationFinanceSchema();
   const database=db();
@@ -190,6 +231,15 @@ export async function setMeetingStatus(meetingId: string, status: "scheduled"|"l
     database.prepare("INSERT INTO portal_activity_log (actor,action,entity_type,entity_id,details_json) VALUES (?,'meeting.status','meeting',?,?)")
       .bind(actorEmail,meetingId,JSON.stringify({status})),
   ]);
+
+  if(status==="completed" || status==="cancelled"){
+    try {
+      const {endRealtimeKitSession}=await import("@/lib/portal/meeting-realtime");
+      await endRealtimeKitSession(meetingId);
+    } catch {
+      // Portal state remains authoritative even if provider cleanup is temporarily unavailable.
+    }
+  }
 }
 
 export async function addMeetingNote(input: {

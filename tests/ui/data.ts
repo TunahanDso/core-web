@@ -20,6 +20,7 @@ export async function listPortalVaultFiles(){return [];}
 export function formatVaultBytes(){return '0 B';}
 export async function listPortalMobileDevices(){return [];}
 export function portalMobilePublicConfig(){return {appVersion:'test',appScheme:'ytucore',appStoreUrl:'',playStoreUrl:''};}
+export function getRealtimeKitRuntimeStatus(){return {configured:false,accountConfigured:false,appConfigured:false,tokenConfigured:false};}
 
 const longToken='kesintisizProjeKodu'.repeat(8);
 export async function listProjects(){return [{id:'project',slug:longToken,titleTr:'Otonom platform doğrulama'}];}

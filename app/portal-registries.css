@@ -26,7 +26,7 @@
   .portalApp .portalDataTable.portalResponsiveTable { display:block; width:100%; min-width:0; max-width:100%; }
   .portalApp .portalDataTable.portalResponsiveTable>thead { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); }
   .portalApp .portalDataTable.portalResponsiveTable>tbody { display:grid; gap:16px; width:100%; min-width:0; }
-  .portalApp .portalDataTable.portalResponsiveTable>tbody>tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:16px; min-width:0; padding:16px; border:1px solid var(--core-border); border-radius:14px; }
+  .portalApp .portalDataTable.portalResponsiveTable>tbody>tr { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:16px; min-width:0; height:auto; padding:16px; border:1px solid var(--core-border); border-radius:14px; content-visibility:visible; contain-intrinsic-size:none; }
   .portalApp .portalDataTable.portalResponsiveTable td { display:flex; flex-direction:column; align-items:flex-start; gap:6px; width:auto; min-width:0; max-width:100%; height:auto; padding:10px 0; border:0; text-align:left; white-space:normal; font-family:var(--core-font-ui); font-size:14px; line-height:1.6; }
   .portalApp .portalDataTable.portalResponsiveTable td:first-child,
   .portalApp .portalDataTable.portalResponsiveTable .primaryCell { grid-column:1/-1; padding-top:0; padding-bottom:16px; margin-bottom:4px; border-bottom:1px solid var(--core-border-soft); }

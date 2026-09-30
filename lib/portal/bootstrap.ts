@@ -12,6 +12,7 @@ import {
   PORTAL_V10_SQL,
   PORTAL_V11_SQL,
   PORTAL_V12_SQL,
+  PORTAL_V14_SQL,
   PORTAL_MIGRATION_SQL,
 } from "@/lib/generated/portal-migrations";
 
@@ -74,6 +75,7 @@ const REQUIRED_PORTAL_TABLES = [
   "portal_meeting_participants",
   "portal_meeting_notes",
   "portal_meeting_reports",
+  "portal_meeting_transports",
   "portal_polls",
   "portal_poll_options",
   "portal_poll_votes",
@@ -160,7 +162,7 @@ export async function ensurePortalCollaborationFinanceSchema() {
   collaborationFinanceSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitSqlStatements(PORTAL_V12_SQL);
+    const statements = splitSqlStatements(PORTAL_V12_SQL + "\n" + PORTAL_V14_SQL);
     if (!statements.length) throw new Error("Collaboration & finance migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
@@ -254,11 +256,11 @@ export async function applyPortalFoundation(actor: string) {
   `).bind(
     actor,
     JSON.stringify({
-      version: "2026.09-v13-authority-cleanup",
+      version: "2026.09-v14-meeting-realtime",
       statementCount: statements.length,
       modules: [
         "members","auth","tasks","resources","repositories","inventory",
-        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal","vault-raw-upload","mail-groups","mail-locked-groups","mail-integrated-reader","meeting-spaces","meeting-calendar","meeting-decisions","meeting-reports","polls","poll-notifications","budget-ledger","budget-allocations","budget-approvals"
+        "chat","mail","calendar","notifications","vault","cad","pcb","repo-gateway","runner-jobs","mobile-shell","mobile-devices","deep-links","vehicles","telemetry","devices","teams","governance","role-profiles","project-registry","project-map","vehicle-profiles","control-plane","repo-review","repo-native-r2","code-lab-runner","code-lab-events","code-lab-artifacts","code-lab-live-terminal","vault-raw-upload","mail-groups","mail-locked-groups","mail-integrated-reader","meeting-spaces","meeting-calendar","meeting-realtime","meeting-decisions","meeting-reports","polls","poll-notifications","budget-ledger","budget-allocations","budget-approvals"
       ],
     })
   ).run();
