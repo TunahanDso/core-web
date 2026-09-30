@@ -30,3 +30,7 @@ desktop/pki/private/
 # Generated Next/TypeScript artifacts
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Browser test output
+/playwright-report/
+/test-results/

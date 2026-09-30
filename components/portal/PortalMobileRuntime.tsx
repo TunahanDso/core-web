@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
@@ -22,11 +22,6 @@ function currentPortalPath() {
   if (typeof window === "undefined") return "/portal";
   const path = window.location.pathname + window.location.search + window.location.hash;
   return path.startsWith("/portal") ? path : "/portal";
-}
-
-function mobileBrowser() {
-  if (typeof navigator === "undefined") return false;
-  return /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
 }
 
 function standalonePwa() {
@@ -88,10 +83,6 @@ function pushTarget(data: Record<string, unknown>, config: MobileConfig) {
   return raw ? safePortalTarget(raw,config) : null;
 }
 
-function deepLink(config: MobileConfig) {
-  return config.appScheme + "://portal/open?path=" + encodeURIComponent(currentPortalPath());
-}
-
 function safePortalTarget(url: string, config: MobileConfig) {
   try {
     const parsed = new URL(url);
@@ -113,24 +104,10 @@ function safePortalTarget(url: string, config: MobileConfig) {
 
 export default function PortalMobileRuntime({ config }: { config: MobileConfig }) {
   const pathname = usePathname();
-  const [handoffVisible,setHandoffVisible] = useState(false);
-  const [native,setNative] = useState(false);
-  const [storeUrl,setStoreUrl] = useState("");
-
-  const schemeUrl = useMemo(() => {
-    if (typeof window === "undefined") return config.appScheme + "://portal";
-    return deepLink(config);
-  }, [config, pathname]);
 
   useEffect(() => {
     const isNative = Capacitor.isNativePlatform();
     const isStandalone = standalonePwa();
-    setNative(isNative);
-
-    if (typeof navigator !== "undefined") {
-      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      setStoreUrl(ios ? config.appStoreUrl : config.playStoreUrl);
-    }
 
     // Existing path-scoped sessions are promoted before authenticated API calls.
     const promote = fetch("/portal/session-upgrade", {
@@ -218,64 +195,13 @@ export default function PortalMobileRuntime({ config }: { config: MobileConfig }
       }).then((handle) => { deepLinkHandle = handle; });
     }
 
-    if (
-      config.handoffEnabled &&
-      !isNative &&
-      !isStandalone &&
-      mobileBrowser() &&
-      !new URL(window.location.href).searchParams.has("web") &&
-      sessionStorage.getItem("core_mobile_handoff_attempted") !== "1"
-    ) {
-      sessionStorage.setItem("core_mobile_handoff_attempted","1");
-      const timer = window.setTimeout(() => {
-        window.location.href = deepLink(config);
-        window.setTimeout(() => {
-          if (document.visibilityState === "visible") setHandoffVisible(true);
-        }, 1100);
-      }, 250);
-
-      return () => {
-        window.clearTimeout(timer);
-        if (deepLinkHandle) void deepLinkHandle.remove();
-        for (const handle of pushHandles) void handle.remove();
-      };
-    }
-
     return () => {
       if (deepLinkHandle) void deepLinkHandle.remove();
       for (const handle of pushHandles) void handle.remove();
     };
   }, [config, pathname]);
 
-  if (native || !handoffVisible) return null;
-
-  return (
-    <div className="portalAppHandoff" role="dialog" aria-modal="true" aria-label="YTÜ CORE mobil uygulama">
-      <section>
-        <span className="portalAppHandoffKicker">YTÜ CORE · MOBILE</span>
-        <h2>Portal uygulamada daha rahat.</h2>
-        <p>
-          Bu cihazda CORE uygulaması yüklüyse kaldığın portal ekranını uygulamada açacağız.
-          Uygulama yoksa tarayıcıda devam edebilir veya mevcut kurulum seçeneğini kullanabilirsin.
-        </p>
-        <div className="portalAppHandoffActions">
-          <a href={schemeUrl} className="primary">UYGULAMAYI AÇ →</a>
-          {storeUrl ? <a href={storeUrl} className="store">UYGULAMAYI KUR ↗</a> : null}
-          <button
-            type="button"
-            onClick={() => {
-              sessionStorage.setItem("core_mobile_handoff_attempted","1");
-              setHandoffVisible(false);
-              const url = new URL(window.location.href);
-              url.searchParams.set("web","1");
-              window.history.replaceState(null,"",url.pathname + url.search + url.hash);
-            }}
-          >
-            BU OTURUMDA TARAYICIDA DEVAM ET
-          </button>
-        </div>
-        <small>Otomatik handoff yalnızca mobil tarayıcıda çalışır; PWA ve native uygulama tekrar yönlendirilmez.</small>
-      </section>
-    </div>
-  );
+  // Browsing the portal must never launch a custom URL scheme. App launch is
+  // an explicit link on the Devices page; installed apps still receive links above.
+  return null;
 }

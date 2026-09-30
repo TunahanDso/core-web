@@ -5,6 +5,7 @@ const repo=process.cwd();
 export default defineConfig({root:path.join(repo,'tests/ui'),publicDir:path.join(repo,'public'),plugins:[react()],resolve:{alias:[
  {find:'next/link',replacement:path.join(repo,'tests/ui/navigation.tsx')},
  {find:'next/navigation',replacement:path.join(repo,'tests/ui/navigation.tsx')},
+ {find:/^@capacitor\//,replacement:path.join(repo,'tests/ui/native.ts')+'?plugin='},
  {find:'@/app/portal/actions',replacement:path.join(repo,'tests/ui/actions.ts')},
  {find:'@/components/portal/PortalBanner',replacement:path.join(repo,'tests/ui/banner.tsx')},
  {find:'@',replacement:repo}

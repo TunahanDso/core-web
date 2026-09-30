@@ -191,7 +191,7 @@ export default function PortalCommandCenter({ canControl = false }: { canControl
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span aria-hidden="true">⌕</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
         <b>Ara veya bir sayfaya git…</b>
         <kbd>Ctrl / ⌘ K</kbd>
       </button>
