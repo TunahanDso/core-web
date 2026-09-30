@@ -1,0 +1,15 @@
+/* Delivery diagnostics: readable on narrow screens, scoped to the admin surface. */
+.adminInviteDeliveryNotice { display:grid; gap:10px; min-width:0; margin-top:12px; padding:16px; border:1px solid #d0d6d0; border-radius:10px; background:#f8faf7; color:#263128; font:14px/1.6 system-ui,sans-serif; overflow-wrap:anywhere; }
+.adminInviteDeliveryNotice :is(p,small,b,label) { margin:0; color:inherit; font-size:inherit; }
+.adminInviteDeliveryNotice label { display:grid; gap:6px; }
+.adminInviteDeliveryNotice input { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid #abb5ad; border-radius:6px; background:#fff; color:#263128; font:13px/1.5 ui-monospace,monospace; }
+.adminInviteDeliveryNotice .error, .adminInviteDeliveryHistory .error { color:#953817; }
+.adminInviteDeliveryNotice.pending { background:#fff8e8; border-color:#c5a456; }
+.adminInviteDeliveryHistory { display:grid; gap:16px; margin-top:32px; min-width:0; color:#263128; font:14px/1.6 system-ui,sans-serif; }
+.adminInviteDeliveryHistory :is(header,article) { display:grid; gap:8px; min-width:0; padding:20px; background:#fff; border:1px solid #d0d6d0; border-radius:12px; overflow-wrap:anywhere; }
+.adminInviteDeliveryHistory :is(p,h2) { margin:0; }
+.adminInviteDeliveryHistory h2 { font-size:22px; }
+.adminInviteDeliveryHistory article>div { display:grid; gap:4px; min-width:0; }
+.adminInviteDeliveryHistory small { color:#526055; }
+.adminInviteDeliveryHistory code { display:block; padding:10px; background:#f3f5f1; font:13px/1.6 ui-monospace,monospace; white-space:normal; overflow-wrap:anywhere; user-select:all; }
+.adminInviteDeliveryHistory a { display:flex; align-items:center; min-height:44px; color:#943b12; text-decoration:underline; }

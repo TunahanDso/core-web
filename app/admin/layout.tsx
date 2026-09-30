@@ -1,4 +1,5 @@
 import "@/app/workspace.css";
+import "@/app/admin/delivery.css";
 import { notFound } from "next/navigation";
 import { getAdminIdentity } from "@/lib/cms/auth";
 

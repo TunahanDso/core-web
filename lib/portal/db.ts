@@ -77,9 +77,9 @@ export async function listPortalMembers() {
   try {
     const response = await db.prepare(
       "SELECT m.id,m.email,m.full_name,m.role,m.status,m.teams_json,m.activated_at,m.last_login_at,m.created_at," +
-      "(SELECT d.status FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_status," +
-      "(SELECT d.provider FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_provider," +
-      "(SELECT d.attempted_at FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC LIMIT 1) AS invite_delivery_at " +
+      "(SELECT d.status FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC,d.rowid DESC LIMIT 1) AS invite_delivery_status," +
+      "(SELECT d.provider FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC,d.rowid DESC LIMIT 1) AS invite_delivery_provider," +
+      "(SELECT d.attempted_at FROM portal_invites i JOIN portal_invite_deliveries d ON d.invite_id=i.id WHERE i.member_id=m.id ORDER BY d.attempted_at DESC,d.rowid DESC LIMIT 1) AS invite_delivery_at " +
       "FROM portal_members m ORDER BY CASE m.status WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,m.full_name,m.email"
     ).all<Record<string, unknown>>();
     return response.results ?? [];
@@ -466,10 +466,11 @@ export async function recordPortalInviteDelivery(input: {
   messageId?: string;
   error?: string;
 }) {
+  const id = crypto.randomUUID();
   await database().prepare(
     "INSERT INTO portal_invite_deliveries (id,invite_id,recipient,provider,status,message_id,error) VALUES (?,?,?,?,?,?,?)"
   ).bind(
-    crypto.randomUUID(),
+    id,
     input.inviteId,
     input.recipient,
     input.provider,
@@ -477,6 +478,26 @@ export async function recordPortalInviteDelivery(input: {
     input.messageId ?? null,
     input.error ?? null
   ).run();
+  return id;
+}
+
+export async function finishPortalInviteDelivery(id: string, input: {
+  provider: string;
+  status: "pending" | "sent" | "failed" | "not_configured";
+  messageId?: string;
+  error?: string;
+}) {
+  await database().prepare(
+    "UPDATE portal_invite_deliveries SET provider=?,status=?,message_id=?,error=? WHERE id=?"
+  ).bind(input.provider,input.status,input.messageId??null,input.error??null,id).run();
+}
+
+/** Only the authenticated admin page uses delivery diagnostics; invite codes are never selected. */
+export async function listPortalInviteDeliveryHistory() {
+  const response=await database().prepare(
+    "SELECT d.id,d.recipient,d.provider,d.status,d.message_id,d.error,d.attempted_at FROM portal_invite_deliveries d ORDER BY d.attempted_at DESC,d.rowid DESC LIMIT 30"
+  ).all<Record<string, unknown>>();
+  return response.results??[];
 }
 
 export async function getPortalMemberById(memberId: string) {

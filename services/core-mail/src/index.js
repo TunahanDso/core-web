@@ -15,9 +15,11 @@ export default {
     if(!to||!subject||(!text&&!html)) return json({ok:false,error:"invalid-payload"},400);
     try{
       const result=await env.EMAIL.send({from,to,subject,text,html,replyTo:replyTo||undefined});
-      return json({ok:true,provider:"cloudflare",messageId:result?.messageId||null});
+      const messageId=typeof result?.messageId==="string"?result.messageId.trim():"";
+      return json({ok:true,provider:"cloudflare",status:messageId?"sent":"pending",messageId:messageId||null},messageId?200:202);
     }catch(error){
-      return json({ok:false,error:errorMessage(error)},502);
+      const code=error&&typeof error==="object"&&typeof error.code==="string"?error.code:undefined;
+      return json({ok:false,status:code?"failed":"pending",error:errorMessage(error),code},502);
     }
   }
 };

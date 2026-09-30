@@ -2,9 +2,10 @@ import { env } from "cloudflare:workers";
 
 export type PortalMailDelivery = {
   provider: "cloudflare" | "resend" | "none";
-  status: "sent" | "failed" | "not_configured";
+  status: "pending" | "sent" | "failed" | "not_configured";
   messageId?: string;
   error?: string;
+  errorCode?: string;
 };
 
 type MailPayload = {
@@ -13,6 +14,21 @@ type MailPayload = {
   text: string;
   html: string;
 };
+
+function acceptedDelivery(provider: "cloudflare" | "resend", messageId: unknown): PortalMailDelivery {
+  if (typeof messageId === "string" && messageId.trim()) {
+    return { provider, status: "sent", messageId: messageId.trim() };
+  }
+  return { provider, status: "pending", error: "Sağlayıcı gönderim kimliği döndürmedi. Gönderim sonucu belirsiz; tekrar göndermeden önce sağlayıcı kaydını kontrol et." };
+}
+
+function uncertainDelivery(provider: "cloudflare" | "resend"): PortalMailDelivery {
+  return { provider, status: "pending", error: "Mail servisi yanıtı alınamadı. İleti kabul edilmiş olabilir; tekrar göndermeden önce sağlayıcı kaydını kontrol et." };
+}
+
+function recipientRejected(delivery: PortalMailDelivery) {
+  return ["E_RECIPIENT_SUPPRESSED", "E_RECIPIENT_NOT_ALLOWED", "E_VALIDATION_ERROR"].includes(delivery.errorCode || "");
+}
 
 function escapeHtml(value: string) {
   return value
@@ -99,6 +115,7 @@ async function sendWithResend(payload: MailPayload): Promise<PortalMailDelivery>
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
+      signal: AbortSignal.timeout(15000),
       headers: {
         Authorization: "Bearer " + env.RESEND_API_KEY,
         "Content-Type": "application/json",
@@ -120,17 +137,9 @@ async function sendWithResend(payload: MailPayload): Promise<PortalMailDelivery>
         error: typeof result.message === "string" ? result.message : "Resend gönderimi başarısız.",
       };
     }
-    return {
-      provider: "resend",
-      status: "sent",
-      messageId: typeof result.id === "string" ? result.id : undefined,
-    };
-  } catch (error) {
-    return {
-      provider: "resend",
-      status: "failed",
-      error: error instanceof Error ? error.message : "Resend gönderimi başarısız.",
-    };
+    return acceptedDelivery("resend", result.id);
+  } catch {
+    return uncertainDelivery("resend");
   }
 }
 
@@ -140,6 +149,7 @@ async function sendWithMailService(payload:MailPayload):Promise<PortalMailDelive
   try{
     const response=await binding.fetch("https://core-mail.internal/v1/send",{
       method:"POST",
+      signal:AbortSignal.timeout(15000),
       headers:{"content-type":"application/json"},
       body:JSON.stringify({
         ...payload,
@@ -147,19 +157,23 @@ async function sendWithMailService(payload:MailPayload):Promise<PortalMailDelive
         replyTo:mailReplyTo(),
       }),
     });
-    const result=await response.json().catch(()=>({})) as {ok?:boolean;provider?:string;messageId?:string;error?:string};
-    if(response.ok&&result.ok){
-      return {provider:"cloudflare",status:"sent",messageId:result.messageId};
+    const result=await response.json().catch(()=>({})) as {ok?:boolean;status?:string;messageId?:string;error?:string;code?:string};
+    if(result.status==="pending")return uncertainDelivery("cloudflare");
+    if(response.ok&&result.ok===true){
+      return acceptedDelivery("cloudflare",result.messageId);
     }
-    return {provider:"cloudflare",status:"failed",error:result.error||"CORE Mail Service gönderimi başarısız."};
-  }catch(error){
-    return {provider:"cloudflare",status:"failed",error:error instanceof Error?error.message:"CORE Mail Service erişilemedi."};
+    // Older service versions omit error codes. A server failure without a code
+    // cannot prove that the provider did not accept the message.
+    if(result.ok!==false || (response.status>=500&&!result.code&&result.error!=="email-binding-unavailable"))return uncertainDelivery("cloudflare");
+    return {provider:"cloudflare",status:"failed",error:cloudflareErrorMessage({code:result.code,message:result.error||"CORE Mail Service gönderimi başarısız."}),errorCode:result.code};
+  }catch{
+    return uncertainDelivery("cloudflare");
   }
 }
 
 async function deliverPortalEmail(payload: MailPayload): Promise<PortalMailDelivery> {
   const isolated=await sendWithMailService(payload);
-  if(isolated?.status==="sent") return isolated;
+  if(isolated && (isolated.status==="sent" || isolated.status==="pending" || recipientRejected(isolated))) return isolated;
 
   let cloudflareFailure: string | undefined = isolated?.error;
 
@@ -173,13 +187,13 @@ async function deliverPortalEmail(payload: MailPayload): Promise<PortalMailDeliv
         html: payload.html,
         replyTo: mailReplyTo(),
       });
-      return {
-        provider: "cloudflare",
-        status: "sent",
-        messageId: result?.messageId,
-      };
+      return acceptedDelivery("cloudflare", result?.messageId);
     } catch (error) {
       cloudflareFailure = cloudflareErrorMessage(error);
+      const errorCode=error && typeof error==="object" && "code" in error ? String(error.code) : undefined;
+      if(!errorCode)return uncertainDelivery("cloudflare");
+      const rejected:PortalMailDelivery={provider:"cloudflare",status:"failed",error:cloudflareFailure,errorCode};
+      if(recipientRejected(rejected))return rejected;
     }
   }
 
