@@ -57,6 +57,25 @@ html[data-core-native="native-v2"]:not(:has(.nativeBottomTabs)) .portalApp .port
     box-sizing:border-box;
     padding-bottom:calc(60px + env(safe-area-inset-bottom))!important;
   }
+  html[data-core-keyboard="open"]:not([data-core-native="native-v2"]) .portalApp:has(.portalContentViewport) {
+    position:fixed;
+    top:var(--core-visual-viewport-top,0px);
+    right:0;
+    bottom:auto;
+    left:0;
+    width:100%;
+    height:var(--core-workspace-height,100dvh);
+    max-height:var(--core-workspace-height,100dvh);
+    overflow:hidden;
+  }
+  html[data-core-keyboard="open"]:not([data-core-native="native-v2"]) .portalWorkspace:has(>.portalContentViewport)>.portalTopbar,
+  html[data-core-keyboard="open"]:not([data-core-native="native-v2"]) .portalMobileNav,
+  html[data-core-keyboard="open"]:not([data-core-native="native-v2"]) .portalInstallButton {
+    display:none!important;
+  }
+  html[data-core-keyboard="open"]:not([data-core-native="native-v2"]) .portalApp .portalContent.portalContentViewport {
+    padding-bottom:0!important;
+  }
   .portalContentViewport .chatAppTopbar { grid-template-columns:minmax(0,1fr) auto; gap:8px; }
   .portalContentViewport .chatAppSearch { grid-column:1/-1; grid-row:2; height:44px; }
   .portalContentViewport .chatAppIdentity small { display:none; }

@@ -133,6 +133,21 @@ for(const theme of ['light','dark','aurora']){
       await withinViewport(page,'.chatFixedComposer');
       await aboveFixedNavigation(page,'.chatFixedComposer','.portalMobileNav');
       await noPageOverflow(page);
+
+      const textarea=page.getByRole('textbox',{name:'Kanal mesajı'});
+      await textarea.focus();
+      await expect(page.locator('html')).toHaveAttribute('data-core-keyboard','open');
+      await expect(page.locator('.portalMobileNav')).toBeHidden();
+      await expect(page.locator('.portalTopbar')).toBeHidden();
+      await expect(page.locator('.chatFixedComposer')).toBeVisible();
+      await withinViewport(page,'.chatFixedComposer');
+      expect(await page.locator('.portalApp').evaluate(el=>getComputedStyle(el).position)).toBe('fixed');
+      expect(await page.locator('.portalContentViewport').evaluate(el=>parseFloat(getComputedStyle(el).paddingBottom))).toBe(0);
+
+      await textarea.evaluate((el:HTMLTextAreaElement)=>el.blur());
+      await expect(page.locator('html')).not.toHaveAttribute('data-core-keyboard','open');
+      await expect(page.locator('.portalMobileNav')).toBeVisible();
+
       await page.goto('/portal/chat?nativeFixture=1');
       await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
       const nativeComposer=page.locator('.chatFixedComposer');
