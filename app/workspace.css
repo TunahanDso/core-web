@@ -11312,13 +11312,17 @@ html[data-density="compact"]{
 .portalMovementDataTable th:nth-child(4){width:12%}
 .portalMovementDataTable th:nth-child(5){width:27%}
 .portalMovementDataTable th:nth-child(6){width:15%}
-.portalRepositoryDataTable th:nth-child(1){width:28%}
+.portalRepositoryDataTable{
+  min-width:1040px;
+}
+.portalRepositoryDataTable th:nth-child(1){width:24%}
 .portalRepositoryDataTable th:nth-child(2){width:12%}
-.portalRepositoryDataTable th:nth-child(3){width:12%}
-.portalRepositoryDataTable th:nth-child(4){width:12%}
-.portalRepositoryDataTable th:nth-child(5){width:16%}
-.portalRepositoryDataTable th:nth-child(6){width:11%}
-.portalRepositoryDataTable th:nth-child(7){width:9%}
+.portalRepositoryDataTable th:nth-child(3){width:11%}
+.portalRepositoryDataTable th:nth-child(4){width:10%}
+.portalRepositoryDataTable th:nth-child(5){width:10%}
+.portalRepositoryDataTable th:nth-child(6){width:9%}
+.portalRepositoryDataTable th:nth-child(7){width:15%}
+.portalRepositoryDataTable th:nth-child(8){width:9%}
 
 html[data-density="compact"] .portalFormGrid{
   gap:8px;
