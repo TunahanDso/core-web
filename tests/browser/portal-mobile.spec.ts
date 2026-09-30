@@ -1,7 +1,7 @@
 import {test,expect,type Page} from '@playwright/test';
 
-async function prepare(page:Page,theme:string){
-  await page.addInitScript(theme=>{localStorage.setItem('core.portal.theme',theme);localStorage.setItem('core.portal.sidebar.collapsed','1');},theme);
+async function prepare(page:Page,theme:string,collapsed=true){
+  await page.addInitScript(({theme,collapsed})=>{localStorage.setItem('core.portal.theme',theme);localStorage.setItem('core.portal.sidebar.collapsed',collapsed?'1':'0');},{theme,collapsed});
   await page.route('**/portal/session-upgrade',route=>route.fulfill({status:200,body:'{}'}));
   await page.route('**/api/portal/mobile/register',route=>route.fulfill({status:200,body:'{}'}));
 }
@@ -87,3 +87,52 @@ test('empty home and enlarged text remain inside the viewport',async({page},info
   await noPageOverflow(page);await expect(page.getByText('Şu an açık atanmış görevin yok.')).toBeVisible();
   await page.screenshot({path:info.outputPath('large-text.png'),fullPage:true});
 });
+
+async function withinViewport(page:Page,selector:string){
+  const box=await page.locator(selector).first().boundingBox();
+  expect(box).not.toBeNull();expect(box!.y).toBeGreaterThanOrEqual(-1);
+  expect(box!.y+box!.height).toBeLessThanOrEqual((await page.evaluate(()=>visualViewport?.height||innerHeight))+1);
+  expect(await page.evaluate(()=>document.documentElement.scrollHeight-innerHeight)).toBeLessThanOrEqual(1);
+}
+for(const theme of ['light','dark','aurora']){
+  test(`${theme}: real chat keeps composer visible and scrolls messages internally`,async({page},info)=>{
+    await prepare(page,theme);await page.goto('/portal/chat');
+    await expect(page.locator('.chatFixedComposer')).toBeVisible();
+    await withinViewport(page,'.chatFixedComposer');await noPageOverflow(page);
+    await readable(page,'.chatAppIdentity b,.chatConversationHeader b,.portalMessageContent header b,.portalMessageContent p,.chatFixedComposer button,.portalBrand b,.portalIdentity b');
+    await page.locator('.chatMessageViewport').evaluate(el=>el.scrollTop=el.scrollHeight);
+    await expect(page.getByText('Tasarım incelemesi ve test planı için mesaj 24',{exact:true})).toBeVisible();
+    await withinViewport(page,'.chatFixedComposer');
+    await page.screenshot({path:info.outputPath(`${theme}-chat.png`),animations:'disabled'});
+    if(!info.project.name.startsWith('desktop')){
+      await page.setViewportSize({width:390,height:440});
+      await withinViewport(page,'.chatFixedComposer');await noPageOverflow(page);
+      await page.goto('/portal/chat?nativeFixture=1');
+      await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
+      await expect(page.locator('.chatFixedComposer')).toBeVisible();
+      await withinViewport(page,'.chatFixedComposer');
+    }
+  });
+  test(`${theme}: real mail reader and composer fit the workspace`,async({page},info)=>{
+    await prepare(page,theme);await page.goto('/portal/mail?thread=thread');
+    await expect(page.locator('.mailReaderHeader')).toBeVisible();
+    await withinViewport(page,'.mailConversationViewport');await noPageOverflow(page);
+    await readable(page,'.mailAppIdentity b,.mailReaderHeader h1,.mailConversationMessage b,.mailConversationMessage p');
+    await page.goto('/portal/mail?compose=1');await expect(page.locator('.mailComposeSurface')).toBeVisible();
+    await withinViewport(page,'.mailComposeSurface>form>footer');await noPageOverflow(page);
+    await readable(page,'.mailComposeSurface>header b,.mailComposeSubject>span,.mailComposeRecipients b,.mailComposeSurface footer button');
+    await page.screenshot({path:info.outputPath(`${theme}-mail-compose.png`),animations:'disabled'});
+  });
+  test(`${theme}: security surface and desktop rail preserve theme and width`,async({page},info)=>{
+    await prepare(page,theme,false);
+    await page.addInitScript(()=>{document.documentElement.classList.add('coreDesktopRuntime');});
+    await page.goto('/portal/security');await expect(page.getByRole('heading',{name:'Güvenlik & Cihazlar'})).toBeVisible();
+    await readable(page,'.portalPageHeader h1,.portalPageHeader p,.portalSecurityGrid h3,.portalSecurityGrid p,.portalBrand b,.portalIdentity b,.portalNav a.active b');
+    if(info.project.name.startsWith('desktop')){
+      expect(await page.locator('.portalNavScroll').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+      await page.getByRole('button',{name:'Sol menüyü daralt'}).click();
+      expect(await page.locator('.portalNavScroll').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+    }
+    await noPageOverflow(page);await page.screenshot({path:info.outputPath(`${theme}-security.png`),animations:'disabled'});
+  });
+}
