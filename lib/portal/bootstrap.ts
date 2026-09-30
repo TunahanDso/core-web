@@ -74,6 +74,7 @@ const REQUIRED_PORTAL_TABLES = [
   "portal_meeting_participants",
   "portal_meeting_notes",
   "portal_meeting_reports",
+  "portal_meeting_transports",
   "portal_polls",
   "portal_poll_options",
   "portal_poll_votes",
@@ -160,7 +161,7 @@ export async function ensurePortalCollaborationFinanceSchema() {
   collaborationFinanceSchemaPromise = (async () => {
     const db = env.DB;
     if (!db) throw new Error("DB binding is not available.");
-    const statements = splitSqlStatements(PORTAL_V12_SQL);
+    const statements = splitSqlStatements(PORTAL_V12_SQL + "\n" + PORTAL_V14_SQL);
     if (!statements.length) throw new Error("Collaboration & finance migration is empty.");
     await db.batch(statements.map((statement) => db.prepare(statement)));
   })().catch((error) => {
