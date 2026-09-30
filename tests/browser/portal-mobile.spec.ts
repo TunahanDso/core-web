@@ -1,7 +1,7 @@
 import {test,expect,type Page} from '@playwright/test';
 
-async function prepare(page:Page,theme:string){
-  await page.addInitScript(theme=>{localStorage.setItem('core.portal.theme',theme);localStorage.setItem('core.portal.sidebar.collapsed','1');},theme);
+async function prepare(page:Page,theme:string,collapsed=true){
+  await page.addInitScript(({theme,collapsed})=>{localStorage.setItem('core.portal.theme',theme);localStorage.setItem('core.portal.sidebar.collapsed',collapsed?'1':'0');},{theme,collapsed});
   await page.route('**/portal/session-upgrade',route=>route.fulfill({status:200,body:'{}'}));
   await page.route('**/api/portal/mobile/register',route=>route.fulfill({status:200,body:'{}'}));
 }
@@ -107,6 +107,10 @@ for(const theme of ['light','dark','aurora']){
     if(!info.project.name.startsWith('desktop')){
       await page.setViewportSize({width:390,height:440});
       await withinViewport(page,'.chatFixedComposer');await noPageOverflow(page);
+      await page.goto('/portal/chat?nativeFixture=1');
+      await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
+      await expect(page.locator('.chatFixedComposer')).toBeVisible();
+      await withinViewport(page,'.chatFixedComposer');
     }
   });
   test(`${theme}: real mail reader and composer fit the workspace`,async({page},info)=>{
@@ -120,10 +124,10 @@ for(const theme of ['light','dark','aurora']){
     await page.screenshot({path:info.outputPath(`${theme}-mail-compose.png`),animations:'disabled'});
   });
   test(`${theme}: security surface and desktop rail preserve theme and width`,async({page},info)=>{
-    await prepare(page,theme);
-    await page.addInitScript(()=>{document.documentElement.classList.add('coreDesktopRuntime');localStorage.setItem('core.portal.sidebar.collapsed','0');});
+    await prepare(page,theme,false);
+    await page.addInitScript(()=>{document.documentElement.classList.add('coreDesktopRuntime');});
     await page.goto('/portal/security');await expect(page.getByRole('heading',{name:'Güvenlik & Cihazlar'})).toBeVisible();
-    await readable(page,'.portalPageHeader h1,.portalPageHeader p,.portalSecurityGrid h3,.portalSecurityGrid p,.portalBrand b,.portalIdentity b');
+    await readable(page,'.portalPageHeader h1,.portalPageHeader p,.portalSecurityGrid h3,.portalSecurityGrid p,.portalBrand b,.portalIdentity b,.portalNav a.active b');
     if(info.project.name.startsWith('desktop')){
       expect(await page.locator('.portalNavScroll').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
       await page.getByRole('button',{name:'Sol menüyü daralt'}).click();
