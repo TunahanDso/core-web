@@ -44,6 +44,11 @@ test('meeting UI uses pinned RealtimeKit Web Components and secure join endpoint
   assert.match(panel,/fetch\("\/api\/portal\/meetings\/"\+encodeURIComponent\(meetingId\)\+"\/realtime"/);
   assert.match(panel,/document\.createElement\("rtk-meeting"\)/);
   assert.match(panel,/showSetupScreen=true/);
+  assert.match(panel,/element\.mode="fill"/);
+  assert.match(panel,/element\.loadConfigFromPreset=true/);
+  assert.match(panel,/self\?\.show\?\.\(\)/);
+  assert.match(panel,/registerVideoElement\?\.\(element\)/);
+  assert.match(panel,/listen\(self,"roomLeft",onRoomLeft\)/);
   assert.match(nextConfig,/script-src 'self' 'unsafe-inline' https:\/\/cdn\.jsdelivr\.net/);
 });
 
@@ -66,4 +71,20 @@ test('native shell provisioning includes camera and microphone permissions',()=>
   assert.match(nativeConfig,/android\.permission\.RECORD_AUDIO/);
   assert.match(nativeConfig,/NSCameraUsageDescription/);
   assert.match(nativeConfig,/NSMicrophoneUsageDescription/);
+});
+
+test('RealtimeKit lifecycle returns control to CORE and verifies provider-ended state',()=>{
+  const panel=read('components/portal/MeetingTransportPanel.tsx');
+  const route=read('app/api/portal/meetings/[id]/realtime/lifecycle/route.ts');
+  const backend=read('lib/portal/meeting-realtime.ts');
+
+  assert.match(panel,/\/realtime\/lifecycle"/);
+  assert.match(panel,/router\.replace\("\/portal\/meetings\/"/);
+  assert.match(route,/getPortalMember\(\)/);
+  assert.match(route,/\["host","moderator"\]/);
+  assert.match(route,/syncEndedRealtimeKitSession/);
+  assert.match(backend,/\/active-session\`/);
+  assert.match(backend,/status \|\| ""\)\.toUpperCase\(\)!=="ENDED"/);
+  assert.match(backend,/UPDATE portal_meetings SET status='completed'/);
+  assert.match(backend,/JSON\.stringify\(\{status:"INACTIVE"\}\)/);
 });
