@@ -7,6 +7,7 @@
     "nodejs_compat",
     "global_fetch_strictly_public"
   ],
+  "keep_vars": true,
   "assets": {
     "binding": "ASSETS",
     "not_found_handling": "none"
@@ -65,10 +66,6 @@
     "CORE_RUNNER_URL": "https://runner.ytucore.com",
     "CORE_TELEMETRY_URL": "",
     "PORTAL_MEETING_PROVIDER": "",
-    "PORTAL_MEETING_PROVIDER_URL": "",
-    "PORTAL_REALTIMEKIT_ACCOUNT_ID": "",
-    "PORTAL_REALTIMEKIT_APP_ID": "",
-    "PORTAL_REALTIMEKIT_HOST_PRESET": "",
-    "PORTAL_REALTIMEKIT_PARTICIPANT_PRESET": ""
+    "PORTAL_MEETING_PROVIDER_URL": ""
   }
 }
