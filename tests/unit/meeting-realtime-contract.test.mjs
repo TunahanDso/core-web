@@ -54,3 +54,11 @@ test('meeting realtime migration is included in generated schema pipeline',()=>{
   assert.match(bootstrap,/PORTAL_V12_SQL \+ "\\n" \+ PORTAL_V14_SQL/);
   assert.match(bootstrap,/"portal_meeting_transports"/);
 });
+
+test('native shell provisioning includes camera and microphone permissions',()=>{
+  const nativeConfig=read('mobile/scripts/configure-native.mjs');
+  assert.match(nativeConfig,/android\.permission\.CAMERA/);
+  assert.match(nativeConfig,/android\.permission\.RECORD_AUDIO/);
+  assert.match(nativeConfig,/NSCameraUsageDescription/);
+  assert.match(nativeConfig,/NSMicrophoneUsageDescription/);
+});
