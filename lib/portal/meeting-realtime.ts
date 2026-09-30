@@ -237,3 +237,30 @@ export async function provisionRealtimeKitJoin(input:{
     authToken,
   };
 }
+
+export async function endRealtimeKitSession(portalMeetingId:string) {
+  if(!getRealtimeKitRuntimeStatus().configured) return false;
+  await ensurePortalCollaborationFinanceSchema();
+  const database=collaborationDb();
+  const row=await database.prepare(
+    "SELECT provider_meeting_id FROM portal_meeting_transports WHERE meeting_id=? AND provider='cloudflare-realtimekit' LIMIT 1"
+  ).bind(portalMeetingId).first<{provider_meeting_id:string}>();
+  const providerMeetingId=String(row?.provider_meeting_id || "").trim();
+  if(!providerMeetingId) return false;
+
+  try {
+    await realtimeRequest<Record<string,unknown>>(
+      `/meetings/${encodeURIComponent(providerMeetingId)}/active-session/kick-all`,
+      {method:"POST",body:"{}"}
+    );
+  } catch {
+    // A meeting without an active session returns an error; it is still safe to deactivate it.
+  }
+
+  await realtimeRequest<RealtimeKitMeeting>(
+    `/meetings/${encodeURIComponent(providerMeetingId)}`,
+    {method:"PATCH",body:JSON.stringify({status:"INACTIVE"})}
+  );
+  return true;
+}
+
