@@ -9,6 +9,7 @@ import mailWorker from '../../services/core-mail/src/index.js';
 const repo=process.cwd(), outputs=[];
 const env=globalThis.__inviteMailEnv={};
 const originalFetch=globalThis.fetch;
+let unexpectedFallbacks=0;
 const invite={inviteId:'invite-1',email:'student@example.test',fullName:'Test <Member>',code:'PRIVATE-ONE-TIME-CODE',expiresAt:'2026-10-03T15:00:00Z'};
 async function bundle(entry, mocks, name) {
   const out=path.join(repo,'node_modules/.cache',name+'.mjs');outputs.push(out);
@@ -34,11 +35,15 @@ const actions=await bundle('app/admin/portal-actions.ts',{
   'next/navigation':'export const redirect=()=>{throw Error("redirect")};',
 },'invite-actions-test');
 
-afterEach(()=>{for(const key of Object.keys(env))delete env[key];globalThis.fetch=originalFetch;delete globalThis.__inviteActionTest;});
+afterEach(()=>{
+  for(const key of Object.keys(env))delete env[key];globalThis.fetch=originalFetch;delete globalThis.__inviteActionTest;
+  const count=unexpectedFallbacks;unexpectedFallbacks=0;
+  assert.equal(count,0,'An uncertain or rejected send must not be retried via another provider');
+});
 after(async()=>{await Promise.all(outputs.map(out=>fs.rm(out,{force:true})));delete globalThis.__inviteMailEnv;});
 const send=()=>mail.sendPortalInvitationEmail({to:invite.email,...invite});
 function json(body,status=200){return new Response(JSON.stringify(body),{status});}
-function noFallback(){env.RESEND_API_KEY='test-only';globalThis.fetch=()=>{assert.fail('An uncertain or rejected send must not be retried via another provider');};}
+function noFallback(){env.RESEND_API_KEY='test-only';globalThis.fetch=async()=>{unexpectedFallbacks++;return json({message:'Unexpected retry'},400);};}
 
 test('activation email goes to the requested recipient and only reports accepted with a tracking ID',async()=>{
   noFallback();let sent;
@@ -49,7 +54,7 @@ test('activation email goes to the requested recipient and only reports accepted
 });
 test('missing tracking IDs, malformed responses and timeouts remain unconfirmed without duplicate sending',async()=>{
   noFallback();
-  for(const response of [()=>json({ok:true}),()=>new Response('unreadable'),()=>{throw Error('timeout');}]){
+  for(const response of [()=>json({ok:true}),()=>new Response('unreadable'),()=>json({ok:false,error:'connection lost'},502),()=>{throw Error('timeout');}]){
     env.MAIL_SERVICE={fetch:async()=>response()};const result=await send();
     assert.equal(result.status,'pending');assert.equal(result.messageId,undefined);
   }

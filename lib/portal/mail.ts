@@ -162,8 +162,9 @@ async function sendWithMailService(payload:MailPayload):Promise<PortalMailDelive
     if(response.ok&&result.ok===true){
       return acceptedDelivery("cloudflare",result.messageId);
     }
-    // An unreadable response cannot prove that a send failed. Do not send it twice.
-    if(result.ok!==false)return uncertainDelivery("cloudflare");
+    // Older service versions omit error codes. A server failure without a code
+    // cannot prove that the provider did not accept the message.
+    if(result.ok!==false || (response.status>=500&&!result.code&&result.error!=="email-binding-unavailable"))return uncertainDelivery("cloudflare");
     return {provider:"cloudflare",status:"failed",error:cloudflareErrorMessage({code:result.code,message:result.error||"CORE Mail Service gönderimi başarısız."}),errorCode:result.code};
   }catch{
     return uncertainDelivery("cloudflare");
