@@ -94,6 +94,28 @@ async function withinViewport(page:Page,selector:string){
   expect(box!.y+box!.height).toBeLessThanOrEqual((await page.evaluate(()=>visualViewport?.height||innerHeight))+1);
   expect(await page.evaluate(()=>document.documentElement.scrollHeight-innerHeight)).toBeLessThanOrEqual(1);
 }
+async function aboveFixedNavigation(page:Page,contentSelector:string,navSelector:string){
+  const content=await page.locator(contentSelector).first().boundingBox();
+  const nav=await page.locator(navSelector).first().boundingBox();
+  expect(content).not.toBeNull();expect(nav).not.toBeNull();
+  expect(content!.y+content!.height).toBeLessThanOrEqual(nav!.y+1);
+}
+async function mountFixtureMobileNav(page:Page){
+  await page.evaluate(()=>{
+    if(document.querySelector('.portalMobileNav'))return;
+    const nav=document.createElement('nav');
+    nav.className='portalMobileNav';
+    nav.setAttribute('aria-label','Fixture mobile navigation');
+    for(const [code,label] of [['OV','Genel'],['PM','Görev'],['CH','Sohbet'],['ML','Mail'],['VA','Vault']]){
+      const link=document.createElement('a');
+      link.href='#';
+      const short=document.createElement('span');short.textContent=code;
+      const text=document.createElement('b');text.textContent=label;
+      link.append(short,text);nav.appendChild(link);
+    }
+    document.body.appendChild(nav);
+  });
+}
 for(const theme of ['light','dark','aurora']){
   test(`${theme}: real chat keeps composer visible and scrolls messages internally`,async({page},info)=>{
     await prepare(page,theme);await page.goto('/portal/chat');
@@ -106,7 +128,11 @@ for(const theme of ['light','dark','aurora']){
     await page.screenshot({path:info.outputPath(`${theme}-chat.png`),animations:'disabled'});
     if(!info.project.name.startsWith('desktop')){
       await page.setViewportSize({width:390,height:440});
-      await withinViewport(page,'.chatFixedComposer');await noPageOverflow(page);
+      await mountFixtureMobileNav(page);
+      await expect(page.locator('.portalMobileNav')).toBeVisible();
+      await withinViewport(page,'.chatFixedComposer');
+      await aboveFixedNavigation(page,'.chatFixedComposer','.portalMobileNav');
+      await noPageOverflow(page);
       await page.goto('/portal/chat?nativeFixture=1');
       await expect(page.locator('html')).toHaveAttribute('data-core-native','native-v2');
       const nativeComposer=page.locator('.chatFixedComposer');
