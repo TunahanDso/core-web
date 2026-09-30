@@ -6,10 +6,10 @@ The portal invitation flow is designed for transactional membership email, not b
 
 - Sender: `YTÜ CORE Portal <portal@ytucore.com>`
 - Reply-To: `portal@ytucore.com`
-- Primary provider: Cloudflare Email Service through the Worker `EMAIL` send binding
+- Primary provider: the portal's `MAIL_SERVICE` binding calls the isolated `core-mail` Worker, which owns the Cloudflare `EMAIL` send binding
 - Optional fallback: Resend through the `RESEND_API_KEY` Worker secret
 
-The invitation secret itself is never stored in plaintext. The D1 invitation table stores only the hash; the raw one-time code exists only at creation/reissue time so it can be shown once in the admin UI and sent in the invitation email.
+The invitation secret itself is never stored in plaintext. The D1 invitation table stores only the hash; the raw one-time code exists only at creation/reissue time to be sent in the invitation email. Admin action responses and delivery history never expose the code. Reissuing an invitation invalidates the previous unused code.
 
 ## Cloudflare production onboarding
 
@@ -21,7 +21,7 @@ The code and Worker binding are committed, but Cloudflare still requires the sen
 4. Accept/create the required sending DNS records for the domain. Cloudflare configures the bounce MX/SPF, DKIM and DMARC records used by Email Service.
 5. Deploy the Worker after the domain is available for sending.
 6. Open **CORE CONTROL > Üyeler & Erişim** and use **Test maili gönder**.
-7. Confirm that the admin panel reports `sent` and that the message arrives outside spam.
+7. Confirm that the admin panel reports provider acceptance with a message ID, then separately confirm receipt and inbox/spam placement with the intended recipient.
 
 If Cloudflare returns `E_SENDER_NOT_VERIFIED` or `E_SENDER_DOMAIN_NOT_AVAILABLE`, the admin test panel translates that into a domain-onboarding error instead of silently reporting success.
 
@@ -39,13 +39,23 @@ That preserves the public club identity while the actual mailbox can remain on a
 
 ## Resend fallback
 
-If the Cloudflare account cannot use arbitrary-recipient Email Sending yet, the same application can fall back to Resend without changing the invitation flow:
+For eligible, explicit Cloudflare send failures, the application can use a configured Resend fallback:
 
 1. Verify `ytucore.com` in Resend and publish its requested DNS records.
 2. Add `RESEND_API_KEY` as a **Worker secret**, never as a committed Wrangler variable.
 3. Keep `PORTAL_MAIL_FROM` on a verified `@ytucore.com` address.
 
-The application tries Cloudflare first. If Cloudflare fails and the Resend secret exists, Resend becomes the automatic fallback provider.
+The application tries Cloudflare first. Explicit failures such as an unavailable sender can fall back when the Resend secret exists. Recipient suppression, recipient restrictions and validation errors are not routed around through a second provider. Timeouts, unreadable responses, unknown binding failures and success responses without a message ID remain `pending` (unconfirmed), so an ambiguous send cannot silently trigger a duplicate.
+
+## Invitation delivery diagnostics
+
+The authenticated admin Members & Access page shows the last 30 invitation attempts, including recipient, UTC attempt time, provider, status, message ID and available error. Existing records are shown too; no migration is required. The initial attempt is written before provider contact, and the same record is finalized afterward. If final persistence fails, the action retains the provider result and tracking ID with a warning instead of suggesting another send.
+
+`sent` means accepted/queued by the provider, not delivery to the recipient's mail server. `pending` means the send result is unconfirmed; it does not mean a verified delivery is still progressing. There is no delivery-event subscription in this application yet.
+
+For a missing activation message, copy its tracking ID from **Davet gönderim geçmişi**, then find that message in Cloudflare Email Sending Activity Log (or Resend for a fallback send). Inspect the final status and SMTP/bounce detail before reissuing. If there is no tracking ID, search by exact recipient and attempt time. A test arriving at an administrator's inbox only confirms that particular recipient, not the invited member's address.
+
+Provider references: [Cloudflare send binding](https://developers.cloudflare.com/email-service/api/send-emails/workers-api/) and [delivery activity logs](https://developers.cloudflare.com/email-service/observability/logs/).
 
 ## Invitation UX
 

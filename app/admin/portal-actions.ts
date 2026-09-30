@@ -7,11 +7,12 @@ import { applyPortalFoundation } from "@/lib/portal/bootstrap";
 import {
   createPortalInvite,
   recordPortalInviteDelivery,
+  finishPortalInviteDelivery,
   reissuePortalInvite,
   setPortalMemberStatus,
 } from "@/lib/portal/db";
 import type { PortalRole } from "@/lib/portal/auth";
-import { sendPortalInvitationEmail, sendPortalTestEmail } from "@/lib/portal/mail";
+import { sendPortalInvitationEmail, sendPortalTestEmail, type PortalMailDelivery } from "@/lib/portal/mail";
 
 function actorFrom(identity: Awaited<ReturnType<typeof requireAdminIdentity>>) {
   if (identity.email) return identity.email;
@@ -20,7 +21,7 @@ function actorFrom(identity: Awaited<ReturnType<typeof requireAdminIdentity>>) {
 
 export type MailTestAdminState = {
   error?: string;
-  status?: "sent" | "failed" | "not_configured";
+  status?: PortalMailDelivery["status"];
   provider?: string;
   messageId?: string;
   recipient?: string;
@@ -30,10 +31,31 @@ export type InviteAdminState = {
   error?: string;
   email?: string;
   expiresAt?: string;
-  deliveryStatus?: "sent" | "failed" | "not_configured";
+  deliveryStatus?: PortalMailDelivery["status"];
   deliveryProvider?: string;
   deliveryError?: string;
+  deliveryMessageId?: string;
+  deliveryWarning?: string;
 };
+
+async function sendAndRecordInvite(result: Awaited<ReturnType<typeof createPortalInvite>>): Promise<InviteAdminState> {
+  // Record before contacting a provider so an interrupted request remains visible.
+  let deliveryId: string;
+  try {
+    deliveryId=await recordPortalInviteDelivery({inviteId:result.inviteId,recipient:result.email,provider:"none",status:"pending"});
+  } catch {
+    return {email:result.email,error:"Davet kaydı oluşturuldu ancak gönderim kaydı başlatılamadı. Mail gönderilmedi. Kayıt sorunu giderildikten sonra daveti yeniden gönder."};
+  }
+  const delivery=await sendPortalInvitationEmail({to:result.email,fullName:result.fullName,code:result.code,expiresAt:result.expiresAt});
+  let deliveryWarning: string | undefined;
+  try {
+    await finishPortalInviteDelivery(deliveryId,delivery);
+  } catch {
+    deliveryWarning="Gönderim sonucu geçmişe yazılamadı. Aşağıdaki takip numarasını sakla; tekrar göndermeden önce sağlayıcı kaydını kontrol et.";
+  }
+  revalidatePath("/admin/members");
+  return {email:result.email,expiresAt:result.expiresAt,deliveryStatus:delivery.status,deliveryProvider:delivery.provider,deliveryError:delivery.error,deliveryMessageId:delivery.messageId,deliveryWarning};
+}
 
 
 export async function sendPortalMailTestAdminAction(
@@ -107,30 +129,7 @@ export async function createPortalInviteAdminAction(
       createdBy: actorFrom(identity),
     });
 
-    const delivery = await sendPortalInvitationEmail({
-      to: result.email,
-      fullName: result.fullName,
-      code: result.code,
-      expiresAt: result.expiresAt,
-    });
-
-    await recordPortalInviteDelivery({
-      inviteId: result.inviteId,
-      recipient: result.email,
-      provider: delivery.provider,
-      status: delivery.status,
-      messageId: delivery.messageId,
-      error: delivery.error,
-    });
-
-    revalidatePath("/admin/members");
-    return {
-      email: result.email,
-      expiresAt: result.expiresAt,
-      deliveryStatus: delivery.status,
-      deliveryProvider: delivery.provider,
-      deliveryError: delivery.error,
-    };
+    return await sendAndRecordInvite(result);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Davet oluşturulamadı." };
   }
@@ -165,30 +164,7 @@ export async function reissuePortalInviteAdminAction(
     if (!memberId) return { error: "Üye kimliği gerekli." };
 
     const result = await reissuePortalInvite(memberId, actorFrom(identity));
-    const delivery = await sendPortalInvitationEmail({
-      to: result.email,
-      fullName: result.fullName,
-      code: result.code,
-      expiresAt: result.expiresAt,
-    });
-
-    await recordPortalInviteDelivery({
-      inviteId: result.inviteId,
-      recipient: result.email,
-      provider: delivery.provider,
-      status: delivery.status,
-      messageId: delivery.messageId,
-      error: delivery.error,
-    });
-
-    revalidatePath("/admin/members");
-    return {
-      email: result.email,
-      expiresAt: result.expiresAt,
-      deliveryStatus: delivery.status,
-      deliveryProvider: delivery.provider,
-      deliveryError: delivery.error,
-    };
+    return await sendAndRecordInvite(result);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Davet yeniden oluşturulamadı." };
   }

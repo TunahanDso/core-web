@@ -38,7 +38,7 @@ export default function MailDeliveryTestForm() {
               ? "TEST MAİLİ SAĞLAYICIYA VERİLDİ"
               : state.status === "not_configured"
                 ? "MAIL SERVİSİ HAZIR DEĞİL"
-                : "GÖNDERİM HATASI"}
+                : state.status === "pending" ? "GÖNDERİM SONUCU BELİRSİZ" : "GÖNDERİM HATASI"}
           </b>
           <span>
             {state.recipient || "—"}

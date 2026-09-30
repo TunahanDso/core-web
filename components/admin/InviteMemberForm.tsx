@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import InviteDeliveryResult from "./InviteDeliveryResult";
 import {
   createPortalInviteAdminAction,
   type InviteAdminState,
@@ -37,25 +38,7 @@ export default function InviteMemberForm() {
 
       {state.error ? <div className="adminInviteError">{state.error}</div> : null}
 
-      {state.deliveryStatus ? (
-        <div className={"adminInviteResult " + state.deliveryStatus}>
-          <span>
-            {state.deliveryStatus === "sent"
-              ? "SAĞLAYICI MESAJI KABUL ETTİ"
-              : state.deliveryStatus === "not_configured"
-                ? "DAVET OLUŞTU · E-POSTA SERVİSİ HAZIR DEĞİL"
-                : "DAVET OLUŞTU · E-POSTA GÖNDERİLEMEDİ"}
-          </span>
-          <p>{state.email}</p>
-          <small>
-            {state.deliveryStatus === "sent"
-              ? "Bu durum inbox teslimini garanti etmez. Davet kodu yalnız alıcının e-postasında gösterilir."
-              : "Kod admin arayüzünde gösterilmez. E-posta altyapısını düzelttikten sonra daveti yeniden üret."}
-            {state.deliveryProvider ? " · " + state.deliveryProvider : ""}
-          </small>
-          {state.deliveryError ? <em>{state.deliveryError}</em> : null}
-        </div>
-      ) : null}
+      <InviteDeliveryResult state={state}/>
     </div>
   );
 }

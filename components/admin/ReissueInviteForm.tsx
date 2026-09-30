@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import InviteDeliveryResult from "./InviteDeliveryResult";
 import {
   reissuePortalInviteAdminAction,
   type InviteAdminState,
@@ -23,16 +24,7 @@ export default function ReissueInviteForm({ memberId }: { memberId: string }) {
         </button>
       </form>
       {state.error ? <small className="error">{state.error}</small> : null}
-      {state.deliveryStatus ? (
-        <div className={"adminReissueResult " + state.deliveryStatus}>
-          <span>
-            {state.deliveryStatus === "sent"
-              ? "Sağlayıcı mesajı kabul etti · inbox teslimi ayrıca doğrulanmalı"
-              : "Gönderim başarısız · kod admin arayüzünde gösterilmedi"}
-          </span>
-          {state.deliveryError ? <small>{state.deliveryError}</small> : null}
-        </div>
-      ) : null}
+      <InviteDeliveryResult state={state}/>
     </div>
   );
 }

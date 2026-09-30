@@ -1,7 +1,8 @@
 import InviteMemberForm from "@/components/admin/InviteMemberForm";
 import ReissueInviteForm from "@/components/admin/ReissueInviteForm";
 import { portalBootstrapStatus } from "@/lib/portal/bootstrap";
-import { listPortalMembers } from "@/lib/portal/db";
+import { listPortalMembers, listPortalInviteDeliveryHistory } from "@/lib/portal/db";
+import { requireAdminIdentity } from "@/lib/cms/auth";
 import { setPortalMemberStatusAdminAction } from "@/app/admin/portal-actions";
 import { portalMemberStatusLabel, portalRoleLabel } from "@/lib/portal/labels";
 import { portalMailProviderStatus } from "@/lib/portal/mail";
@@ -11,11 +12,13 @@ import MailDeliveryTestForm from "@/components/admin/MailDeliveryTestForm";
 export const dynamic = "force-dynamic";
 
 export default async function AdminMembersPage() {
+  await requireAdminIdentity();
   const status = await portalBootstrapStatus();
   const mail = portalMailProviderStatus();
-  const [members, mailDns] = await Promise.all([
+  const [members, mailDns, deliveryHistory] = await Promise.all([
     status.ready ? listPortalMembers() : Promise.resolve([]),
     getPortalMailDnsHealth(),
+    status.ready ? listPortalInviteDeliveryHistory().then(rows=>({rows,error:false})).catch(()=>({rows:[],error:true})) : Promise.resolve({rows:[],error:false}),
   ]);
 
   return (
@@ -60,7 +63,8 @@ export default async function AdminMembersPage() {
             <span>DELIVERABILITY / DOMAIN HEALTH</span>
             <h2>SPF · DKIM · DMARC</h2>
             <p>
-              Test mailinin gönderilmiş olması yalnızca alıcı sunucusuna ulaşabildiğini kanıtlar.
+              Test mailinin kendi gelen kutunda görünmesi yalnızca o adrese teslimatı doğrular.
+              Başka bir adrese gönderilen davetin teslimatı ayrıca kontrol edilmelidir.
               Bu kart, ytucore.com için alıcıların baktığı temel kimlik doğrulama DNS sinyallerini
               canlı olarak kontrol eder.
             </p>
@@ -147,7 +151,7 @@ export default async function AdminMembersPage() {
                           ? "HATA"
                           : String(member.invite_delivery_status || "") === "not_configured"
                             ? "SERVİS YOK"
-                            : "—"}
+                            : String(member.invite_delivery_status || "") === "pending" ? "SONUÇ BEKLENİYOR" : "—"}
                     </b>
                     <small>
                       {member.invite_delivery_provider ? String(member.invite_delivery_provider) : "henüz gönderim yok"}
@@ -169,6 +173,18 @@ export default async function AdminMembersPage() {
                 </article>
               );
             })}
+          </section>
+          <section className="adminInviteDeliveryHistory" aria-labelledby="invite-delivery-heading">
+            <header><h2 id="invite-delivery-heading">Davet gönderim geçmişi</h2><p>Son 30 deneme. “Sağlayıcı kabul etti” teslimat onayı değildir. Ulaşmayan mesajı alıcı adresi, saat ve takip numarasıyla sağlayıcının gönderim günlüğünde kontrol et.</p></header>
+            {deliveryHistory.error?<p role="alert">Gönderim geçmişi okunamadı. Kayıt yokmuş gibi değerlendirme; portal şemasını ve servis erişimini kontrol et.</p>:null}
+            {!deliveryHistory.error&&!deliveryHistory.rows.length?<p>Henüz davet gönderim kaydı yok.</p>:null}
+            {deliveryHistory.rows.map(item=><article key={String(item.id)}>
+              <div><b>{String(item.recipient)}</b><small>{String(item.attempted_at)} UTC · {String(item.provider)}</small></div>
+              <strong>{String(item.status)==="sent"?"Sağlayıcı kabul etti · teslimat doğrulanmadı":String(item.status)==="pending"?"Sonuç bekleniyor / doğrulanamadı":String(item.status)==="not_configured"?"Servis hazır değil":"Gönderim başarısız"}</strong>
+              {item.message_id?<div className="adminDeliveryReference"><span>Takip numarası</span><code>{String(item.message_id)}</code></div>:null}
+              {item.error?<p className="error">{String(item.error)}</p>:null}
+              {String(item.provider)==="cloudflare"?<a href="https://dash.cloudflare.com/" target="_blank" rel="noreferrer">Cloudflare → Email Service → Activity log ↗</a>:String(item.provider)==="resend"?<a href="https://resend.com/emails" target="_blank" rel="noreferrer">Resend gönderim günlüğü ↗</a>:null}
+            </article>)}
           </section>
         </>
       ) : (
