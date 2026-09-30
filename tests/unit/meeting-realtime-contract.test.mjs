@@ -10,9 +10,12 @@ test('RealtimeKit meeting transport keeps Cloudflare API token server-side',()=>
   const route=read('app/api/portal/meetings/[id]/realtime/route.ts');
   const backend=read('lib/portal/meeting-realtime.ts');
 
-  assert.match(wrangler,/"PORTAL_REALTIMEKIT_ACCOUNT_ID": ""/);
-  assert.match(wrangler,/"PORTAL_REALTIMEKIT_APP_ID": ""/);
+  assert.match(wrangler,/"keep_vars": true/);
+  assert.doesNotMatch(wrangler,/"PORTAL_REALTIMEKIT_ACCOUNT_ID"\s*:/);
+  assert.doesNotMatch(wrangler,/"PORTAL_REALTIMEKIT_APP_ID"\s*:/);
   assert.doesNotMatch(wrangler,/PORTAL_REALTIMEKIT_API_TOKEN/);
+  assert.match(types,/PORTAL_REALTIMEKIT_ACCOUNT_ID\?: string/);
+  assert.match(types,/PORTAL_REALTIMEKIT_APP_ID\?: string/);
   assert.match(types,/PORTAL_REALTIMEKIT_API_TOKEN\?: string/);
   assert.match(backend,/runtimeVar\("PORTAL_REALTIMEKIT_API_TOKEN"\)/);
   assert.match(route,/getPortalMember\(\)/);
